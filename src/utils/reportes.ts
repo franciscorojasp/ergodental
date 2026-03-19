@@ -29,7 +29,7 @@ function addHeader(doc: jsPDF, config: ConfigReporte) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('ERGODENTAL', 14, 12);
+  doc.text('ERGODENTAL', 16, 12);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
