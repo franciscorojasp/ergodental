@@ -244,6 +244,8 @@ export interface Pago {
   fecha: string;
   estado: 'Pagado' | 'Pendiente' | 'Vencido' | 'Parcial';
   notas?: string;
+  moneda?: 'USD' | 'BS';
+  referencia?: string;
   tipoReferencia?: TipoReferencia;
   referidorNombre?: string;
   doctorId?: string;
