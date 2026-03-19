@@ -350,12 +350,22 @@ export const DEMO_PROVEEDORES: Proveedor[] = [
 async function apiFetch<T>(action: string, data?: object): Promise<T> {
   if (IS_DEMO_MODE) throw new Error('DEMO');
   const url = `${APPS_SCRIPT_URL}?action=${action}`;
+  
+  // Usamos text/plain para evitar el PREFLIGHT de CORS que Apps Script no maneja.
+  // El backend en Apps Script recibirá el JSON y lo deserializará igual.
   const res = await fetch(url, {
-    method: data ? 'POST' : 'GET',
-    body: data ? JSON.stringify(data) : undefined,
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: data ? JSON.stringify(data) : JSON.stringify({}),
   });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+  
+  if (!res.ok) throw new Error(`Error de conexión: ${res.status}`);
+  const result = await res.json();
+  if (result.error) throw new Error(result.error);
+  return result;
 }
 
 // Auth
