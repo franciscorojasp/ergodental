@@ -1,5 +1,5 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MonedaProvider } from './contexts/MonedaContext';
 import { ClinicaProvider } from './contexts/ClinicaContext';
@@ -55,7 +55,7 @@ export default function App() {
       <MonedaProvider>
         <ClinicaProvider>
           <ClinicaModal />
-          <BrowserRouter>
+          <HashRouter>
             <Routes>
               {/* Rutas públicas */}
               <Route path="/login"        element={<Login />} />
@@ -98,7 +98,7 @@ export default function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </BrowserRouter>
+          </HashRouter>
         </ClinicaProvider>
       </MonedaProvider>
     </AuthProvider>
