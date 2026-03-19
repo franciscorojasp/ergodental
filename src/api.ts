@@ -349,36 +349,42 @@ export const DEMO_PROVEEDORES: Proveedor[] = [
 
 async function apiFetch<T>(action: string, data?: object): Promise<T> {
   if (IS_DEMO_MODE) throw new Error('DEMO');
-  const url = `${APPS_SCRIPT_URL}?action=${action}`;
+  
+  // Si la acción es login o un GET, intentamos con GET primero para evitar problemas de CORS POST en local
+  const isQuery = action === 'login' || !data;
+  const url = `${APPS_SCRIPT_URL}?action=${action}${isQuery && data ? '&payload=' + encodeURIComponent(JSON.stringify(data)) : ''}`;
   
   try {
-    const res = await fetch(url, {
-      method: 'POST',
+    const options: RequestInit = {
+      method: isQuery ? 'GET' : 'POST',
       mode: 'cors',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
-      },
-      body: data ? JSON.stringify(data) : JSON.stringify({}),
       redirect: 'follow'
-    });
-    
+    };
+
+    if (!isQuery) {
+      options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+      options.body = JSON.stringify(data || {});
+    }
+
+    const res = await fetch(url, options);
     const text = await res.text();
+    
     let result;
     try {
       result = JSON.parse(text);
     } catch (e) {
-      // Si no es JSON, probablemente es una página de error de Google (Autorización pendiente)
-      if (text.includes('google-signin')) {
-        throw new Error('El script requiere autorización. Abre el editor de Apps Script y ejecútalo una vez para aceptar permisos.');
+      if (text.includes('google-signin') || text.includes('Service Login')) {
+        throw new Error('Permisos de Google: Abre el script en tu navegador y autorízalo.');
       }
-      throw new Error('Respuesta no válida del servidor. Verifica la URL del script.');
+      throw new Error('La base de datos no respondió correctamente. Revisa la URL.');
     }
 
     if (result.error) throw new Error(result.error);
     return result;
   } catch (err: any) {
+    console.error('API Error:', err);
     if (err.message.includes('Failed to fetch')) {
-      throw new Error('No se pudo conectar con el servidor. Revisa tu conexión o la URL del script.');
+      throw new Error('Error de conexión. Revisa si la URL del script es correcta o si tu navegador bloquea a Google.');
     }
     throw err;
   }
