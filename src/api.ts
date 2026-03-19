@@ -351,21 +351,37 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
   if (IS_DEMO_MODE) throw new Error('DEMO');
   const url = `${APPS_SCRIPT_URL}?action=${action}`;
   
-  // Usamos text/plain para evitar el PREFLIGHT de CORS que Apps Script no maneja.
-  // El backend en Apps Script recibirá el JSON y lo deserializará igual.
-  const res = await fetch(url, {
-    method: 'POST',
-    mode: 'cors',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
-    },
-    body: data ? JSON.stringify(data) : JSON.stringify({}),
-  });
-  
-  if (!res.ok) throw new Error(`Error de conexión: ${res.status}`);
-  const result = await res.json();
-  if (result.error) throw new Error(result.error);
-  return result;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: data ? JSON.stringify(data) : JSON.stringify({}),
+      redirect: 'follow'
+    });
+    
+    const text = await res.text();
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      // Si no es JSON, probablemente es una página de error de Google (Autorización pendiente)
+      if (text.includes('google-signin')) {
+        throw new Error('El script requiere autorización. Abre el editor de Apps Script y ejecútalo una vez para aceptar permisos.');
+      }
+      throw new Error('Respuesta no válida del servidor. Verifica la URL del script.');
+    }
+
+    if (result.error) throw new Error(result.error);
+    return result;
+  } catch (err: any) {
+    if (err.message.includes('Failed to fetch')) {
+      throw new Error('No se pudo conectar con el servidor. Revisa tu conexión o la URL del script.');
+    }
+    throw err;
+  }
 }
 
 // Auth
