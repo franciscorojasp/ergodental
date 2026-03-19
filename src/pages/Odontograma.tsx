@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getPacientes, type Paciente } from '../api';
+import { getPacientes, getOdontograma, saveOdontograma, type Paciente } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 
 type EstadoPieza = 'sano' | 'caries' | 'corona' | 'extraccion' | 'endodoncia' | 'implante' | 'ausente';
@@ -17,7 +18,6 @@ const ESTADOS: { key: EstadoPieza; label: string; color: string; emoji: string }
   { key: 'ausente',    label: 'Ausente',    color: '#4a5a7a', emoji: '⬜' },
 ];
 
-// Distribución estándar: 1-16 superior, 17-32 inferior
 const SUPERIOR = Array.from({ length: 16 }, (_, i) => i + 1);
 const INFERIOR = Array.from({ length: 16 }, (_, i) => i + 17);
 
@@ -27,15 +27,43 @@ function initPiezas(): Pieza[] {
 
 export default function Odontograma() {
   const { clinica } = useClinica();
+  const [searchParams] = useSearchParams();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [piezas, setPiezas] = useState<Pieza[]>(initPiezas);
   const [selected, setSelected] = useState<number | null>(null);
   const [herramienta, setHerramienta] = useState<EstadoPieza>('caries');
-  const [pacienteId, setPacienteId] = useState('');
+  const [pacienteId, setPacienteId] = useState(searchParams.get('pacienteId') || '');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getPacientes().then(data => setPacientes(data.filter(p => p.clinicaId === clinica.id)));
   }, [clinica.id]);
+
+  const loadOdontograma = useCallback(async (id: string) => {
+    if (!id) { setPiezas(initPiezas()); return; }
+    setLoading(true);
+    try {
+      const data = await getOdontograma(id);
+      if (data) setPiezas(data.piezas);
+      else setPiezas(initPiezas());
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    loadOdontograma(pacienteId);
+  }, [pacienteId, loadOdontograma]);
+
+  const handleSave = async () => {
+    if (!pacienteId) { alert('Selecciona un paciente primero'); return; }
+    setSaving(true);
+    try {
+      await saveOdontograma({ pacienteId, piezas });
+      alert('¡Odontograma guardado con éxito!');
+    } catch (err) {
+      alert('Error al guardar el odontograma');
+    } finally { setSaving(false); }
+  };
 
   const estadoInfo = (e: EstadoPieza) => ESTADOS.find(x => x.key === e)!;
 
@@ -51,7 +79,7 @@ export default function Odontograma() {
     setPiezas(prev => prev.map(p => p.numero === selected ? { ...p, notas: nota } : p));
   };
 
-  const resetPiezas = () => { setPiezas(initPiezas()); setSelected(null); };
+  const resetPiezas = () => { if(confirm('¿Reiniciar todo el mapa dental?')) { setPiezas(initPiezas()); setSelected(null); } };
 
   const resumen = ESTADOS.map(e => ({
     ...e,
@@ -76,6 +104,12 @@ export default function Odontograma() {
         </div>
       </div>
 
+      {loading && (
+        <div className="glass" style={{ padding: '20px', textAlign: 'center', marginBottom: '20px', color: 'var(--primary)' }}>
+          Cargando odontograma del paciente...
+        </div>
+      )}
+
       {/* Herramientas */}
       <div className="glass" style={{ padding: '16px 20px', marginBottom: '20px' }}>
         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', fontWeight: 600 }}>
@@ -91,15 +125,15 @@ export default function Odontograma() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px' }}>
+      <div className="grid-responsive" style={{ gridTemplateColumns: '1fr 310px', gap: '20px', alignItems: 'start' }}>
         {/* Mapa dental */}
-        <div className="glass" style={{ padding: '24px' }}>
+        <div className="glass" style={{ padding: '24px', overflowX: 'auto' }}>
           <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
             ↑ Maxilar Superior ↑
           </div>
 
           {/* Superior: 1-16, izquierda a derecha */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px', minWidth: '680px' }}>
             {SUPERIOR.map(n => {
               const p = piezas[n - 1];
               const info = estadoInfo(p.estado);
@@ -123,14 +157,14 @@ export default function Odontograma() {
           </div>
 
           {/* Separador */}
-          <div style={{ borderTop: '1px dashed var(--border)', margin: '16px 0', position: 'relative' }}>
-            <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#111827', padding: '0 8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              ─── Línea media ───
+          <div style={{ borderTop: '1px dashed var(--border)', margin: '24px 0', position: 'relative' }}>
+            <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#111827', padding: '0 12px', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              LÍNEA MEDIA
             </span>
           </div>
 
           {/* Inferior: 17-32 */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '8px', minWidth: '680px' }}>
             {INFERIOR.map(n => {
               const p = piezas[n - 1];
               const info = estadoInfo(p.estado);
@@ -153,7 +187,7 @@ export default function Odontograma() {
             })}
           </div>
 
-          <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '16px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+          <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '24px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
             ↓ Maxilar Inferior ↓
           </div>
         </div>
@@ -165,27 +199,38 @@ export default function Odontograma() {
             <h4 style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '12px' }}>Pieza seleccionada</h4>
             {pieza ? (
               <>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: estadoInfo(pieza.estado).color, marginBottom: '4px' }}>
-                  #{pieza.numero}
-                </div>
-                <div style={{ fontSize: '0.88rem', color: estadoInfo(pieza.estado).color, marginBottom: '12px' }}>
-                  {estadoInfo(pieza.estado).emoji} {estadoInfo(pieza.estado).label}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{ 
+                    width: 50, height: 50, borderRadius: '12px', 
+                    background: `color-mix(in srgb, ${estadoInfo(pieza.estado).color} 20%, transparent)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 800,
+                    color: estadoInfo(pieza.estado).color, border: `1px solid ${estadoInfo(pieza.estado).color}`
+                  }}>
+                    {pieza.numero}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: estadoInfo(pieza.estado).color }}>{estadoInfo(pieza.estado).label}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Estado de la pieza</div>
+                  </div>
                 </div>
                 <div className="input-group">
                   <label>Notas clínicas</label>
-                  <textarea className="input" rows={3} placeholder="Observaciones..."
+                  <textarea className="input" rows={4} placeholder="Observaciones sobre esta pieza..."
                     value={pieza.notas} onChange={e => updateNota(e.target.value)}
-                    style={{ resize: 'vertical' }} />
+                    style={{ resize: 'none', fontSize: '0.88rem' }} />
                 </div>
               </>
             ) : (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Selecciona una pieza dental para ver detalles</p>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '10px', filter: 'grayscale(1)', opacity: 0.3 }}>🦷</div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Selecciona una pieza dental para ver o editar su estado</p>
+              </div>
             )}
           </div>
 
           {/* Resumen */}
-          <div className="glass" style={{ padding: '20px' }}>
-            <h4 style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '12px' }}>Resumen del Odontograma</h4>
+          <div className="glass" style={{ padding: '16px 20px' }}>
+            <h4 style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '12px' }}>Resumen</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {resumen.map(e => (
                 <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
@@ -199,8 +244,8 @@ export default function Odontograma() {
             </div>
           </div>
 
-          <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-            💾 Guardar Odontograma
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving || !pacienteId} style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
+            {saving ? '⌛ Guardando...' : '💾 Guardar Odontograma'}
           </button>
         </div>
       </div>

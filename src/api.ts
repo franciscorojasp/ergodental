@@ -370,6 +370,7 @@ export const DEMO_EGRESOS: Egreso[] = [
 
 export const DEMO_PRESUPUESTOS: Presupuesto[] = [];
 export const DEMO_RECIBOS: Recibo[] = [];
+export const DEMO_ODONTOGRAMAS: Odontograma[] = [];
 
 export const DEMO_PROVEEDORES: Proveedor[] = [
   { id: 'pv1', clinicaId: 'la-vina', nombre: 'Farmacia San Juan', tipo: 'Farmacia', rif: 'J-30123456-0', telefono: '0212-5551111', email: 'ventas@sanjuan.com', contacto: 'Sr. Gómez', direccion: 'Av. Urdaneta, LC 4', activo: true },
@@ -622,4 +623,23 @@ export async function deleteRecibo(id: string): Promise<void> {
     return;
   }
   await apiFetch('deleteRecibo', { id });
+}
+
+// Odontogramas
+export async function getOdontograma(pacienteId: string): Promise<Odontograma | null> {
+  if (IS_DEMO_MODE) {
+    return DEMO_ODONTOGRAMAS.find(o => o.pacienteId === pacienteId) || null;
+  }
+  return apiFetch<Odontograma | null>('getOdontograma', { pacienteId });
+}
+
+export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Promise<Odontograma> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_ODONTOGRAMAS.findIndex(old => old.pacienteId === o.pacienteId);
+    const nuevo: Odontograma = { ...o, id: `odont${Date.now()}`, fecha: new Date().toISOString().split('T')[0] };
+    if (idx !== -1) DEMO_ODONTOGRAMAS[idx] = nuevo;
+    else DEMO_ODONTOGRAMAS.push(nuevo);
+    return nuevo;
+  }
+  return apiFetch<Odontograma>('saveOdontograma', o);
 }

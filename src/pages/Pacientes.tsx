@@ -211,8 +211,21 @@ export default function Pacientes() {
                   </div>
                 )}
               </div>
+              {/* Botones de Acción Rápida */}
+              <div style={{ display:'flex', gap:'8px', marginTop:'20px', marginBottom:'12px' }}>
+                <button type="button" className="btn btn-primary" style={{ flex:1, justifyContent:'center' }}
+                  onClick={() => window.location.hash = `#/odontograma?pacienteId=${detalle.id}`}>
+                  🦷 Odontograma
+                </button>
+                {detalle.telefono && (
+                  <a className="btn btn-ghost" style={{ flex:1, justifyContent:'center', border:'1px solid #25D366', color:'#25D366' }}
+                    href={`https://wa.me/${detalle.telefono.replace(/\s/g, '').replace(/-/g, '')}`} target="_blank" rel="noreferrer">
+                    💬 WhatsApp
+                  </a>
+                )}
+              </div>
               <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={()=>setDetalleId(null)}>Cerrar</button>
+                <button type="button" className="btn btn-ghost" onClick={()=>setDetalleId(null)}>Cerrar</button>
               </div>
             </motion.div>
           </motion.div>
