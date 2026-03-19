@@ -2,11 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { generarAyudaPDF } from '../utils/reportes';
 
 interface HelpTopic {
   id: string;
   titulo: string;
   contenido: React.ReactNode;
+  puntos: string[]; // Resumen para PDF
   tags: string[];
 }
 
@@ -15,6 +18,12 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'general',
     titulo: 'Bienvenida a ErgoDental',
     tags: ['inicio', 'general', 'bienvenida'],
+    puntos: [
+      'ergodental es una plataforma integral para la gestión de clínicas odontológicas multi-sede.',
+      'Sedes: Cambia de sede desde el menú lateral superior. Cada sede tiene sus propios pacientes y finanzas.',
+      'Tasa BCV: Debe ingresarse al inicio del día para sincronizar precios en Bs.',
+      'Sincronización: Los datos se guardan en tiempo real en la nube.'
+    ],
     contenido: (
       <div className="help-content">
         <p><strong>ergodental</strong> es una plataforma integral para la gestión de clínicas odontológicas multi-sede.</p>
@@ -30,6 +39,11 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'configuracion',
     titulo: 'Configuración Inicial',
     tags: ['configuracion', 'ajustes', 'sedes'],
+    puntos: [
+      'Datos de la Clínica: Verifica RIF, dirección y teléfonos en Configuración.',
+      'Personal: Registra doctores y asistentes asignando roles específicos.',
+      'Inventario: Carga insumos iniciales y define niveles de alerta de stock.'
+    ],
     contenido: (
       <div className="help-content">
         <p>Pasos sugeridos para nuevos usuarios administradores:</p>
@@ -45,6 +59,11 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'dashboard',
     titulo: 'Panel de Control (Dashboard)',
     tags: ['dashboard', 'resumen', 'estadisticas'],
+    puntos: [
+      'Citas de Hoy: Listado cronológico de pacientes esperados.',
+      'Ingresos Mensuales: Resumen de recaudación en la moneda activa.',
+      'Botonera Rápida: Accesos directos para tareas frecuentes como registro de pacientes.'
+    ],
     contenido: (
       <div className="help-content">
         <p>Tu centro de mando diario.</p>
@@ -60,6 +79,11 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'citas',
     titulo: 'Agenda y Notificaciones',
     tags: ['citas', 'agenda', 'whatsapp'],
+    puntos: [
+      'Creación: Vincula pacientes existentes. Si es nuevo, regístralo primero.',
+      'WhatsApp: Generación de enlace wa.me con mensaje personalizado al guardar.',
+      'Auditoría: Revisa estados (Pendiente, Confirmada, Completada).'
+    ],
     contenido: (
       <div className="help-content">
         <p>Gestiona citas y reduce el ausentismo con recordatorios automáticos.</p>
@@ -75,6 +99,11 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'pacientes',
     titulo: 'Historias Médicas',
     tags: ['pacientes', 'historias', 'odontograma'],
+    puntos: [
+      'Buscador: Localiza pacientes por Cédula o Nombre.',
+      'Odontograma Interactivo: Registro visual de hallazgos y tratamientos por cada diente.',
+      'Historial: Revisión de citas pasadas y tratamientos realizados.'
+    ],
     contenido: (
       <div className="help-content">
         <p>El núcleo de la atención clínica.</p>
@@ -90,6 +119,11 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'finanzas',
     titulo: 'Caja y Transacciones',
     tags: ['finanzas', 'pagos', 'bolivares', 'dolares'],
+    puntos: [
+      'Registrar Pago: Cálculo automático a Bs según la tasa activa.',
+      'Métodos de Pago: Soporte para Pago Móvil, Zelle, Efectivo y Transferencias.',
+      'Egresos: Registro de consumos y pagos a terceros para balance neto.'
+    ],
     contenido: (
       <div className="help-content">
         <p>Control exacto del flujo de caja multi-moneda.</p>
@@ -105,6 +139,10 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'inventario',
     titulo: 'Control de Inventario',
     tags: ['inventario', 'insumos', 'stock'],
+    puntos: [
+      'Stock Mínimo: Alerta visual si el inventario cae por debajo del límite.',
+      'Proveedores: Vincular compras a proveedores para histórico de costos.'
+    ],
     contenido: (
       <div className="help-content">
         <p>Evita quedarte sin materiales críticos.</p>
@@ -119,6 +157,11 @@ const HELP_DATABASE: HelpTopic[] = [
     id: 'faq',
     titulo: 'Preguntas Frecuentes',
     tags: ['faq', 'dudas', 'errores'],
+    puntos: [
+      'Cambio de Tasa: Solo Administradores pueden actualizarla.',
+      'Internet: Se requiere conexión constante para sincronizar con Google Sheets.',
+      'Visibilidad: Si no ves pacientes, asegúrate de estar en la sede correcta.'
+    ],
     contenido: (
       <div className="help-content">
         <p><strong>¿Cómo cambio la tasa si me equivoqué?</strong> Solo un Administrador puede actualizar la tasa desde "Configuración" o el Dashboard.</p>
@@ -134,6 +177,7 @@ export default function HelpCenter() {
   const [search, setSearch] = useState('');
   const [activeTopic, setActiveTopic] = useState<HelpTopic | null>(null);
   const location = useLocation();
+  const { user } = useAuth();
 
   // Sugerir tema según la ruta actual
   useEffect(() => {
@@ -141,6 +185,14 @@ export default function HelpCenter() {
     const suggested = HELP_DATABASE.find(t => t.tags.includes(path)) || HELP_DATABASE[0];
     setActiveTopic(suggested);
   }, [location]);
+
+  const handleDownloadPDF = () => {
+    if (!activeTopic) return;
+    generarAyudaPDF({
+      titulo: activeTopic.titulo,
+      puntos: activeTopic.puntos
+    }, user?.nombre);
+  };
 
   const filteredTopics = HELP_DATABASE.filter(t => 
     t.titulo.toLowerCase().includes(search.toLowerCase()) || 
@@ -209,7 +261,7 @@ export default function HelpCenter() {
 
             <div className="help-footer">
               <span>Versión 2.0.4 - ErgoDental</span>
-              <button type="button" className="btn-link" onClick={() => window.print()}>Imprimir Guía</button>
+              <button type="button" className="btn-link" onClick={handleDownloadPDF}>Descargar PDF</button>
             </div>
           </motion.div>
         )}

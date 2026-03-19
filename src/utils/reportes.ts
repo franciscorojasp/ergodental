@@ -133,6 +133,45 @@ export function generarReportePDF(config: ConfigReporte): void {
   doc.save(filename);
 }
 
+export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+  
+  // Reutilizamos el header con una config mínima
+  addHeader(doc, { 
+    titulo: topic.titulo, 
+    subtitulo: 'Guía de Ayuda ErgoDental',
+    usuario,
+    columnas: [], filas: [] 
+  });
+
+  const W = doc.internal.pageSize.getWidth();
+  let currentY = 65;
+
+  doc.setFontSize(11);
+  doc.setTextColor(40, 40, 40);
+  doc.setFont('helvetica', 'normal');
+
+  topic.puntos.forEach(punto => {
+    // Si el punto es muy largo, lo dividimos
+    const lines = doc.splitTextToSize(`• ${punto}`, W - 28);
+    
+    // Verificar si necesitamos nueva página
+    if (currentY + (lines.length * 6) > 260) {
+      doc.addPage();
+      addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] });
+      currentY = 65;
+    }
+
+    doc.text(lines, 14, currentY);
+    currentY += (lines.length * 7);
+  });
+
+  addFooter(doc);
+  
+  const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`;
+  doc.save(filename);
+}
+
 // ── Helpers de formato rápido para tablas ─────────────────────────────────────
 export const fmtUSD = (n: number) => `$${n.toFixed(2)}`;
 export const fmtBS  = (n: number, tasa: number) => `Bs ${(n * tasa).toLocaleString('es-VE', {maximumFractionDigits: 0})}`;
