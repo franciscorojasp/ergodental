@@ -29,6 +29,7 @@
   --text-muted:     #4a5a7a;
 
   --sidebar-w:      260px;
+  --header-h:       60px;
   --radius:         14px;
   --radius-sm:      8px;
   --shadow:         0 8px 32px rgba(0,0,0,0.4);
@@ -213,10 +214,40 @@ tbody td { padding: 14px 16px; font-size: 0.88rem; color: var(--text-primary); }
   margin-left: var(--sidebar-w);
   padding: 32px;
   min-height: 100vh;
-  transition: margin-left var(--transition);
+  transition: all var(--transition);
 }
+
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  height: var(--header-h);
+  background: rgba(10, 15, 30, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+@media (max-width: 992px) {
+  :root { --sidebar-w: 240px; }
+  .page-content { padding: 24px; }
+}
+
 @media (max-width: 768px) {
-  .page-content { margin-left: 0; padding: 20px; }
+  .page-content { 
+    margin-left: 0; 
+    padding: 20px; 
+    padding-top: 16px;
+  }
+  .mobile-header { display: flex; }
+  .desktop-only { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-only { display: none !important; }
 }
 
 .page-header {
@@ -272,4 +303,30 @@ tbody td { padding: 14px 16px; font-size: 0.88rem; color: var(--text-primary); }
 .flex { display: flex; }
 .items-center { align-items: center; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+.grid-responsive { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 20px; 
+}
+
+@media (max-width: 600px) { 
+  .grid-2 { grid-template-columns: 1fr; }
+  .page-header h1 { font-size: 1.35rem; }
+  .btn { padding: 8px 16px; font-size: 0.82rem; }
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
+  z-index: 95;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}

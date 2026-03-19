@@ -84,14 +84,14 @@ export default function Pacientes() {
 
       {/* Filtros */}
       <div className="glass" style={{ padding:'14px 18px', marginBottom:'18px', display:'flex', gap:'12px', alignItems:'center', flexWrap:'wrap' }}>
-        <div className="search-wrap" style={{ flex:1, minWidth:'200px' }}>
+        <div className="search-wrap" style={{ flex:'1 1 300px' }}>
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre, cédula o correo..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', flex:'1 1 auto', justifyContent:'flex-start' }}>
           {filtros.map(f => (
             <button key={f} onClick={() => setFiltroRef(f)} className="btn btn-ghost btn-sm"
-              style={filtroRef === f ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)' } : {}}>
+              style={filtroRef === f ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', flex:'1 1 auto' } : { flex:'1 1 auto' }}>
               {f}
             </button>
           ))}
@@ -189,7 +189,7 @@ export default function Pacientes() {
                   <div style={{ marginTop:'12px', background:'var(--primary-dim)', border:'1px solid var(--primary)', borderRadius:'var(--radius-sm)', padding:'12px 14px' }}>
                     <div style={{ fontWeight:700, fontSize:'0.82rem', color:'var(--primary)', marginBottom:'8px' }}>🔗 Referencia — {reglaDetalle.label}</div>
                     <div style={{ fontSize:'0.8rem', color:'var(--text-secondary)', marginBottom:'6px' }}>{reglaDetalle.descripcion}</div>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', margin:'8px 0' }}>
+                    <div className="grid-responsive" style={{ gap:'8px', margin:'8px 0' }}>
                       {[
                         { label:'🏥 Clínica', pct: reglaDetalle.pctClinica, color:'var(--primary)' },
                         { label:'💰 Foráneo', pct: reglaDetalle.pctForaneo, color:'var(--warning)' },
@@ -261,7 +261,7 @@ export default function Pacientes() {
 
                     {/* Preview de porcentajes */}
                     {reglaForm && (
-                      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', margin:'10px 0' }}>
+                      <div className="grid-responsive" style={{ gap:'8px', margin:'10px 0' }}>
                         {[
                           { label:'🏥 Clínica', pct: reglaForm.pctClinica, color:'var(--primary)' },
                           { label:'💰 Foráneo', pct: reglaForm.pctForaneo, color:'var(--warning)' },

@@ -22,21 +22,54 @@ import TasaBCV from './pages/TasaBCV';
 import ConfiguracionClinica from './pages/ConfiguracionClinica';
 import { ROL_HOME } from './permissions';
 
+import { useState, useEffect } from 'react';
+
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
+
+  // Cerrar sidebar automáticamente al cambiar a móvil si estaba abierto
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) setSidebarOpen(true);
+      else setSidebarOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'var(--text-secondary)' }}>
       Cargando...
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
+
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
       {/* Modales globales */}
       <TasaModal />
       <HelpCenter />
-      <main className="page-content">{children}</main>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Header para móvil */}
+        <header className="mobile-header">
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            style={{ 
+              background:'none', border:'none', color:'var(--text-primary)', 
+              fontSize:'1.5rem', cursor:'pointer', padding:'8px', marginLeft:'-8px' 
+            }}
+          >
+            ☰
+          </button>
+          <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodental</div>
+        </header>
+
+        <main className="page-content">{children}</main>
+      </div>
     </div>
   );
 }

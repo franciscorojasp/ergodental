@@ -97,7 +97,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="stats-grid">
+      <div className="grid-responsive" style={{ marginBottom: '28px' }}>
         {[
           { label:'Pacientes',             value: totalPac,                        icon:'🦷', color:'var(--primary)' },
           { label:`Citas (${periodo})`,    value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
@@ -107,13 +107,13 @@ export default function Dashboard() {
         ].map((s,i) => (
           <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.09}}>
             <div className="stat-icon" style={{background:`color-mix(in srgb,${s.color} 15%,transparent)`}}>{s.icon}</div>
-            <div className="stat-value" style={{color:s.color,fontSize:'1.35rem'}}>{s.value}</div>
+            <div className="stat-value" style={{color:s.color,fontSize:'clamp(1.2rem, 4vw, 1.8rem)'}}>{s.value}</div>
             <div className="stat-label">{s.label}</div>
           </motion.div>
         ))}
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px' }}>
+      <div className="grid-responsive">
         {/* Citas de hoy */}
         <motion.div className="glass" style={{padding:'24px'}} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4}}>
           <h3 style={{fontWeight:700,marginBottom:'16px',display:'flex',alignItems:'center',gap:'8px'}}>

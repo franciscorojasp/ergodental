@@ -78,12 +78,12 @@ export default function Inventario() {
 
       {/* Filtros */}
       <div className="glass" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div className="search-wrap" style={{ flex: 1, minWidth: '200px' }}>
+        <div className="search-wrap" style={{ flex: '1 1 300px' }}>
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar producto o categoría..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
         <button className="btn btn-ghost btn-sm" onClick={() => setFiltroAlerta(!filtroAlerta)}
-          style={filtroAlerta ? { borderColor: 'var(--warning)', color: 'var(--warning)', background: 'var(--warning-dim)' } : {}}>
+          style={filtroAlerta ? { borderColor: 'var(--warning)', color: 'var(--warning)', background: 'var(--warning-dim)', flex: '1 1 auto' } : { flex: '1 1 auto' }}>
           ⚠️ Solo alertas
         </button>
       </div>

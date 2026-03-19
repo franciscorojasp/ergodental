@@ -69,14 +69,14 @@ export default function Personal() {
 
       {/* Filtros + búsqueda */}
       <div className="glass" style={{ padding: '20px', marginBottom: '20px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <div className="search-wrap" style={{ flex: '1', minWidth: '200px' }}>
+        <div className="search-wrap" style={{ flex: '1 1 300px' }}>
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre o especialidad..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: '1 1 auto' }}>
           {tipos.map(t => (
             <button key={t} onClick={() => setFiltroTipo(t)} className="btn btn-ghost btn-sm"
-              style={filtroTipo === t ? { borderColor: 'var(--primary)', color: 'var(--primary)', background: 'var(--primary-dim)' } : {}}>
+              style={filtroTipo === t ? { borderColor: 'var(--primary)', color: 'var(--primary)', background: 'var(--primary-dim)', flex: '1 1 auto' } : { flex: '1 1 auto' }}>
               {t}
             </button>
           ))}
@@ -84,7 +84,7 @@ export default function Personal() {
       </div>
 
       {/* Tarjetas de personal */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+      <div className="grid-responsive" style={{ gap: '16px' }}>
         {filtrado.map((p, i) => (
           <motion.div
             key={p.id}
@@ -92,7 +92,7 @@ export default function Personal() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            style={{ padding: '20px', cursor: 'pointer', transition: 'var(--transition)' }}
+            style={{ padding: '20px', cursor: 'pointer' }}
             onClick={() => setDetalleId(p.id)}
             whileHover={{ scale: 1.02, transition: { duration: 0.15 } }}
           >

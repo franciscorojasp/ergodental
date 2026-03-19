@@ -144,7 +144,7 @@ export default function Citas() {
       <div style={{ display:'flex', gap:'6px', marginBottom:'18px', flexWrap:'wrap' }}>
         {(['Todos','Pendiente','Confirmada','Completada','Cancelada'] as const).map(e => (
           <button key={e} onClick={() => setFiltroEstado(e)} className="btn btn-ghost btn-sm"
-            style={filtroEstado === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)' } : {}}>
+            style={filtroEstado === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', flex:'1 1 auto' } : { flex:'1 1 auto' }}>
             {e}
           </button>
         ))}
@@ -227,7 +227,7 @@ export default function Citas() {
                   )}
                 </div>
                 
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+                <div className="grid-responsive" style={{ gap:'16px' }}>
                   {[
                     ['📅 Fecha/Hora', `${detalle.fecha} ${detalle.hora}`],
                     ['🦷 Paciente', detalle.pacienteNombre],

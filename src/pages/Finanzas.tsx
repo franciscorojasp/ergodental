@@ -307,7 +307,7 @@ export default function Finanzas(){
       </div>
 
       {/* Stat cards */}
-      <div className="stats-grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(155px,1fr))',marginBottom:'22px'}}>
+      <div className="grid-responsive" style={{ marginBottom:'22px' }}>
         {[
           {label:`Ingresos (${periodo})`,  value: fmt(totalIngresos, 0),          icon:'💰',color:'var(--success)'},
           {label:`Egresos (${periodo})`,   value: fmt(totalEgresos, 0),            icon:'💸',color:'var(--danger)'},
@@ -336,7 +336,7 @@ export default function Finanzas(){
 
       {/* ── RESUMEN ── */}
       {tab==='resumen'&&(
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'18px'}}>
+        <div className="grid-responsive" style={{ gap:'18px' }}>
           <motion.div className="glass" style={{padding:'20px'}} initial={{opacity:0}} animate={{opacity:1}}>
             <h3 style={{fontWeight:700,marginBottom:'12px'}}>💳 Por método de pago</h3>
             {Object.entries(pagosFiltrados.reduce((acc,p)=>({...acc,[p.metodoPago]:(acc[p.metodoPago]||0)+p.monto}),{} as Record<string,number>))

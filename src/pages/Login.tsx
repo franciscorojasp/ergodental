@@ -84,7 +84,7 @@ export default function Login() {
               <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', fontWeight:600 }}>
                 <span>⚡</span> Modo Demo — selecciona un perfil:
               </div>
-              <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+              <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', justifyContent:'center' }}>
                 {DEMO_ACCOUNTS.map(acc => (
                   <button key={acc.email} onClick={() => fillDemo(acc.email)}
                     style={{
@@ -93,6 +93,7 @@ export default function Login() {
                       border: '1px solid var(--warning)', borderRadius: '6px',
                       padding: '4px 10px', cursor: 'pointer',
                       fontSize: '0.78rem', fontWeight: 600, transition: 'var(--transition)',
+                      flex: '1 1 auto', textAlign: 'center'
                     }}>
                     {acc.label}
                   </button>
