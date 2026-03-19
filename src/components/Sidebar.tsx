@@ -67,8 +67,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               <div style={{ fontWeight:800, fontSize:'1rem', letterSpacing:'-0.3px' }}>Ergodental</div>
               <div style={{ fontSize:'0.72rem', color:'var(--text-secondary)', fontWeight:500 }}>Sistema de Gestión</div>
             </div>
-            {/* Botón cerrar en móvil */}
-            <button className="mobile-only btn-close" onClick={onClose} style={{ fontSize:'1.1rem' }}>✕</button>
+            {/* Botón cerrar */}
+            <button className="btn-close" onClick={onClose} style={{ fontSize:'1.1rem' }}>✕</button>
           </div>
 
           {/* Selector de Clínica */}

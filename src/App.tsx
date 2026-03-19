@@ -54,8 +54,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <HelpCenter />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        {/* Header para móvil */}
-        <header className="mobile-header">
+        {/* Header - Siempre visible en móvil, o en desktop si el sidebar está cerrado */}
+        <header className={`mobile-header ${!sidebarOpen ? 'force-flex' : ''}`}>
           <button 
             onClick={() => setSidebarOpen(true)}
             style={{ 
@@ -65,10 +65,10 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
           >
             ☰
           </button>
-          <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodental</div>
+          {!sidebarOpen && <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodental</div>}
         </header>
 
-        <main className="page-content">{children}</main>
+        <main className={`page-content ${!sidebarOpen ? 'full-width' : ''}`}>{children}</main>
       </div>
     </div>
   );
