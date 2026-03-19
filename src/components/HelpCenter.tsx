@@ -152,6 +152,7 @@ export default function HelpCenter() {
       {/* Botón Flotante */}
       <motion.button 
         className="help-fab"
+        type="button"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
@@ -180,10 +181,11 @@ export default function HelpCenter() {
             </div>
 
             <div className="help-body">
-              <div className="help-sidebar-items">
+              <div className={`help-sidebar-items ${activeTopic ? 'mobile-hide' : ''}`}>
                 {filteredTopics.map(topic => (
                   <button 
                     key={topic.id}
+                    type="button"
                     className={`help-nav-item ${activeTopic?.id === topic.id ? 'active' : ''}`}
                     onClick={() => setActiveTopic(topic)}
                   >
@@ -192,9 +194,10 @@ export default function HelpCenter() {
                 ))}
               </div>
 
-              <div className="help-main-content">
+              <div className={`help-main-content ${!activeTopic ? 'mobile-hide' : ''}`}>
                 {activeTopic ? (
                   <>
+                    <button type="button" className="mobile-only help-back-btn" onClick={() => setActiveTopic(null)}>← Volver a la lista</button>
                     <h4>{activeTopic.titulo}</h4>
                     {activeTopic.contenido}
                   </>
@@ -206,7 +209,7 @@ export default function HelpCenter() {
 
             <div className="help-footer">
               <span>Versión 2.0.4 - ErgoDental</span>
-              <button className="btn-link" onClick={() => window.print()}>Imprimir Guía</button>
+              <button type="button" className="btn-link" onClick={() => window.print()}>Imprimir Guía</button>
             </div>
           </motion.div>
         )}
@@ -301,6 +304,17 @@ export default function HelpCenter() {
         .help-nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
         .help-nav-item.active { background: #00c6ff; color: white; }
 
+        .help-back-btn {
+          background: none;
+          border: none;
+          color: #00c6ff;
+          padding: 0;
+          margin-bottom: 12px;
+          font-size: 0.85rem;
+          cursor: pointer;
+          display: none;
+        }
+
         .help-main-content {
           flex: 1;
           padding: 20px;
@@ -333,8 +347,10 @@ export default function HelpCenter() {
         }
 
         @media (max-width: 600px) {
-          .help-sidebar-items { display: none; }
-          .help-panel { height: 400px; }
+          .mobile-hide { display: none !important; }
+          .help-sidebar-items { width: 100%; border-right: none; }
+          .help-panel { height: 450px; }
+          .help-back-btn { display: block; }
         }
       `}</style>
     </>
