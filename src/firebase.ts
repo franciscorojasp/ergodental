@@ -1,4 +1,4 @@
-// firebase.ts
+// firebase.ts - v1.0.1 (Force redeploy)
 // Se inicializa con variables de entorno. Si no están configuradas,
 // la app funciona en MODO DEMO con datos locales.
 
