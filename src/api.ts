@@ -449,10 +449,28 @@ export async function getPacientes(): Promise<Paciente[]> {
 export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>): Promise<Paciente> {
   if (IS_DEMO_MODE) {
     const nuevo: Paciente = { ...p, id: `pac${Date.now()}`, fechaRegistro: new Date().toISOString().split('T')[0] };
-    DEMO_PACIENTES.push(nuevo);
+    DEMO_PACIENTES.unshift(nuevo);
     return nuevo;
   }
   return apiFetch<Paciente>('createPaciente', p);
+}
+
+export async function updatePaciente(p: Partial<Paciente> & { id: string }): Promise<Paciente> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_PACIENTES.findIndex(x => x.id === p.id);
+    if (idx !== -1) DEMO_PACIENTES[idx] = { ...DEMO_PACIENTES[idx], ...p };
+    return DEMO_PACIENTES[idx];
+  }
+  return apiFetch<Paciente>('updatePaciente', p);
+}
+
+export async function deletePaciente(id: string): Promise<void> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_PACIENTES.findIndex(x => x.id === id);
+    if (idx !== -1) DEMO_PACIENTES.splice(idx, 1);
+    return;
+  }
+  await apiFetch('deletePaciente', { id });
 }
 
 // Personal
@@ -464,10 +482,28 @@ export async function getPersonal(): Promise<Personal[]> {
 export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal> {
   if (IS_DEMO_MODE) {
     const nuevo: Personal = { ...p, id: `per${Date.now()}` };
-    DEMO_PERSONAL.push(nuevo);
+    DEMO_PERSONAL.unshift(nuevo);
     return nuevo;
   }
   return apiFetch<Personal>('createPersonal', p);
+}
+
+export async function updatePersonal(p: Partial<Personal> & { id: string }): Promise<Personal> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_PERSONAL.findIndex(x => x.id === p.id);
+    if (idx !== -1) DEMO_PERSONAL[idx] = { ...DEMO_PERSONAL[idx], ...p };
+    return DEMO_PERSONAL[idx];
+  }
+  return apiFetch<Personal>('updatePersonal', p);
+}
+
+export async function deletePersonal(id: string): Promise<void> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_PERSONAL.findIndex(x => x.id === id);
+    if (idx !== -1) DEMO_PERSONAL.splice(idx, 1);
+    return;
+  }
+  await apiFetch('deletePersonal', { id });
 }
 
 // Citas
@@ -478,11 +514,29 @@ export async function getCitas(): Promise<Cita[]> {
 
 export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
   if (IS_DEMO_MODE) {
-    const nueva: Cita = { ...c, id: `cita${Date.now()}` };
-    DEMO_CITAS.push(nueva);
+    const nueva: Cita = { ...c, id: `cit${Date.now()}` };
+    DEMO_CITAS.unshift(nueva);
     return nueva;
   }
   return apiFetch<Cita>('createCita', c);
+}
+
+export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cita> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_CITAS.findIndex(x => x.id === c.id);
+    if (idx !== -1) DEMO_CITAS[idx] = { ...DEMO_CITAS[idx], ...c };
+    return DEMO_CITAS[idx];
+  }
+  return apiFetch<Cita>('updateCita', c);
+}
+
+export async function deleteCita(id: string): Promise<void> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_CITAS.findIndex(x => x.id === id);
+    if (idx !== -1) DEMO_CITAS.splice(idx, 1);
+    return;
+  }
+  await apiFetch('deleteCita', { id });
 }
 
 // Inventario

@@ -1,12 +1,13 @@
 // src/pages/Pacientes.tsx
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  getPacientes, createPaciente, type Paciente, type TipoReferencia,
-  TABLA_REFERENCIAS,
+import { 
+  getPacientes, createPaciente, updatePaciente, deletePaciente, 
+  type Paciente, type TipoReferencia, TABLA_REFERENCIAS 
 } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 import RoleGuard from '../components/RoleGuard';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const REF_BADGE: Record<TipoReferencia, string> = {
   'Profesional-Especialista': 'badge-doctor',
@@ -15,14 +16,14 @@ const REF_BADGE: Record<TipoReferencia, string> = {
   'Foraneo-10':               'badge-asistente',
 };
 
-function calcularEdad(fechaNacimiento: string): number | string {
+function calcularEdad(fechaNacimiento: string): string {
   if (!fechaNacimiento) return '—';
   const hoy = new Date();
   const nac = new Date(fechaNacimiento + 'T12:00:00');
   if (isNaN(nac.getTime())) return '—';
   let edad = hoy.getFullYear() - nac.getFullYear();
   if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) edad--;
-  return edad;
+  return `${edad} años`;
 }
 
 export default function Pacientes() {
@@ -33,18 +34,78 @@ export default function Pacientes() {
   const [modal, setModal]             = useState(false);
   const [detalleId, setDetalleId]     = useState<string | null>(null);
   const [saving, setSaving]           = useState(false);
+  const [editingId, setEditingId]     = useState<string | null>(null);
+  const [deletingId, setDeletingId]   = useState<string | null>(null);
 
-  const [form, setForm] = useState<Omit<Paciente, 'id' | 'fechaRegistro'>>({
+  const initForm = {
     clinicaId: clinica.id,
     nombre: '', apellido: '', cedula: '', fechaNacimiento: '', telefono: '',
     email: '', direccion: '',
-    tipoReferencia: 'Paciente-Clinica',
+    tipoReferencia: 'Paciente-Clinica' as TipoReferencia,
     referidorNombre: '', referidorContacto: '',
-  });
+  };
+
+  const [form, setForm] = useState(initForm);
 
   useEffect(() => { 
     getPacientes().then(data => setPacientes(data.filter(p => p.clinicaId === clinica.id))); 
   }, [clinica.id]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingId) {
+      const existe = pacientes.find(p => p.cedula.trim().toLowerCase() === form.cedula.trim().toLowerCase());
+      if (existe) {
+        alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}. No se permiten duplicados.`);
+        return;
+      }
+    }
+
+    setSaving(true);
+    try {
+      if (editingId) {
+        const actualizado = await updatePaciente({ ...form, id: editingId });
+        setPacientes(prev => prev.map(p => p.id === editingId ? actualizado : p));
+      } else {
+        const nuevo = await createPaciente(form);
+        setPacientes(prev => [nuevo, ...prev]);
+      }
+      closeModal();
+    } catch (err) {
+      alert('Error al guardar el paciente');
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    try {
+      await deletePaciente(deletingId);
+      setPacientes(prev => prev.filter(p => p.id !== deletingId));
+      setDeletingId(null);
+    } catch (err) { alert('Error al eliminar'); }
+  };
+
+  const openEdit = (p: Paciente) => {
+    setEditingId(p.id);
+    setForm({
+      clinicaId: p.clinicaId,
+      nombre: p.nombre, apellido: p.apellido, cedula: p.cedula,
+      fechaNacimiento: p.fechaNacimiento || '',
+      telefono: p.telefono || '', email: p.email || '',
+      direccion: p.direccion || '',
+      tipoReferencia: p.tipoReferencia || 'Paciente-Clinica',
+      referidorNombre: p.referidorNombre || '',
+      referidorContacto: p.referidorContacto || '',
+    });
+    setModal(true);
+  };
+
+  const closeModal = () => {
+    setModal(false);
+    setEditingId(null);
+    setForm(initForm);
+  };
 
   const filtros = ['Todos', ...TABLA_REFERENCIAS.map(r => r.label)];
   const filtrado = pacientes.filter(p => {
@@ -52,16 +113,6 @@ export default function Pacientes() {
     const matchRef = filtroRef === 'Todos' || TABLA_REFERENCIAS.find(r => r.label === filtroRef)?.tipo === p.tipoReferencia;
     return matchBusq && matchRef;
   });
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault(); setSaving(true);
-    try {
-      const nuevo = await createPaciente(form);
-      setPacientes(prev => [nuevo, ...prev]);
-      setModal(false);
-      setForm({ clinicaId: clinica.id, nombre:'', apellido:'', cedula:'', fechaNacimiento:'', telefono:'', email:'', direccion:'', tipoReferencia:'Paciente-Clinica', referidorNombre:'', referidorContacto:'' });
-    } finally { setSaving(false); }
-  };
 
   const detalle = pacientes.find(p => p.id === detalleId);
   const reglaDetalle = detalle?.tipoReferencia ? TABLA_REFERENCIAS.find(r => r.tipo === detalle.tipoReferencia) : null;
@@ -82,7 +133,6 @@ export default function Pacientes() {
         </RoleGuard>
       </div>
 
-      {/* Filtros */}
       <div className="glass" style={{ padding:'14px 18px', marginBottom:'18px', display:'flex', gap:'12px', alignItems:'center', flexWrap:'wrap' }}>
         <div className="search-wrap" style={{ flex:'1 1 300px' }}>
           <span className="search-icon">🔍</span>
@@ -98,25 +148,24 @@ export default function Pacientes() {
         </div>
       </div>
 
-      {/* Tabla */}
       <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
         <div className="table-wrap">
           <table>
             <thead><tr>
-              <th>Paciente</th><th>Cédula</th><th>Edad</th><th>Teléfono</th><th>Referido por</th><th>Referidor</th>
+              <th>Paciente</th><th>Cédula</th><th>Edad</th><th>Teléfono</th><th>Referido por</th><th>Acciones</th>
             </tr></thead>
             <tbody>
               {filtrado.map((p, i) => {
                 const regla = TABLA_REFERENCIAS.find(r => r.tipo === p.tipoReferencia);
                 return (
-                  <motion.tr key={p.id} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}
-                    style={{ cursor:'pointer' }} onClick={() => setDetalleId(p.id)}>
-                    <td>
+                  <motion.tr key={p.id} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}>
+                    <td onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                         <div style={{
                           width:34, height:34, borderRadius:'50%', flexShrink:0,
-                          background:'linear-gradient(135deg, var(--primary), var(--accent))',
+                          background: 'linear-gradient(135deg, var(--primary), var(--accent))',
                           display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'0.82rem',
+                          color: '#fff'
                         }}>{p.nombre.charAt(0)}{p.apellido.charAt(0)}</div>
                         <div>
                           <div style={{ fontWeight:600 }}>{p.nombre} {p.apellido}</div>
@@ -124,30 +173,21 @@ export default function Pacientes() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ color:'var(--text-secondary)' }}>{p.cedula}</td>
-                    <td style={{ fontWeight:600 }}>
-                      {(() => {
-                        const edad = calcularEdad(p.fechaNacimiento);
-                        return typeof edad === 'number' ? `${edad} años` : edad;
-                      })()}
-                    </td>
+                    <td>{p.cedula}</td>
+                    <td>{calcularEdad(p.fechaNacimiento)}</td>
                     <td>{p.telefono}</td>
                     <td>
-                      {regla ? (
-                        <span className={`badge ${REF_BADGE[p.tipoReferencia!]}`} style={{ fontSize:'0.72rem' }}>
-                          {regla.label}
-                        </span>
-                      ) : <span className="badge badge-muted">—</span>}
+                      {regla ? <span className={`badge ${REF_BADGE[p.tipoReferencia!]}`}>{regla.label}</span> : <span className="badge badge-muted">—</span>}
                     </td>
-                    <td style={{ color:'var(--text-secondary)', fontSize:'0.84rem' }}>
-                      {p.referidorNombre || '—'}
+                    <td>
+                      <div style={{ display:'flex', gap:'6px' }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)} title="Editar">✏️</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setDeletingId(p.id)} style={{ color:'var(--danger)' }} title="Eliminar">🗑️</button>
+                      </div>
                     </td>
                   </motion.tr>
                 );
               })}
-              {filtrado.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)' }}>Sin resultados</td></tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -164,65 +204,31 @@ export default function Pacientes() {
                 <button className="btn-close" onClick={()=>setDetalleId(null)}>✕</button>
               </div>
               <div className="modal-body">
-                <div style={{ display:'flex', gap:'8px', marginBottom:'8px', flexWrap:'wrap' }}>
-                  {reglaDetalle && <span className={`badge ${REF_BADGE[detalle.tipoReferencia!]}`}>{reglaDetalle.label}</span>}
-                </div>
                 {[
                   ['🪪 Cédula', detalle.cedula],
-                  ['🎂 Edad', (() => {
-                    const edad = calcularEdad(detalle.fechaNacimiento);
-                    return typeof edad === 'number' ? `${edad} años` : edad;
-                  })()],
+                  ['🎂 Edad', calcularEdad(detalle.fechaNacimiento)],
                   ['📞 Teléfono', detalle.telefono],
                   ['✉️ Email', detalle.email],
                   ['📍 Dirección', detalle.direccion],
-                  ['📅 Registro', detalle.fechaRegistro],
                 ].map(([label, value]) => (
                   <div key={label as string} style={{ padding:'9px 0', borderBottom:'1px solid var(--border)' }}>
                     <div style={{ fontSize:'0.73rem', color:'var(--text-muted)', textTransform:'uppercase' }}>{label}</div>
                     <div style={{ fontSize:'0.9rem', fontWeight:500 }}>{value}</div>
                   </div>
                 ))}
-
-                {/* Sección de referencia */}
-                {reglaDetalle && (
-                  <div style={{ marginTop:'12px', background:'var(--primary-dim)', border:'1px solid var(--primary)', borderRadius:'var(--radius-sm)', padding:'12px 14px' }}>
-                    <div style={{ fontWeight:700, fontSize:'0.82rem', color:'var(--primary)', marginBottom:'8px' }}>🔗 Referencia — {reglaDetalle.label}</div>
-                    <div style={{ fontSize:'0.8rem', color:'var(--text-secondary)', marginBottom:'6px' }}>{reglaDetalle.descripcion}</div>
-                    <div className="grid-responsive" style={{ gap:'8px', margin:'8px 0' }}>
-                      {[
-                        { label:'🏥 Clínica', pct: reglaDetalle.pctClinica, color:'var(--primary)' },
-                        { label:'💰 Foráneo', pct: reglaDetalle.pctForaneo, color:'var(--warning)' },
-                        { label:'👨‍⚕️ Profesional', pct: reglaDetalle.pctProfesional, color:'var(--success)' },
-                      ].map(col => (
-                        <div key={col.label} style={{ textAlign:'center', background:'rgba(0,0,0,0.2)', borderRadius:'6px', padding:'8px' }}>
-                          <div style={{ fontSize:'0.7rem', color:'var(--text-muted)' }}>{col.label}</div>
-                          <div style={{ fontWeight:800, color:col.color, fontSize:'1rem' }}>{col.pct}%</div>
-                        </div>
-                      ))}
-                    </div>
-                    {detalle.referidorNombre && (
-                      <div style={{ fontSize:'0.82rem', marginTop:'6px' }}>
-                        <span style={{ color:'var(--text-muted)' }}>Referidor: </span>
-                        <strong>{detalle.referidorNombre}</strong>
-                        {detalle.referidorContacto && <span style={{ color:'var(--text-secondary)' }}> · {detalle.referidorContacto}</span>}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {/* Botones de Acción Rápida */}
-              <div style={{ display:'flex', gap:'8px', marginTop:'20px', marginBottom:'12px' }}>
-                <button type="button" className="btn btn-primary" style={{ flex:1, justifyContent:'center' }}
-                  onClick={() => window.location.hash = `#/odontograma?pacienteId=${detalle.id}`}>
-                  🦷 Odontograma
-                </button>
-                {detalle.telefono && (
-                  <a className="btn btn-ghost" style={{ flex:1, justifyContent:'center', border:'1px solid #25D366', color:'#25D366' }}
-                    href={`https://wa.me/${detalle.telefono.replace(/\s/g, '').replace(/-/g, '')}`} target="_blank" rel="noreferrer">
-                    💬 WhatsApp
-                  </a>
-                )}
+                
+                <div style={{ display:'flex', gap:'8px', marginTop:'20px', marginBottom:'12px' }}>
+                  <button type="button" className="btn btn-primary" style={{ flex:1, justifyContent:'center' }}
+                    onClick={() => window.location.hash = `#/odontograma?pacienteId=${detalle.id}`}>
+                    🦷 Odontograma
+                  </button>
+                  {detalle.telefono && (
+                    <a className="btn btn-ghost" style={{ flex:1, justifyContent:'center', border:'1px solid #25D366', color:'#25D366' }}
+                      href={`https://wa.me/${detalle.telefono.replace(/\s/g, '').replace(/-/g, '')}`} target="_blank" rel="noreferrer">
+                      💬 WhatsApp
+                    </a>
+                  )}
+                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={()=>setDetalleId(null)}>Cerrar</button>
@@ -232,15 +238,14 @@ export default function Pacientes() {
         )}
       </AnimatePresence>
 
-      {/* Modal nuevo paciente */}
       <AnimatePresence>
         {modal && (
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-            onClick={e=>e.target===e.currentTarget&&setModal(false)}>
+            onClick={e=>e.target===e.currentTarget&&closeModal()}>
             <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} style={{maxWidth:640}}>
               <div className="modal-header">
-                <h3>🦷 Nuevo Paciente</h3>
-                <button className="btn-close" onClick={()=>setModal(false)}>✕</button>
+                <h3>{editingId ? '✏️ Editar Paciente' : '🦷 Nuevo Paciente'}</h3>
+                <button className="btn-close" onClick={()=>closeModal()}>✕</button>
               </div>
               <form onSubmit={handleSave}>
                 <div className="modal-body">
@@ -258,62 +263,34 @@ export default function Pacientes() {
                   </div>
                   <div className="input-group"><label>Dirección</label><input className="input" value={form.direccion} onChange={e=>setForm(f=>({...f,direccion:e.target.value}))} /></div>
 
-                  {/* ── Referencia ── */}
-                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'14px' }}>
-                    <div style={{ fontSize:'0.8rem', fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', marginBottom:'10px', letterSpacing:'0.5px' }}>
-                      🔗 Referencia del Paciente
-                    </div>
+                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'14px', marginTop:'10px' }}>
+                    <div style={{ fontSize:'0.8rem', fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', marginBottom:'10px' }}>🔗 Referencia</div>
                     <div className="input-group">
-                      <label>Referido por *</label>
                       <select className="input" value={form.tipoReferencia} onChange={e=>setForm(f=>({...f,tipoReferencia:e.target.value as TipoReferencia}))}>
-                        {TABLA_REFERENCIAS.map(r => (
-                          <option key={r.tipo} value={r.tipo}>{r.label} — {r.descripcion}</option>
-                        ))}
+                        {TABLA_REFERENCIAS.map(r => <option key={r.tipo} value={r.tipo}>{r.label}</option>)}
                       </select>
-                    </div>
-
-                    {/* Preview de porcentajes */}
-                    {reglaForm && (
-                      <div className="grid-responsive" style={{ gap:'8px', margin:'10px 0' }}>
-                        {[
-                          { label:'🏥 Clínica', pct: reglaForm.pctClinica, color:'var(--primary)' },
-                          { label:'💰 Foráneo', pct: reglaForm.pctForaneo, color:'var(--warning)' },
-                          { label:'👨‍⚕️ Profesional', pct: reglaForm.pctProfesional, color:'var(--success)' },
-                        ].map(col => (
-                          <div key={col.label} style={{ textAlign:'center', background:'var(--bg-card)', borderRadius:'6px', padding:'8px', border:'1px solid var(--border)' }}>
-                            <div style={{ fontSize:'0.7rem', color:'var(--text-muted)' }}>{col.label}</div>
-                            <div style={{ fontWeight:800, color:col.color }}>{col.pct}%</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {reglaForm?.pctForaneo! > 0 && (
-                      <div style={{ fontSize:'0.75rem', color:'var(--warning)', marginBottom:'6px' }}>
-                        ⚠️ El foráneo recibe {reglaForm!.pctForaneo}% del total. El resto ({100 - reglaForm!.pctForaneo}%) se divide entre clínica y profesional.
-                      </div>
-                    )}
-
-                    <div className="grid-2">
-                      <div className="input-group">
-                        <label>Nombre del referidor</label>
-                        <input className="input" placeholder="Nombre del especialista o clínica" value={form.referidorNombre || ''} onChange={e=>setForm(f=>({...f,referidorNombre:e.target.value}))} />
-                      </div>
-                      <div className="input-group">
-                        <label>Contacto del referidor</label>
-                        <input className="input" placeholder="Teléfono o email" value={form.referidorContacto || ''} onChange={e=>setForm(f=>({...f,referidorContacto:e.target.value}))} />
-                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-ghost" onClick={()=>setModal(false)}>Cancelar</button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving?'Guardando...':'Registrar Paciente'}</button>
+                  <button type="button" className="btn btn-ghost" onClick={()=>closeModal()}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving?'Guardando...': (editingId ? 'Actualizar' : 'Registrar')}</button>
                 </div>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog 
+        isOpen={!!deletingId} 
+        title="¿Eliminar Paciente?" 
+        message="Esta acción no se puede deshacer y el paciente será borrado permanentemente."
+        onConfirm={handleDelete}
+        onCancel={() => setDeletingId(null)}
+        confirmText="Sí, eliminar"
+        type="danger"
+      />
     </div>
   );
 }
