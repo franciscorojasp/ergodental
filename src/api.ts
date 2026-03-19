@@ -283,6 +283,32 @@ export interface Proveedor {
   activo: boolean;
 }
 
+export type EstadoPresupuesto = 'Borrador' | 'Enviado' | 'Aprobado' | 'Rechazado' | 'Recibido';
+
+export interface Presupuesto {
+  id: string;
+  clinicaId: string;
+  pacienteId: string;
+  pacienteNombre: string;
+  items: { id: string, descripcion: string, cantidad: number, precio: number, subtotal: number }[];
+  total: number;
+  estado: EstadoPresupuesto;
+  fecha: string;
+  notas?: string;
+}
+
+export interface Recibo {
+  id: string;
+  presupuestoId: string;
+  pacienteId: string;
+  pacienteNombre: string;
+  clinicaId: string;
+  monto: number;
+  metodoPago: string;
+  fecha: string;
+  nroRecibo: string;
+}
+
 // ─── Datos Demo ────────────────────────────────────────────────────────────────
 
 export const DEMO_USUARIOS: Usuario[] = [
@@ -339,6 +365,9 @@ export const DEMO_EGRESOS: Egreso[] = [
   { id: 'eg2', clinicaId: 'la-vina', concepto: 'Pago nómina asistentes', categoria: 'Nómina', monto: 200, montoBs: 7300000, tasaCambio: 36500, metodoPago: 'Pago Móvil', fecha: '2026-03-15' },
   { id: 'eg3', clinicaId: 'la-vina', concepto: 'Alquiler consultorio #2', categoria: 'Alquiler', monto: 150, montoBs: 5475000, tasaCambio: 36500, metodoPago: 'Transferencia BS', fecha: '2026-03-01' },
 ];
+
+export const DEMO_PRESUPUESTOS: Presupuesto[] = [];
+export const DEMO_RECIBOS: Recibo[] = [];
 
 export const DEMO_PROVEEDORES: Proveedor[] = [
   { id: 'pv1', clinicaId: 'la-vina', nombre: 'Farmacia San Juan', tipo: 'Farmacia', rif: 'J-30123456-0', telefono: '0212-5551111', email: 'ventas@sanjuan.com', contacto: 'Sr. Gómez', direccion: 'Av. Urdaneta, LC 4', activo: true },
@@ -534,4 +563,61 @@ export async function getTasaHoy(): Promise<number | null> {
 export async function saveTasaHoy(monto: number): Promise<void> {
   if (IS_DEMO_MODE) return;
   await apiFetch('saveTasaHoy', { monto });
+}
+
+// Presupuestos
+export async function getPresupuestos(): Promise<Presupuesto[]> {
+  if (IS_DEMO_MODE) return DEMO_PRESUPUESTOS;
+  return apiFetch<Presupuesto[]>('getPresupuestos');
+}
+
+export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Presupuesto> {
+  if (IS_DEMO_MODE) {
+    const nuevo: Presupuesto = { ...p, id: `pres${Date.now()}` };
+    DEMO_PRESUPUESTOS.push(nuevo);
+    return nuevo;
+  }
+  return apiFetch<Presupuesto>('createPresupuesto', p);
+}
+
+export async function updatePresupuesto(data: Partial<Presupuesto> & { id: string }): Promise<void> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_PRESUPUESTOS.findIndex(p => p.id === data.id);
+    if (idx !== -1) DEMO_PRESUPUESTOS[idx] = { ...DEMO_PRESUPUESTOS[idx], ...data };
+    return;
+  }
+  await apiFetch('updatePresupuesto', data);
+}
+
+export async function deletePresupuesto(id: string): Promise<void> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_PRESUPUESTOS.findIndex(p => p.id === id);
+    if (idx !== -1) DEMO_PRESUPUESTOS.splice(idx, 1);
+    return;
+  }
+  await apiFetch('deletePresupuesto', { id });
+}
+
+// Recibos
+export async function getRecibos(): Promise<Recibo[]> {
+  if (IS_DEMO_MODE) return DEMO_RECIBOS;
+  return apiFetch<Recibo[]>('getRecibos');
+}
+
+export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
+  if (IS_DEMO_MODE) {
+    const nuevo: Recibo = { ...r, id: `rec${Date.now()}` };
+    DEMO_RECIBOS.push(nuevo);
+    return nuevo;
+  }
+  return apiFetch<Recibo>('createRecibo', r);
+}
+
+export async function deleteRecibo(id: string): Promise<void> {
+  if (IS_DEMO_MODE) {
+    const idx = DEMO_RECIBOS.findIndex(r => r.id === id);
+    if (idx !== -1) DEMO_RECIBOS.splice(idx, 1);
+    return;
+  }
+  await apiFetch('deleteRecibo', { id });
 }
