@@ -8,6 +8,7 @@ import ClinicaBadge from './ClinicaBadge';
 
 const NAV: { to: string; icon: string; label: string; modulo: Modulo }[] = [
   { to: '/dashboard',   icon: '📊', label: 'Dashboard',   modulo: 'dashboard'   },
+  { to: '/agenda',      icon: '📆', label: 'Agenda Visual',modulo: 'citas'       },
   { to: '/pacientes',   icon: '🦷', label: 'Pacientes',   modulo: 'pacientes'   },
   { to: '/citas',       icon: '📅', label: 'Citas',       modulo: 'citas'       },
   { to: '/personal',    icon: '👨‍⚕️', label: 'Personal',    modulo: 'personal'    },

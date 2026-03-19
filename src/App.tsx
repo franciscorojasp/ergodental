@@ -20,6 +20,7 @@ import Finanzas from './pages/Finanzas';
 import Proveedores from './pages/Proveedores';
 import TasaBCV from './pages/TasaBCV';
 import ConfiguracionClinica from './pages/ConfiguracionClinica';
+import Agenda from './pages/Agenda';
 import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
@@ -98,6 +99,9 @@ export default function App() {
               {/* Rutas protegidas */}
               <Route path="/dashboard" element={
                 <ProtectedLayout><RoleGuard modulo="dashboard" redirigir><Dashboard /></RoleGuard></ProtectedLayout>
+              } />
+              <Route path="/agenda" element={
+                <ProtectedLayout><RoleGuard modulo="citas" redirigir><Agenda /></RoleGuard></ProtectedLayout>
               } />
               <Route path="/pacientes" element={
                 <ProtectedLayout><RoleGuard modulo="pacientes" redirigir><Pacientes /></RoleGuard></ProtectedLayout>
