@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getPacientes, createPaciente, updatePaciente, deletePaciente, 
-  type Paciente, type TipoReferencia, TABLA_REFERENCIAS 
+  TABLA_REFERENCIAS 
 } from '../api';
+import type { Paciente, TipoReferencia } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 import RoleGuard from '../components/RoleGuard';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -115,8 +116,6 @@ export default function Pacientes() {
   });
 
   const detalle = pacientes.find(p => p.id === detalleId);
-  const reglaDetalle = detalle?.tipoReferencia ? TABLA_REFERENCIAS.find(r => r.tipo === detalle.tipoReferencia) : null;
-  const reglaForm = TABLA_REFERENCIAS.find(r => r.tipo === form.tipoReferencia);
 
   return (
     <div>

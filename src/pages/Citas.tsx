@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useClinica } from '../contexts/ClinicaContext';
 import {
   getCitas, createCita, updateCita, deleteCita, getPacientes, getPersonal,
-  TABLA_REFERENCIAS,
   type Cita, type Paciente, type Personal, type TipoReferencia,
   type TipoAtencion, type CondicionPaciente, type EstadoFinanciero
 } from '../api';

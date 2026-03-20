@@ -153,6 +153,7 @@ export interface Personal {
   email: string;
   activo: boolean;
   foto?: string;
+  lastUpdated?: number;
 }
 
 export interface Paciente {
@@ -169,6 +170,7 @@ export interface Paciente {
   tipoReferencia?: TipoReferencia;
   referidorNombre?: string;
   referidorContacto?: string;
+  lastUpdated?: number;
 }
 
 export interface Cita {
@@ -188,6 +190,7 @@ export interface Cita {
   tipoReferencia?: TipoReferencia;
   referidorNombre?: string;
   referidorContacto?: string;
+  lastUpdated?: number;
 }
 
 export interface PiezaDental {
@@ -255,6 +258,7 @@ export interface Pago {
   numeroReferencia?: string;
   telefonoOrigen?: string;
   comprobante?: string;
+  lastUpdated?: number;
 }
 
 export interface Egreso {
@@ -270,6 +274,7 @@ export interface Egreso {
   proveedorNombre?: string;
   fecha: string;
   notas?: string;
+  lastUpdated?: number;
 }
 
 export interface Proveedor {
@@ -379,12 +384,36 @@ export const DEMO_PROVEEDORES: Proveedor[] = [
 
 // ─── Cliente API (fetch con fallback demo) ────────────────────────────────────
 
+const API_KEY = import.meta.env.VITE_API_KEY || 'ERGO_SECRET_2024';
+
+// Simple memory cache (2 min)
+const CACHE_TTL = 120 * 1000;
+const apiCache = new Map<string, { data: any, timestamp: number }>();
+
 async function apiFetch<T>(action: string, data?: object): Promise<T> {
   if (IS_DEMO_MODE) throw new Error('DEMO');
   
-  // Si la acción es login o un GET, intentamos con GET primero para evitar problemas de CORS POST en local
   const isQuery = action === 'login' || !data;
-  const url = `${APPS_SCRIPT_URL}?action=${action}${isQuery && data ? '&payload=' + encodeURIComponent(JSON.stringify(data)) : ''}`;
+  const cacheKey = `${action}_${JSON.stringify(data || {})}`;
+
+  // Check cache for queries
+  if (isQuery && action !== 'login') {
+    const cached = apiCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      return cached.data;
+    }
+  }
+
+  // En producción usamos el proxy de Vercel para ocultar la URL del script y la API KEY
+  const isProd = import.meta.env.PROD;
+  const baseUrl = isProd ? '/api/proxy' : APPS_SCRIPT_URL;
+  
+  const urlParams = new URLSearchParams();
+  urlParams.set('action', action);
+  urlParams.set('key', API_KEY);
+  if (isQuery && data) urlParams.set('payload', JSON.stringify(data));
+  
+  const url = `${baseUrl}?${urlParams.toString()}`;
   
   try {
     const options: RequestInit = {
@@ -396,6 +425,8 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
     if (!isQuery) {
       options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
       options.body = JSON.stringify(data || {});
+      // Invalidate cache on mutations
+      apiCache.clear();
     }
 
     const res = await fetch(url, options);
@@ -412,6 +443,12 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
     }
 
     if (result.error) throw new Error(result.error);
+    
+    // Store in cache for successful queries
+    if (isQuery && action !== 'login') {
+      apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    }
+
     return result;
   } catch (err: any) {
     console.error('API Error:', err);
