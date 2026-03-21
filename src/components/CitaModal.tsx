@@ -25,6 +25,17 @@ const formatForDateInput = (val: string) => {
   } catch (e) { return ''; }
 };
 
+const formatForTimeInput = (val: string) => {
+  if (!val) return '09:00';
+  // Si viene con segundos (09:00:00), quitar los últimos 3 caracteres
+  if (/^\d{2}:\d{2}:\d{2}$/.test(val)) return val.substring(0, 5);
+  // Si es 9:00 (sin el cero inicial), agregarlo
+  if (/^\d{1}:\d{2}$/.test(val)) return '0' + val;
+  // Si ya es HH:mm, devolver tal cual
+  if (/^\d{2}:\d{2}$/.test(val)) return val;
+  return val;
+};
+
 export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Props) {
   const { clinica } = useClinica();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
@@ -53,12 +64,12 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
       
       if (editingCita) {
         setForm({
-          pacienteId: editingCita.pacienteId,
-          doctorId: editingCita.doctorId,
+          pacienteId: editingCita.pacienteId || '',
+          doctorId: editingCita.doctorId || '',
           fecha: formatForDateInput(editingCita.fecha),
-          hora: editingCita.hora,
-          motivo: editingCita.motivo,
-          estado: editingCita.estado,
+          hora: formatForTimeInput(editingCita.hora),
+          motivo: editingCita.motivo || '',
+          estado: editingCita.estado || 'Pendiente',
           tipoAtencion: editingCita.tipoAtencion || 'Consulta',
           condicion: editingCita.condicion || 'Evaluación',
           estadoFinanciero: editingCita.estadoFinanciero || 'Pago Inmediato',
@@ -211,17 +222,18 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                     <select className="input" value={form.condicion} onChange={e => setForm(f => ({ ...f, condicion: e.target.value as CondicionPaciente }))}>
                       <option value="Control">Control</option>
                       <option value="Evaluación">Evaluación</option>
-                      <option value="Exonerado">Exonerado</option>
-                      <option value="Garantía">Garantía</option>
                     </select>
                   </div>
                   <div className="input-group">
                     <label>Estado Financiero</label>
                     <select className="input" value={form.estadoFinanciero} onChange={e => setForm(f => ({ ...f, estadoFinanciero: e.target.value as EstadoFinanciero }))}>
-                      <option value="Pago Inmediato">Pago Inmediato</option>
-                      <option value="Pago Anticipado">Pago Anticipado</option>
-                      <option value="Paga Después">Paga Después</option>
+                      <option value="Abono">Abono</option>
+                      <option value="Exonerado">Exonerado</option>
+                      <option value="Garantía">Garantía</option>
                       <option value="Paciente No Atendido">Paciente No Atendido</option>
+                      <option value="Paga Después">Paga Después</option>
+                      <option value="Pago Anticipado">Pago Anticipado</option>
+                      <option value="Pago Inmediato">Pago Inmediato</option>
                     </select>
                   </div>
                 </div>
