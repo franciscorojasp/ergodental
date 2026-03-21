@@ -39,16 +39,16 @@
 
 .light-mode {
   --bg-dark:        #f0f2f5;
-  --bg-card:        rgba(255,255,255,0.7);
-  --bg-card-hover:  rgba(255,255,255,0.9);
-  --border:         rgba(0,0,0,0.08);
-  --border-active:  rgba(0,198,255,0.30);
+  --bg-card:        rgba(255,255,255,0.85);
+  --bg-card-hover:  rgba(255,255,255,0.95);
+  --border:         rgba(0,0,0,0.12);
+  --border-active:  rgba(0,198,255,0.40);
 
-  --text-primary:   #1a202c;
-  --text-secondary: #4a5568;
-  --text-muted:     #718096;
+  --text-primary:   #0f172a; /* Slate 900 - Máximo Contraste */
+  --text-secondary: #334155; /* Slate 700 */
+  --text-muted:     #475569; /* Slate 600 */
   
-  --shadow:         0 8px 30px rgba(0,0,0,0.08);
+  --shadow:         0 8px 30px rgba(0,0,0,0.10);
 }
 
 .light-mode body::before {
@@ -59,12 +59,12 @@
 
 .light-mode .modal {
   background: #ffffff !important;
-  color: #1a202c;
+  color: #0f172a;
 }
 
 .light-mode select.input option {
   background: #ffffff;
-  color: #1a202c;
+  color: #0f172a;
 }
 
 .light-mode .sidebar {
