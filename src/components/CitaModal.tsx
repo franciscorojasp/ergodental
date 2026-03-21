@@ -53,6 +53,8 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
     tipoReferencia: '' as TipoReferencia | '',
     referidorNombre: '', referidorContacto: '',
     lastUpdated: undefined as number | undefined,
+    notificarPaciente: true, // Novedad: check para notificar por whatsapp
+    notificarDoctor: true,   // Novedad: check para notificar por whatsapp
   };
 
   const [form, setForm] = useState(initForm);
@@ -77,6 +79,8 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
           referidorNombre: editingCita.referidorNombre || '',
           referidorContacto: editingCita.referidorContacto || '',
           lastUpdated: editingCita.lastUpdated,
+          notificarPaciente: true,
+          notificarDoctor: true,
         });
       } else {
         setForm(initForm);
@@ -132,12 +136,31 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
       }
 
       onSaved(result);
+      triggerNotificaciones();
       onClose();
     } catch (err: any) {
       console.error('DEBUG: Error saving cita', err);
       setError(err.message || 'Error al guardar. Revisa tu conexión.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const triggerNotificaciones = () => {
+    let notificados = [];
+    if (form.notificarPaciente) {
+      notifyWhatsapp('paciente');
+      notificados.push('Paciente');
+    }
+    // Añadimos un pequeño retraso para que el navegador no bloquee 2 popups a la vez
+    if (form.notificarDoctor) {
+      setTimeout(() => {
+        notifyWhatsapp('doctor');
+      }, 500);
+      notificados.push('Doctor');
+    }
+    if (notificados.length > 0) {
+      alert(`Se han abierto pestañas de WhatsApp Web para notificar a: ${notificados.join(' y ')}.\\nOjo: Debes presionar el botón de Enviar dentro de la aplicación de WhatsApp para que les llegue.`);
     }
   };
 
