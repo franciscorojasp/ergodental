@@ -35,6 +35,14 @@ export default function Odontograma() {
   const [pacienteId, setPacienteId] = useState(searchParams.get('pacienteId') || '');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
@@ -135,22 +143,34 @@ export default function Odontograma() {
         </div>
       </div>
 
-      <div className="grid-responsive" style={{ gridTemplateColumns: '1fr 310px', gap: '20px', alignItems: 'start' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 310px', 
+        gap: '20px', 
+        alignItems: 'start' 
+      }}>
         {/* Mapa dental */}
-        <div className="glass" style={{ padding: '24px', overflowX: 'auto' }}>
+        <div className="glass" style={{ padding: isMobile ? '16px' : '24px', overflowX: 'auto' }}>
           <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
             ↑ Maxilar Superior ↑
           </div>
 
-          {/* Superior: 1-16, izquierda a derecha */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px', minWidth: '680px' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: isMobile ? 'wrap' : 'nowrap', 
+            justifyContent: 'center', 
+            gap: '4px', 
+            marginBottom: '8px',
+            minWidth: isMobile ? 'auto' : '680px' 
+          }}>
+            {/* Si es móvil, podemos mostrarlo en dos sub-filas de 8 */}
             {SUPERIOR.map(n => {
               const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
               const info = estadoInfo(p.estado as EstadoPieza);
               return (
                 <motion.button key={n} onClick={() => handlePieza(n)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                   style={{
-                    width: 38, height: 42,
+                    width: isMobile ? 34 : 38, height: isMobile ? 38 : 42,
                     borderRadius: '8px 8px 4px 4px',
                     border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
                     background: selected === n ? `color-mix(in srgb, ${info.color} 25%, transparent)` : `color-mix(in srgb, ${info.color} 12%, transparent)`,
@@ -158,8 +178,9 @@ export default function Odontograma() {
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                     transition: 'all 0.15s',
                     boxShadow: selected === n ? `0 0 12px ${info.color}66` : 'none',
+                    margin: isMobile ? '2px' : '0'
                   }}>
-                  <span style={{ fontSize: '1rem' }}>{info.emoji}</span>
+                  <span style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{info.emoji}</span>
                   <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 700 }}>{n}</span>
                 </motion.button>
               );
@@ -174,14 +195,22 @@ export default function Odontograma() {
           </div>
 
           {/* Inferior: 17-32 */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '8px', minWidth: '680px' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: isMobile ? 'wrap' : 'nowrap', 
+            justifyContent: 'center', 
+            gap: '4px', 
+            marginTop: '8px', 
+            minWidth: isMobile ? 'auto' : '680px' 
+          }}>
+            {/* Si es móvil, se muestra en dos sub-filas de 8 */}
             {INFERIOR.map(n => {
               const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
               const info = estadoInfo(p.estado as EstadoPieza);
               return (
                 <motion.button key={n} onClick={() => handlePieza(n)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                   style={{
-                    width: 38, height: 42,
+                    width: isMobile ? 34 : 38, height: isMobile ? 38 : 42,
                     borderRadius: '4px 4px 8px 8px',
                     border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
                     background: selected === n ? `color-mix(in srgb, ${info.color} 25%, transparent)` : `color-mix(in srgb, ${info.color} 12%, transparent)`,
@@ -189,9 +218,10 @@ export default function Odontograma() {
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                     transition: 'all 0.15s',
                     boxShadow: selected === n ? `0 0 12px ${info.color}66` : 'none',
+                    margin: isMobile ? '2px' : '0'
                   }}>
                   <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 700 }}>{n}</span>
-                  <span style={{ fontSize: '1rem' }}>{info.emoji}</span>
+                  <span style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{info.emoji}</span>
                 </motion.button>
               );
             })}
