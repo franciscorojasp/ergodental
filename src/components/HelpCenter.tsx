@@ -137,6 +137,13 @@ export default function HelpCenter() {
     setActiveTopic(suggested);
   }, [location]);
 
+  // Listener para apertura externa
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-help', handleOpen);
+    return () => window.removeEventListener('open-help', handleOpen);
+  }, []);
+
   const handleDownloadPDF = async () => {
     if (!activeTopic) return;
     setIsGenerating(true);
@@ -398,12 +405,13 @@ export default function HelpCenter() {
         .btn-link:hover { opacity: 1; color: #fff; }
         .btn-link:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none; }
 
-        @media (max-width: 600px) {
-          .mobile-hide { display: none !important; }
-          .help-sidebar-items { width: 100%; border-right: none; }
-          .help-panel { height: 450px; }
-          .help-back-btn { display: block; }
-        }
+          @media (max-width: 768px) {
+            .help-fab { display: none !important; }
+            .mobile-hide { display: none !important; }
+            .help-sidebar-items { width: 100%; border-right: none; }
+            .help-panel { height: 450px; }
+            .help-back-btn { display: block; }
+          }
       `}</style>
     </>
   );

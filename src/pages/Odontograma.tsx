@@ -130,6 +130,8 @@ export default function Odontograma() {
     });
   };
 
+  const triggerHelp = () => window.dispatchEvent(new Event('open-help'));
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div className="page-header">
@@ -251,11 +253,20 @@ export default function Odontograma() {
                 </div>
               </div>
 
-              <div style={{ display:'flex', gap:10 }}>
-                <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ flex:1, justifyContent: 'center', padding: '14px' }}>
-                  {saving ? 'Guardando...' : '💾 Guardar'}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr 1fr 1fr' : '1fr 50px 50px', 
+                gap: '10px' 
+              }}>
+                <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ justifyContent: 'center', padding: '14px' }}>
+                  {saving ? '...' : isMobile ? 'Guardar' : '💾 Guardar'}
                 </button>
-                <button className="btn btn-ghost" onClick={handlePrint} title="Imprimir Informe">📄</button>
+                <button className="btn btn-ghost" onClick={handlePrint} title="Imprimir Informe" style={{ justifyContent: 'center', padding: '14px' }}>
+                  {isMobile ? 'PDF' : '📄'}
+                </button>
+                <button className="btn btn-ghost" onClick={triggerHelp} title="Ayuda" style={{ justifyContent: 'center', padding: '14px', color: 'var(--primary)' }}>
+                  {isMobile ? 'Ayuda' : '❓'}
+                </button>
               </div>
             </div>
           </div>
