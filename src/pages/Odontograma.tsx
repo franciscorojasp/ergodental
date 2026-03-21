@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { getPacientes, getOdontograma, saveOdontograma, type Paciente } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 
