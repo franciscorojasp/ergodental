@@ -72,7 +72,7 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa, fecha: hoy }));
     
     // Persistencia Global (Google Sheets)
-    try { await saveTasaHoy(tasa); } catch(err) { console.error("Error sincronizando tasa:", err); }
+    try { await saveTasaHoy(tasa, user?.nombre); } catch(err) { console.error("Error sincronizando tasa:", err); }
 
     setHistorial(prev => {
       const sinHoy = prev.filter(t => t.fecha !== hoy);
@@ -80,7 +80,7 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_HIST, JSON.stringify(nuevo));
       return nuevo;
     });
-  }, [hoy]);
+  }, [hoy, user]);
 
   // Si al iniciar la sesión ya tenemos tasa de otro día, marcar como caché
   useEffect(() => {

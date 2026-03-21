@@ -694,9 +694,32 @@ export async function getTasaHoy(): Promise<number | null> {
   }
 }
 
-export async function saveTasaHoy(monto: number): Promise<void> {
+export interface AuditoriaLog {
+  usuario: string;
+  accion: string;
+  detalle?: string;
+  documentoId?: string;
+}
+
+export async function logAuditoria(log: AuditoriaLog): Promise<void> {
+  if (IS_DEMO_MODE) return;
+  try {
+    await apiFetch('logAuditoria', log);
+  } catch (e) {
+    console.error('Error logueando auditoria', e);
+  }
+}
+
+export async function saveTasaHoy(monto: number, usuario?: string): Promise<void> {
   if (IS_DEMO_MODE) return;
   await apiFetch('saveTasaHoy', { monto });
+  if (usuario) {
+    await logAuditoria({
+      usuario,
+      accion: 'CAMBIO TASA BCV',
+      detalle: `Tasa actualizada a Bs ${monto}`
+    });
+  }
 }
 
 // Presupuestos

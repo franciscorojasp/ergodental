@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { IS_DEMO_MODE } from '../api';
+import { IS_DEMO_MODE, logAuditoria } from '../api';
 import { ROL_HOME } from '../permissions';
 
 export default function Login() {
@@ -24,6 +24,14 @@ export default function Login() {
     setLoading(true);
     try {
       const loggedUser = await login(email, password);
+      // Registrar en auditoría
+      try {
+        await logAuditoria({
+          usuario: loggedUser.nombre || loggedUser.email,
+          accion: 'INICIO DE SESIÓN',
+          detalle: 'Autenticación exitosa en el sistema'
+        });
+      } catch (e) {}
       navigate(ROL_HOME[loggedUser.rol], { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
@@ -69,8 +77,8 @@ export default function Login() {
               boxShadow: '0 12px 40px rgba(0,198,255,0.35)',
             }}
           >🦷</motion.div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Ergodental</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '6px', fontSize: '0.9rem' }}>Sistema de Gestión Clínica</p>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.5px' }}>ERGODENTALVE</h1>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '6px', fontSize: '1rem', fontWeight: 600 }}>1.0</p>
         </div>
 
         {/* Tarjeta */}

@@ -3,7 +3,7 @@
 // Estándares: portada institucional, encabezado/pie, tabla de datos, resumen de totales
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getGlobalCorrelativo } from '../api';
+import { getGlobalCorrelativo, logAuditoria } from '../api';
 
 export interface ConfigReporte {
   titulo: string;               // "Reporte de Ingresos"
@@ -152,6 +152,17 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
 
     const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}_${new Date().toISOString().slice(0,10)}.pdf`;
     doc.save(filename);
+    
+    // Registrar auditoría de seguridad
+    try {
+      await logAuditoria({
+        usuario: config.usuario || 'Sistema',
+        accion: 'GENERACIÓN DOCUMENTO PDF',
+        detalle: `Documento de tipo: ${config.titulo}`,
+        documentoId: correlativo
+      });
+    } catch (e) {}
+    
   } catch (error) {
     console.error('Error generando reporte PDF:', error);
     alert('Ocurrió un error al generar el PDF. Por favor verifique los datos o intente nuevamente.');
@@ -197,6 +208,16 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
     
     const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}.pdf`;
     doc.save(filename);
+    
+    try {
+      await logAuditoria({
+        usuario: usuario || 'Sistema',
+        accion: 'DESCARGA DE MANUAL ASISTIDA',
+        detalle: `Tema: ${topic.titulo}`,
+        documentoId: correlativo
+      });
+    } catch (e) {}
+    
   } catch (error) {
     console.error('Error generando ayuda PDF:', error);
     alert('Ocurrió un error al generar la guía en PDF.');
