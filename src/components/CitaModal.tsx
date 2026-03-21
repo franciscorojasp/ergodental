@@ -222,6 +222,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                     <select className="input" value={form.condicion} onChange={e => setForm(f => ({ ...f, condicion: e.target.value as CondicionPaciente }))}>
                       <option value="Control">Control</option>
                       <option value="Evaluación">Evaluación</option>
+                      <option value="Emergencia">Emergencia</option>
                     </select>
                   </div>
                   <div className="input-group">

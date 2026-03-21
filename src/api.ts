@@ -54,7 +54,7 @@ export const BANCOS_VE = [
 ];
 
 export type TipoAtencion = 'Consulta' | 'Emergencia' | 'Revisión' | 'Tratamiento';
-export type CondicionPaciente = 'Control' | 'Evaluación';
+export type CondicionPaciente = 'Control' | 'Evaluación' | 'Emergencia';
 export type EstadoFinanciero = 'Abono' | 'Exonerado' | 'Garantía' | 'Paciente No Atendido' | 'Paga Después' | 'Pago Anticipado' | 'Pago Inmediato';
 
 // ─── Sistema de Referencias y Comisiones ─────────────────────────────────────
