@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getPacientes, getOdontograma, saveOdontograma, type Paciente } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
+import { generarReportePDF } from '../utils/reportes';
 
 type EstadoPieza = 'sano' | 'caries' | 'corona' | 'extraccion' | 'endodoncia' | 'implante' | 'ausente';
 
@@ -96,6 +97,31 @@ export default function Odontograma() {
     ESTADOS.map(e => ({ ...e, count: piezas.filter(p => p.estado === e.key).length }))
            .filter(e => e.count > 0), 
   [piezas]);
+
+  const handlePrint = async () => {
+    if (!pacienteId) return;
+    const pac = pacientes.find(p => p.id === pacienteId);
+    if (!pac) return;
+
+    const hallazgos = piezas.filter(p => p.estado !== 'sano' || p.notas);
+    
+    await generarReportePDF({
+      titulo: 'INFORME DE ODONTOGRAMA',
+      subtitulo: `Paciente: ${pac.nombre} ${pac.apellido} · C.I: ${pac.cedula}`,
+      clinica: clinica.nombre,
+      usuario: 'Odontólogo Especialista',
+      columnas: ['Pieza', 'Estado Clínico', 'Observaciones / Notas'],
+      filas: hallazgos.map(p => [
+        `Pieza #${p.numero}`,
+        estadoInfo(p.estado).label.toUpperCase(),
+        p.notas || '-'
+      ]),
+      notas: [
+        'Este informe refleja el estado clínico dental a la fecha del examen.',
+        hallazgos.length === 0 ? 'No se encontraron patologías visibles en esta revisión.' : 'Se recomienda iniciar tratamiento según las piezas marcadas.'
+      ]
+    });
+  };
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -218,9 +244,12 @@ export default function Odontograma() {
                 </div>
               </div>
 
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ width: '100%', justifyContent: 'center', padding: '14px' }}>
-                {saving ? 'Guardando...' : '💾 Guardar Cambios'}
-              </button>
+              <div style={{ display:'flex', gap:10 }}>
+                <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ flex:1, justifyContent: 'center', padding: '14px' }}>
+                  {saving ? 'Guardando...' : '💾 Guardar'}
+                </button>
+                <button className="btn btn-ghost" onClick={handlePrint} title="Imprimir Informe">📄</button>
+              </div>
             </div>
           </div>
         </>
