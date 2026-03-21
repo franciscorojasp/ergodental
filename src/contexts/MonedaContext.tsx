@@ -18,6 +18,7 @@ interface MonedaCtx {
   necesitaTasa: boolean;        // true si no se ha ingresado la tasa de hoy
   tasaSetHoy: boolean;          // true si la tasa ya fue establecida hoy (por cualquier usuario)
   guardarTasaManual: (tasa: number) => void;
+  loading: boolean;             // true mientras se busca la tasa en el servidor
   /** Formatea un monto USD en la moneda activa */
   fmt: (usd: number, decimals?: number) => string;
 }
@@ -34,6 +35,7 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
   const [moneda, setMonedaState] = useState<Moneda>(() =>
     (localStorage.getItem('ergo_moneda') as Moneda) || 'USD'
   );
+  const [loading, setLoading] = useState(true);
 
   const [tasaBCV, setTasaBCV] = useState<number>(() => {
     try {
@@ -93,13 +95,21 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
 
   // Sincronización Global con el servidor al iniciar sesión
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     getTasaHoy().then(tasaGlobal => {
       if (tasaGlobal && tasaGlobal > 0) {
         setTasaBCV(tasaGlobal);
         localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: tasaGlobal, fecha: hoy }));
       }
-    }).catch(err => console.error("Error al obtener tasa global:", err));
+    }).catch(err => {
+      console.error("Error al obtener tasa global:", err);
+    }).finally(() => {
+      setLoading(false);
+    });
   }, [user, hoy]);
 
   /** Formatea un monto en USD → moneda activa */
@@ -116,7 +126,7 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
   }, [moneda, tasaBCV]);
 
   return (
-    <MonedaContext.Provider value={{ moneda, setMoneda, tasaBCV, historialTasas, necesitaTasa, tasaSetHoy, guardarTasaManual, fmt }}>
+    <MonedaContext.Provider value={{ moneda, setMoneda, tasaBCV, historialTasas, necesitaTasa, tasaSetHoy, guardarTasaManual, loading, fmt }}>
       {children}
     </MonedaContext.Provider>
   );
