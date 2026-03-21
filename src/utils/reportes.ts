@@ -72,104 +72,114 @@ function addFooter(doc: jsPDF) {
 }
 
 export function generarReportePDF(config: ConfigReporte): void {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+  try {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
-  addHeader(doc, config);
+    addHeader(doc, config);
 
-  const startY = config.subtitulo ? 56 : 50;
+    const startY = config.subtitulo ? 56 : 50;
 
-  // Tabla principal de datos
-  autoTable(doc, {
-    startY,
-    head: [config.columnas],
-    body: config.filas.map(f => f.map(String)),
-    theme: 'grid',
-    headStyles: {
-      fillColor: BRAND_COLOR,
-      textColor: [255, 255, 255],
-      fontSize: 8.5,
-      fontStyle: 'bold',
-      cellPadding: 3,
-    },
-    alternateRowStyles: { fillColor: [245, 249, 255] },
-    bodyStyles: { fontSize: 8, cellPadding: 2.5, textColor: [40, 40, 40] },
-    columnStyles: { 0: { fontStyle: 'bold' } },
-    margin: { left: 14, right: 14 },
-    tableLineColor: [210, 220, 235],
-    tableLineWidth: 0.2,
-  });
-
-  // Bloque de totales
-  if (config.totales?.length) {
-    const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
-    const W = doc.internal.pageSize.getWidth();
-
-    doc.setFillColor(...BRAND_COLOR);
-    doc.roundedRect(W - 90, finalY, 76, config.totales.length * 7 + 8, 2, 2, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
-    config.totales.forEach((t, i) => {
-      doc.setFont('helvetica', 'normal');
-      doc.text(t.label, W - 87, finalY + 8 + i * 7);
-      doc.setFont('helvetica', 'bold');
-      doc.text(t.valor, W - 17, finalY + 8 + i * 7, { align: 'right' });
+    // Tabla principal de datos
+    autoTable(doc, {
+      startY,
+      head: [config.columnas],
+      body: config.filas.map(f => f.map(String)),
+      theme: 'grid',
+      headStyles: {
+        fillColor: BRAND_COLOR,
+        textColor: [255, 255, 255],
+        fontSize: 8.5,
+        fontStyle: 'bold',
+        cellPadding: 3,
+      },
+      alternateRowStyles: { fillColor: [245, 249, 255] },
+      bodyStyles: { fontSize: 8, cellPadding: 2.5, textColor: [40, 40, 40] },
+      columnStyles: { 0: { fontStyle: 'bold' } },
+      margin: { left: 14, right: 14 },
+      tableLineColor: [210, 220, 235],
+      tableLineWidth: 0.2,
     });
+
+    // Bloque de totales
+    if (config.totales?.length) {
+      const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+      const W = doc.internal.pageSize.getWidth();
+
+      doc.setFillColor(...BRAND_COLOR);
+      doc.roundedRect(W - 90, finalY, 76, config.totales.length * 7 + 8, 2, 2, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      config.totales.forEach((t, i) => {
+        doc.setFont('helvetica', 'normal');
+        doc.text(t.label, W - 87, finalY + 8 + i * 7);
+        doc.setFont('helvetica', 'bold');
+        doc.text(t.valor, W - 17, finalY + 8 + i * 7, { align: 'right' });
+      });
+    }
+
+    // Notas al pie del contenido
+    if (config.notas?.length) {
+      const noteY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY +
+        (config.totales ? config.totales.length * 7 + 18 : 10);
+      doc.setFontSize(7.5);
+      doc.setTextColor(120, 120, 120);
+      doc.setFont('helvetica', 'italic');
+      config.notas.forEach((n, i) => doc.text(`* ${n}`, 14, noteY + i * 5));
+    }
+
+    addFooter(doc);
+
+    const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(filename);
+  } catch (error) {
+    console.error('Error generando reporte PDF:', error);
+    alert('Ocurrió un error al generar el PDF. Por favor verifique los datos o intente nuevamente.');
   }
-
-  // Notas al pie del contenido
-  if (config.notas?.length) {
-    const noteY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY +
-      (config.totales ? config.totales.length * 7 + 18 : 10);
-    doc.setFontSize(7.5);
-    doc.setTextColor(120, 120, 120);
-    doc.setFont('helvetica', 'italic');
-    config.notas.forEach((n, i) => doc.text(`* ${n}`, 14, noteY + i * 5));
-  }
-
-  addFooter(doc);
-
-  const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
-  doc.save(filename);
 }
 
 export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): void {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-  
-  // Reutilizamos el header con una config mínima
-  addHeader(doc, { 
-    titulo: topic.titulo, 
-    subtitulo: 'Guía de Ayuda ErgoDental',
-    usuario,
-    columnas: [], filas: [] 
-  });
-
-  const W = doc.internal.pageSize.getWidth();
-  let currentY = 65;
-
-  doc.setFontSize(11);
-  doc.setTextColor(40, 40, 40);
-  doc.setFont('helvetica', 'normal');
-
-  topic.puntos.forEach(punto => {
-    // Si el punto es muy largo, lo dividimos
-    const lines = doc.splitTextToSize(`• ${punto}`, W - 28);
+  try {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     
-    // Verificar si necesitamos nueva página
-    if (currentY + (lines.length * 6) > 260) {
-      doc.addPage();
-      addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] });
-      currentY = 65;
-    }
+    // Reutilizamos el header con una config mínima
+    addHeader(doc, { 
+      titulo: topic.titulo, 
+      subtitulo: 'Guía de Ayuda ErgoDental',
+      usuario,
+      columnas: [], filas: [] 
+    });
 
-    doc.text(lines, 14, currentY);
-    currentY += (lines.length * 7);
-  });
+    const W = doc.internal.pageSize.getWidth();
+    let currentY = 65;
 
-  addFooter(doc);
-  
-  const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`;
-  doc.save(filename);
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    doc.setFont('helvetica', 'normal');
+
+    topic.puntos.forEach(punto => {
+      // Si el punto es muy largo, lo dividimos
+      const lines = doc.splitTextToSize(`• ${punto}`, W - 28);
+      
+      // Verificar si necesitamos nueva página
+      if (currentY + (lines.length * 6) > 260) {
+        doc.addPage();
+        addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] });
+        currentY = 65;
+      }
+
+      doc.text(lines, 14, currentY);
+      currentY += (lines.length * 7);
+    });
+
+    addFooter(doc);
+    
+    const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`;
+    doc.save(filename);
+  } catch (error) {
+    console.error('Error generando ayuda PDF:', error);
+    alert('Ocurrió un error al generar la guía en PDF.');
+  }
 }
 
 // ── Helpers de formato rápido para tablas ─────────────────────────────────────

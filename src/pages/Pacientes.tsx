@@ -33,13 +33,33 @@ function calcularEdad(fecha: string): string {
 const formatForDateInput = (val: string) => {
   if (!val) return '';
   try {
-    // Si ya viene como YYYY-MM-DD, devolver tal cual
+    // Si viene con formato 'YYYY-MM-DD' explícito:
     if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-    // Si es ISO (2024-03-20T...) o similar, extraer la parte de la fecha
+    // Si viene con formato ISO 'YYYY-MM-DDTHH:mm...', corta y toma solo la fecha:
+    if (val.includes('T')) return val.split('T')[0];
+    
+    // Si Google Sheets lo devuelve como DD/MM/YYYY o DD-MM-YYYY
+    const partes = val.split(/[/-]/);
+    if (partes.length === 3) {
+      if (partes[0].length === 4) { // YYYY/MM/DD
+        return `${partes[0]}-${partes[1].padStart(2, '0')}-${partes[2].padStart(2, '0')}`;
+      }
+      if (partes[2].length === 4) { // Asumimos DD/MM/YYYY por default local
+        return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+      }
+    }
+    
+    // Intento general, construyendo YYYY-MM-DD localmente para evitar desajuste horario del .toISOString()
     const d = new Date(val);
     if (isNaN(d.getTime())) return '';
-    return d.toISOString().split('T')[0];
-  } catch (e) { return ''; }
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  } catch (e) {
+    console.error('Error evaluando fecha de nacimiento:', e);
+    return '';
+  }
 };
 
 export default function Pacientes() {
