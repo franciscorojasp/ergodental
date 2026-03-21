@@ -154,9 +154,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
     }
     // Añadimos un pequeño retraso para que el navegador no bloquee 2 popups a la vez
     if (form.notificarDoctor) {
-      setTimeout(() => {
-        notifyWhatsapp('doctor');
-      }, 500);
+      notifyWhatsapp('doctor');
       notificados.push('Doctor');
     }
     if (notificados.length > 0) {
@@ -199,10 +197,10 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
     if (tipo === 'paciente') {
       phone = pac?.telefono || '';
-      msg = `Hola ${pac?.nombre || 'Paciente'}, le recordamos su cita el ${fechaFormat} a las ${hora12} con el Dr(a). ${doc?.nombre || ''}. ¡Le esperamos en Ergodental!`;
+      msg = `Hola ${pac?.nombre || 'Paciente'}, le recordamos su cita el ${fechaFormat} a las ${hora12} con el Dr(a). ${doc ? doc.nombre + ' ' + doc.apellido : ''}. ¡Le esperamos en ${clinica.nombre}!`;
     } else {
       phone = doc?.telefono || '';
-      msg = `Hola Dr(a). ${doc?.nombre || 'Doctor'}, le notificamos una cita agendada con el paciente ${pac?.nombre || ''} para el ${fechaFormat} a las ${hora12}. Motivo: ${form.motivo}.`;
+      msg = `Hola Dr(a). ${doc?.nombre || 'Doctor'}, le notificamos una cita agendada con el paciente ${pac ? pac.nombre + ' ' + pac.apellido : ''} para el ${fechaFormat} a las ${hora12}. Motivo: ${form.motivo}.`;
     }
 
     if (!phone) {
