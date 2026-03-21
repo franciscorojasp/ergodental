@@ -106,19 +106,26 @@ export default function Odontograma() {
     const hallazgos = piezas.filter(p => p.estado !== 'sano' || p.notas);
     
     await generarReportePDF({
-      titulo: 'INFORME DE ODONTOGRAMA',
-      subtitulo: `Paciente: ${pac.nombre} ${pac.apellido} · C.I: ${pac.cedula}`,
+      titulo: 'INFORME DE EXPLORACIÓN DENTAL',
+      subtitulo: `Paciente: ${pac.nombre} ${pac.apellido} · C.I: ${pac.cedula}\nALERGIAS: ${pac.alergias ? `⚠️ ${pac.alergiasDetalle || 'SÍ (Ver detalle)'}` : 'NINGUNA'}`,
       clinica: clinica.nombre,
       usuario: 'Odontólogo Especialista',
-      columnas: ['Pieza', 'Estado Clínico', 'Observaciones / Notas'],
-      filas: hallazgos.map(p => [
-        `Pieza #${p.numero}`,
-        estadoInfo(p.estado).label.toUpperCase(),
-        p.notas || '-'
-      ]),
+      columnas: ['Detalle / Pieza', 'Estado Clínico', 'Observaciones / Notas'],
+      filas: [
+        // Fila de resumen inicial
+        ['RESUMEN GENERAL', `${piezas.filter(px => px.estado === 'sano').length} PIEZAS SANAS`, 'Evaluación completa de arcos dentales'],
+        ...hallazgos.map(p => [
+          `Pieza #${p.numero}`,
+          estadoInfo(p.estado).label.toUpperCase(),
+          p.notas || '-'
+        ])
+      ],
       notas: [
         'Este informe refleja el estado clínico dental a la fecha del examen.',
-        hallazgos.length === 0 ? 'No se encontraron patologías visibles en esta revisión.' : 'Se recomienda iniciar tratamiento según las piezas marcadas.'
+        hallazgos.length === 0 
+          ? 'EXAMEN CLÍNICO: MAPA DENTAL ÍNTEGRO. No se aprecian anomalías estructurales o patológicas visibles.' 
+          : 'Se recomienda iniciar plan de tratamiento para las piezas marcadas con hallazgos clínicos.',
+        'Documento generado electrónicamente para fines de historia clínica.'
       ]
     });
   };
