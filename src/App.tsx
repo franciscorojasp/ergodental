@@ -30,6 +30,15 @@ import { useState, useEffect } from 'react';
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
+  const [sidebarPinned, setSidebarPinned] = useState(() => 
+    localStorage.getItem('ergo_sidebar_pinned') !== 'false'
+  );
+
+  const togglePinned = () => {
+    const newVal = !sidebarPinned;
+    setSidebarPinned(newVal);
+    localStorage.setItem('ergo_sidebar_pinned', String(newVal));
+  };
 
   // Cerrar sidebar automáticamente al cambiar a móvil si estaba abierto
   useEffect(() => {
@@ -50,7 +59,12 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+        isPinned={sidebarPinned} 
+        onTogglePinned={togglePinned}
+      />
       
       {/* Modales globales */}
       <TasaModal />
@@ -71,7 +85,9 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
           {!sidebarOpen && <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodental</div>}
         </header>
 
-        <main className={`page-content ${!sidebarOpen ? 'full-width' : ''}`}>{children}</main>
+        <main className={`page-content ${!sidebarPinned ? 'collapsed' : ''} ${!sidebarOpen ? 'full-width' : ''}`}>
+          {children}
+        </main>
       </div>
     </div>
   );

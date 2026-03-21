@@ -25,20 +25,22 @@ const NAV: { to: string; icon: string; label: string; modulo: Modulo }[] = [
 
 interface SidebarProps {
   isOpen: boolean;
+  isPinned: boolean;
   onClose: () => void;
+  onTogglePinned: () => void;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const navVisible = NAV.filter(item => canAccess(user?.rol, item.modulo));
-
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  const sidebarWidth = isPinned ? 'var(--sidebar-w)' : 'var(--sidebar-mini-w)';
 
   return (
     <>
-      {/* Overlay para móvil */}
       <div 
         className={`sidebar-overlay ${isOpen ? 'active' : ''}`} 
         onClick={onClose}
@@ -46,95 +48,140 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <motion.aside
         initial={{ x: -260 }} 
-        animate={{ x: isOpen ? 0 : -260 }} 
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        animate={{ 
+          x: isOpen ? 0 : -260,
+          width: sidebarWidth 
+        }} 
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
         style={{
           position:'fixed', top:0, left:0, bottom:0,
-          width:'var(--sidebar-w)',
-          background:'rgba(10,15,30,0.95)',
+          background:'rgba(10,15,35,0.98)',
           borderRight:'1px solid var(--border)',
-          backdropFilter:'blur(20px)',
+          backdropFilter:'blur(24px)',
           display:'flex', flexDirection:'column', zIndex:100,
+          overflow:'hidden'
         }}
-        className="sidebar"
+        className={`sidebar ${!isPinned ? 'mini' : ''}`}
       >
-        {/* Logo */}
-        <div style={{ padding:'24px 22px 16px', borderBottom:'1px solid var(--border)' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'16px' }}>
+        {/* Cabecera Sidebar */}
+        <div style={{ padding: isPinned ? '24px 22px 16px' : '24px 0 16px', borderBottom:'1px solid var(--border)', display:'flex', flexDirection:'column', alignItems:'center' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom: isPinned ? '16px' : '0', width: '100%', padding: isPinned ? '0' : '0 20px' }}>
             <div style={{
-              width:40, height:40, borderRadius:10, flexShrink:0,
+              width:40, height:40, borderRadius:12, flexShrink:0,
               background:'linear-gradient(135deg, var(--primary), var(--accent))',
               display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem',
-            }}>🦷</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:800, fontSize:'1rem', letterSpacing:'-0.3px' }}>Ergodental</div>
-              <div style={{ fontSize:'0.72rem', color:'var(--text-secondary)', fontWeight:500 }}>Sistema de Gestión</div>
-            </div>
-            {/* Botón cerrar */}
-            <button className="btn-close" onClick={onClose} style={{ fontSize:'1.1rem' }}>✕</button>
+              boxShadow: '0 4px 15px rgba(0,198,255,0.3)',
+              cursor: 'pointer'
+            }} onClick={onTogglePinned}>🦷</div>
+            {isPinned && (
+              <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ flex:1 }}>
+                <div style={{ fontWeight:900, fontSize:'1.1rem', letterSpacing:'-0.5px', color:'#fff' }}>ErgoDental</div>
+                <div style={{ fontSize:'0.65rem', color:'var(--text-secondary)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Premium Clinic</div>
+              </motion.div>
+            )}
+            
+            {isPinned && (
+               <button className="desktop-only btn-pin" onClick={onTogglePinned} title="Colapsar menú">«</button>
+            )}
+
+            <button className="mobile-only btn-close" onClick={onClose} style={{ fontSize:'1.1rem' }}>✕</button>
           </div>
 
-          {/* Selector de Clínica */}
-          <div style={{ marginBottom: '12px' }}>
-            <ClinicaBadge />
-          </div>
-
-          {/* Widget tasa BCV + toggle USD/BS */}
-          <CurrencyToggle />
+          {isPinned && (
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ width:'100%' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <ClinicaBadge />
+              </div>
+              <CurrencyToggle />
+            </motion.div>
+          )}
         </div>
 
-        {/* Nav filtrado por rol */}
-        <nav style={{ flex:1, padding:'12px 12px', display:'flex', flexDirection:'column', gap:'3px', overflowY:'auto' }}>
+        {/* Navegación */}
+        <nav style={{ flex:1, padding:'16px 12px', display:'flex', flexDirection:'column', gap:'6px', overflowY:'auto', overflowX:'hidden' }}>
           {navVisible.map(item => (
             <NavLink key={item.to} to={item.to} onClick={() => { if(window.innerWidth <= 768) onClose(); }}
-              style={({ isActive }) => ({
-                display:'flex', alignItems:'center', gap:'12px',
-                padding:'10px 14px', borderRadius:'var(--radius-sm)',
-                textDecoration:'none', fontSize:'0.88rem', fontWeight:600,
-                transition:'var(--transition)',
-                background: isActive ? 'linear-gradient(135deg, rgba(0,198,255,0.15), rgba(123,97,255,0.10))' : 'transparent',
-                color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                border: isActive ? '1px solid rgba(0,198,255,0.2)' : '1px solid transparent',
-              })}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              title={!isPinned ? item.label : ''}
+              style={{
+                display:'flex', alignItems:'center', justifyContent: isPinned ? 'flex-start' : 'center',
+                gap:'14px', padding:'12px', borderRadius:'12px',
+                textDecoration:'none', transition:'var(--transition)',
+                minHeight: '48px'
+              }}
             >
-              <span style={{ fontSize:'1.05rem' }}>{item.icon}</span>
-              {item.label}
+              <span style={{ fontSize:'1.24rem', flexShrink:0 }}>{item.icon}</span>
+              {isPinned && <motion.span initial={{opacity:0, x: -10}} animate={{opacity:1, x:0}} style={{ fontSize:'0.9rem', fontWeight:600 }}>{item.label}</motion.span>}
             </NavLink>
           ))}
         </nav>
 
-        {/* Info de usuario */}
-        <div style={{ padding:'14px 12px', borderTop:'1px solid var(--border)' }}>
-          {user && (
-            <div style={{ marginBottom:'6px', paddingLeft:'2px' }}>
-              <span className={`badge ${ROL_BADGE_CLASS[user.rol]}`} style={{ fontSize:'0.68rem' }}>
+        {/* Perfil / Footer */}
+        <div style={{ padding:'16px 12px', borderTop:'1px solid var(--border)', background:'rgba(255,255,255,0.02)' }}>
+          {isPinned && user && (
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ marginBottom:'10px', paddingLeft:'4px' }}>
+              <span className={`badge ${ROL_BADGE_CLASS[user.rol]}`} style={{ fontSize:'0.65rem', padding:'2px 8px' }}>
                 {ROL_LABEL[user.rol]}
               </span>
-            </div>
+            </motion.div>
           )}
           <div style={{
-            display:'flex', alignItems:'center', gap:'10px',
-            padding:'10px 12px', borderRadius:'var(--radius-sm)', background:'var(--bg-card)',
+            display:'flex', alignItems:'center', justifyContent: isPinned ? 'flex-start' : 'center',
+            gap:'10px', padding: isPinned ? '10px' : '4px', borderRadius:'14px', background:'rgba(255,255,255,0.03)',
+            border: '1px solid var(--border)'
           }}>
             <div style={{
-              width:34, height:34, borderRadius:'50%', flexShrink:0,
+              width:36, height:36, borderRadius:'12px', flexShrink:0,
               background:'linear-gradient(135deg, var(--accent), var(--primary))',
               display:'flex', alignItems:'center', justifyContent:'center',
-              fontWeight:700, fontSize:'0.82rem',
+              fontWeight:800, fontSize:'0.9rem', color: '#fff', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
             }}>{user?.nombre?.charAt(0) || 'A'}</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontWeight:600, fontSize:'0.8rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {user?.nombre}
-              </div>
-              <div style={{ fontSize:'0.7rem', color:'var(--text-secondary)' }}>{user?.email}</div>
-            </div>
-            <button onClick={handleLogout} title="Cerrar sesión"
-              style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'1rem', padding:'4px', borderRadius:'4px' }}>
-              ⏻
-            </button>
+            
+            {isPinned && (
+              <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontWeight:700, fontSize:'0.85rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  {user?.nombre}
+                </div>
+                <div style={{ fontSize:'0.68rem', color:'var(--text-secondary)', opacity:0.8 }}>{user?.rol}</div>
+              </motion.div>
+            )}
+            
+            {isPinned && (
+              <button onClick={handleLogout} className="btn-logout" title="Cerrar sesión">⏻</button>
+            )}
           </div>
+          {!isPinned && (
+             <button onClick={handleLogout} title="Cerrar sesión" style={{ width:'100%', background:'none', border:'none', color:'var(--danger)', cursor:'pointer', fontSize:'1.2rem', marginTop:'12px' }}>⏻</button>
+          )}
         </div>
       </motion.aside>
+
+      <style>{`
+        .nav-link { color: var(--text-secondary); border: 1px solid transparent; }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+        .nav-link.active { 
+          background: linear-gradient(135deg, rgba(0,198,255,0.15), rgba(123,97,255,0.10));
+          color: var(--primary);
+          border: 1px solid rgba(0,198,255,0.25);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-pin {
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+          width: 24px; height: 24px;
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 6px; cursor: pointer;
+          font-size: 0.8rem; transition: all 0.2s;
+        }
+        .btn-pin:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        .btn-logout { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem; padding:4px; border-radius:6px; transition:0.2s; }
+        .btn-logout:hover { color:var(--danger); background:var(--danger-dim); }
+        
+        @media (max-width: 768px) {
+          .desktop-only { display: none !important; }
+        }
+      `}</style>
     </>
   );
 }
