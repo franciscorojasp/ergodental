@@ -206,7 +206,14 @@ export default function HelpCenter() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
           >
             <div className="help-header">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.2rem', color: '#fff' }}>📖 Centro de Ayuda Asistida</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>📖 Centro de Ayuda Asistida</h3>
+                <button 
+                  className="btn-help-close" 
+                  onClick={() => setIsOpen(false)}
+                  style={{ background:'none', border:'none', color:'#fff', opacity:0.6, fontSize:'1.4rem', cursor:'pointer' }}
+                >✕</button>
+              </div>
               <input 
                 type="text" 
                 placeholder="Busca por duda, ej: 'Pdf', 'Citas' o 'Dólares'..." 
