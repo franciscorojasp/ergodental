@@ -35,7 +35,8 @@ export default function Agenda() {
   const getCitasByDayAndHour = (date: Date, hour: string) => {
     const dateStr = date.toLocaleDateString('en-CA');
     return citas.filter(c => {
-      const matchDate = c.fecha === dateStr && c.hora.startsWith(hour.split(':')[0]);
+      const cleanFecha = String(c.fecha || '').split('T')[0];
+      const matchDate = cleanFecha === dateStr && String(c.hora || '').startsWith(hour.split(':')[0]);
       const matchDoc = doctorId === 'Todos' || c.doctorId === doctorId;
       return matchDate && matchDoc;
     });
