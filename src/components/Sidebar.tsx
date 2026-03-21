@@ -75,8 +75,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             }} onClick={onTogglePinned}>🦷</div>
             {isPinned && (
               <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ flex:1 }}>
-                <div style={{ fontWeight:900, fontSize:'1.1rem', letterSpacing:'-0.5px', color:'#fff' }}>ErgoDental</div>
-                <div style={{ fontSize:'0.65rem', color:'var(--text-secondary)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Premium Clinic</div>
+                <div style={{ fontWeight:900, fontSize:'1.1rem', letterSpacing:'-0.5px', color:'#fff' }}>ERGODENTALVE</div>
+                <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>1.0</div>
               </motion.div>
             )}
             
