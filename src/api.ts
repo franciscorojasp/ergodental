@@ -415,9 +415,10 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
 
     const isQuery = actionName === 'login' || !data;
     const cacheKey = `${actionName}_${JSON.stringify(data || {})}`;
+    const skipCache = actionName === 'getGlobalCorrelativo';
 
     // Check cache for queries
-    if (isQuery && actionName !== 'login') {
+    if (isQuery && actionName !== 'login' && !skipCache) {
       const cached = apiCache.get(cacheKey);
       if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
         return cached.data;
@@ -465,7 +466,7 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
       if (result.error) throw new Error(result.error);
 
       // Store in cache for successful queries
-      if (isQuery && actionName !== 'login') {
+      if (isQuery && actionName !== 'login' && !skipCache) {
         apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
       }
 
