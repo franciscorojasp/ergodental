@@ -19,7 +19,15 @@ export interface ConfigReporte {
 const BRAND_COLOR: [number, number, number] = [30, 90, 180];   // #1e5ab4
 const ACCENT_COLOR: [number, number, number] = [0, 210, 140];  // #00d28c
 
-function addHeader(doc: jsPDF, config: ConfigReporte) {
+export function obtenerSiguienteCorrelativo(): string {
+  const key = 'ergo_doc_correlativo';
+  const actual = parseInt(localStorage.getItem(key) || '0', 10);
+  const siguiente = actual + 1;
+  localStorage.setItem(key, siguiente.toString());
+  return `DOC-${siguiente.toString().padStart(6, '0')}`;
+}
+
+function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string) {
   const W = doc.internal.pageSize.getWidth();
   // Banda superior
   doc.setFillColor(...BRAND_COLOR);
@@ -34,6 +42,13 @@ function addHeader(doc: jsPDF, config: ConfigReporte) {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Sistema de Gestión Clínica Dental', 14, 19);
+  
+  if (correlativo) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`N° ${correlativo}`, W - 14, 15, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+  }
+
   doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, W - 14, 19, { align: 'right' });
   if (config.usuario) doc.text(`Usuario: ${config.usuario}`, W - 14, 24, { align: 'right' });
 
@@ -74,8 +89,9 @@ function addFooter(doc: jsPDF) {
 export function generarReportePDF(config: ConfigReporte): void {
   try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+    const correlativo = obtenerSiguienteCorrelativo();
 
-    addHeader(doc, config);
+    addHeader(doc, config, correlativo);
 
     const startY = config.subtitulo ? 56 : 50;
 
@@ -130,7 +146,7 @@ export function generarReportePDF(config: ConfigReporte): void {
 
     addFooter(doc);
 
-    const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+    const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}_${new Date().toISOString().slice(0,10)}.pdf`;
     doc.save(filename);
   } catch (error) {
     console.error('Error generando reporte PDF:', error);
@@ -141,6 +157,7 @@ export function generarReportePDF(config: ConfigReporte): void {
 export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): void {
   try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+    const correlativo = obtenerSiguienteCorrelativo();
     
     // Reutilizamos el header con una config mínima
     addHeader(doc, { 
@@ -148,7 +165,7 @@ export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usu
       subtitulo: 'Guía de Ayuda ErgoDental',
       usuario,
       columnas: [], filas: [] 
-    });
+    }, correlativo);
 
     const W = doc.internal.pageSize.getWidth();
     let currentY = 65;
@@ -164,7 +181,7 @@ export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usu
       // Verificar si necesitamos nueva página
       if (currentY + (lines.length * 6) > 260) {
         doc.addPage();
-        addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] });
+        addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] }, correlativo);
         currentY = 65;
       }
 
@@ -174,7 +191,7 @@ export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usu
 
     addFooter(doc);
     
-    const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`;
+    const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}.pdf`;
     doc.save(filename);
   } catch (error) {
     console.error('Error generando ayuda PDF:', error);
