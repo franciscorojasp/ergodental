@@ -68,12 +68,13 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
         <div style={{ padding: isPinned ? '24px 22px 16px' : '24px 0 16px', borderBottom:'1px solid var(--border)', display:'flex', flexDirection:'column', alignItems:'center' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom: isPinned ? '16px' : '0', width: '100%', padding: isPinned ? '0' : '0 20px' }}>
             <div style={{
-              width:40, height:40, borderRadius:12, flexShrink:0,
-              background:'linear-gradient(135deg, var(--primary), var(--accent))',
-              display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem',
-              boxShadow: '0 4px 15px rgba(0,198,255,0.3)',
-              cursor: 'pointer'
-            }} onClick={onTogglePinned}>🦷</div>
+              width:44, height:44, borderRadius:12, flexShrink:0,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              cursor: 'pointer', overflow:'hidden', background:'#fff'
+            }} onClick={onTogglePinned}>
+              <img src="/logo.png" alt="Logo" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            </div>
             {isPinned && (
               <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ flex:1 }}>
                 <div style={{ fontWeight:900, fontSize:'1.1rem', letterSpacing:'-0.5px', color:'#fff' }}>ERGODENTALVE</div>

@@ -26,15 +26,22 @@ function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string) {
   doc.setFillColor(...BRAND_COLOR);
   doc.rect(0, 0, W, 28, 'F');
 
-  // Logotipo textual
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text(String.fromCharCode(69, 82, 71, 79, 68, 69, 78, 84, 65, 76), 16, 12);
+  // Logo Gráfico
+  try {
+    doc.addImage('/logo.png', 'PNG', 12, 5, 20, 20); // x, y, width, height
+  } catch (e) {
+    // Fallback al texto si el logo no carga
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ERGODENTAL', 16, 12);
+  }
 
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Sistema de Gestión Clínica Dental', 14, 19);
+  doc.text('Sistema de Gestión Clínica Dental', 36, 14);
+  doc.text('Seguridad · Innovación · Salud', 36, 19);
   
   if (correlativo) {
     doc.setFont('helvetica', 'bold');

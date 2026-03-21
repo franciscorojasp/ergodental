@@ -70,13 +70,16 @@ export default function Login() {
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             style={{
-              width: 72, height: 72, borderRadius: 20,
-              background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+              width: 90, height: 90, borderRadius: 24,
+              background: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '2rem', margin: '0 auto 16px',
-              boxShadow: '0 12px 40px rgba(0,198,255,0.35)',
+              margin: '0 auto 16px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+              overflow: 'hidden', border: '2px solid var(--border)'
             }}
-          >🦷</motion.div>
+          >
+            <img src="/logo.png" alt="Ergodental Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </motion.div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.5px' }}>ERGODENTALVE</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '6px', fontSize: '1rem', fontWeight: 600 }}>1.0</p>
         </div>
