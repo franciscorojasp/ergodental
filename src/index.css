@@ -310,6 +310,21 @@ tbody td { padding: 14px 16px; font-size: 0.88rem; color: var(--text-primary); }
 .page-header h1 { font-size: 1.6rem; font-weight: 800; }
 .page-header p { color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px; }
 
+/* ── Global Action Bar (Symmetry) ──────────────── */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
 /* ── Search ─────────────────────────────────────── */
 .search-wrap { position: relative; }
 .search-wrap .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }

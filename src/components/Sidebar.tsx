@@ -1,6 +1,7 @@
 // src/components/Sidebar.tsx
 import { NavLink, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { canAccess, ROL_LABEL, ROL_BADGE_CLASS, type Modulo } from '../permissions';
@@ -172,6 +173,28 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
           {!isPinned && (
              <button onClick={handleLogout} title="Cerrar sesión" style={{ width:'100%', background:'none', border:'none', color:'var(--danger)', cursor:'pointer', fontSize:'1.2rem', marginTop:'12px' }}>⏻</button>
           )}
+
+          {/* Sección de Desarrolladores & QR (Solo si está expandido) */}
+          <AnimatePresence>
+            {isPinned && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }} 
+                exit={{ opacity: 0, height: 0 }}
+                style={{ marginTop: '24px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', textAlign: 'center' }}
+              >
+                <div style={{ background: '#fff', padding: '8px', borderRadius: '8px', display: 'inline-block', marginBottom: '12px' }}>
+                  <QRCodeSVG value={window.location.origin} size={80} level="H" />
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                  <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '4px' }}>Desarrollado por ERGOEXPRESS, C.A.</strong>
+                  📞 +58 424 4736489<br/>
+                  📞 +58 412 4116804<br/>
+                  📱 @ergoexpress_ve
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.aside>
 

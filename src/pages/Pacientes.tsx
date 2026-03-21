@@ -198,9 +198,11 @@ export default function Pacientes() {
             {pacientes.length} pacientes registrados
           </p>
         </div>
-        <RoleGuard modulo="pacientes" accion="crear">
-          <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Paciente</button>
-        </RoleGuard>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <RoleGuard modulo="pacientes" accion="crear">
+            <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Paciente</button>
+          </RoleGuard>
+        </div>
       </div>
 
       <div className="glass" style={{ padding:'14px 18px', marginBottom:'18px', display:'flex', gap:'12px', alignItems:'center', flexWrap:'wrap' }}>

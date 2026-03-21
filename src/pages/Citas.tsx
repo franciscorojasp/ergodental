@@ -70,9 +70,11 @@ export default function Citas() {
             {filtradas.length} citas encontradas
           </p>
         </div>
-        <RoleGuard modulo="citas" accion="crear">
-          <button className="btn btn-primary" onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva Cita</button>
-        </RoleGuard>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <RoleGuard modulo="citas" accion="crear">
+            <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva Cita</button>
+          </RoleGuard>
+        </div>
       </div>
 
       <div style={{ display:'flex', gap:'6px', marginBottom:'18px', flexWrap:'wrap' }}>
