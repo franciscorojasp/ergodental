@@ -25,6 +25,7 @@ import Agenda from './pages/Agenda';
 import Presupuestos from './pages/Presupuestos';
 import Recibos from './pages/Recibos';
 import Laboratorios from './pages/Laboratorios';
+import Desarrolladores from './pages/Desarrolladores';
 import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
@@ -159,6 +160,9 @@ export default function App() {
                 } />
                 <Route path="/configuracion" element={
                   <ProtectedLayout><RoleGuard modulo="configuracion" redirigir><ConfiguracionClinica /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/soporte" element={
+                  <ProtectedLayout><Desarrolladores /></ProtectedLayout>
                 } />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
