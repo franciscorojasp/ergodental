@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MonedaProvider } from './contexts/MonedaContext';
 import { ClinicaProvider } from './contexts/ClinicaContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Sidebar from './components/Sidebar';
 import RoleGuard from './components/RoleGuard';
 import TasaModal from './components/TasaModal';
@@ -105,67 +106,67 @@ function HomeRedirect() {
 export default function App() {
   return (
     <AuthProvider>
-      <MonedaProvider>
-        <ClinicaProvider>
-          <ClinicaModal />
-          <HashRouter>
-            <Routes>
-              {/* Rutas públicas */}
-              <Route path="/login"        element={<Login />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
-              <Route path="/"             element={<HomeRedirect />} />
+      <ThemeProvider>
+        <MonedaProvider>
+          <ClinicaProvider>
+            <ClinicaModal />
+            <HashRouter>
+              <Routes>
+                {/* ... existing routes ... */}
+                <Route path="/login"        element={<Login />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route path="/"             element={<HomeRedirect />} />
 
-              {/* Rutas protegidas */}
-              <Route path="/dashboard" element={
-                <ProtectedLayout><RoleGuard modulo="dashboard" redirigir><Dashboard /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/agenda" element={
-                <ProtectedLayout><RoleGuard modulo="citas" redirigir><Agenda /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/pacientes" element={
-                <ProtectedLayout><RoleGuard modulo="pacientes" redirigir><Pacientes /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/citas" element={
-                <ProtectedLayout><RoleGuard modulo="citas" redirigir><Citas /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/personal" element={
-                <ProtectedLayout><RoleGuard modulo="personal" redirigir><Personal /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/odontograma" element={
-                <ProtectedLayout><RoleGuard modulo="odontograma" redirigir><Odontograma /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/inventario" element={
-                <ProtectedLayout><RoleGuard modulo="inventario" redirigir><Inventario /></RoleGuard></ProtectedLayout>
-              } />
+                <Route path="/dashboard" element={
+                  <ProtectedLayout><RoleGuard modulo="dashboard" redirigir><Dashboard /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/agenda" element={
+                  <ProtectedLayout><RoleGuard modulo="citas" redirigir><Agenda /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/pacientes" element={
+                  <ProtectedLayout><RoleGuard modulo="pacientes" redirigir><Pacientes /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/citas" element={
+                  <ProtectedLayout><RoleGuard modulo="citas" redirigir><Citas /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/personal" element={
+                  <ProtectedLayout><RoleGuard modulo="personal" redirigir><Personal /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/odontograma" element={
+                  <ProtectedLayout><RoleGuard modulo="odontograma" redirigir><Odontograma /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/inventario" element={
+                  <ProtectedLayout><RoleGuard modulo="inventario" redirigir><Inventario /></RoleGuard></ProtectedLayout>
+                } />
 
-              {/* ── ADMIN only ── */}
-              <Route path="/finanzas" element={
-                <ProtectedLayout><RoleGuard modulo="finanzas" redirigir><Finanzas /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/laboratorios" element={
-                <ProtectedLayout><RoleGuard modulo="laboratorios" redirigir><Laboratorios /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/proveedores" element={
-                <ProtectedLayout><RoleGuard modulo="proveedores" redirigir><Proveedores /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/tasabcv" element={
-                <ProtectedLayout><RoleGuard modulo="finanzas" redirigir><TasaBCV /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/presupuestos" element={
-                <ProtectedLayout><RoleGuard modulo="presupuestos" redirigir><Presupuestos /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/recibos" element={
-                <ProtectedLayout><RoleGuard modulo="recibos" redirigir><Recibos /></RoleGuard></ProtectedLayout>
-              } />
-              <Route path="/configuracion" element={
-                <ProtectedLayout><RoleGuard modulo="configuracion" redirigir><ConfiguracionClinica /></RoleGuard></ProtectedLayout>
-              } />
+                <Route path="/finanzas" element={
+                  <ProtectedLayout><RoleGuard modulo="finanzas" redirigir><Finanzas /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/laboratorios" element={
+                  <ProtectedLayout><RoleGuard modulo="laboratorios" redirigir><Laboratorios /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/proveedores" element={
+                  <ProtectedLayout><RoleGuard modulo="proveedores" redirigir><Proveedores /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/tasabcv" element={
+                  <ProtectedLayout><RoleGuard modulo="finanzas" redirigir><TasaBCV /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/presupuestos" element={
+                  <ProtectedLayout><RoleGuard modulo="presupuestos" redirigir><Presupuestos /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/recibos" element={
+                  <ProtectedLayout><RoleGuard modulo="recibos" redirigir><Recibos /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/configuracion" element={
+                  <ProtectedLayout><RoleGuard modulo="configuracion" redirigir><ConfiguracionClinica /></RoleGuard></ProtectedLayout>
+                } />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </HashRouter>
-        </ClinicaProvider>
-      </MonedaProvider>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </HashRouter>
+          </ClinicaProvider>
+        </MonedaProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

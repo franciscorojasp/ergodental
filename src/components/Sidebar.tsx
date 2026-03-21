@@ -2,6 +2,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { canAccess, ROL_LABEL, ROL_BADGE_CLASS, type Modulo } from '../permissions';
 import CurrencyToggle from './CurrencyToggle';
 import ClinicaBadge from './ClinicaBadge';
@@ -33,6 +34,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const navVisible = NAV.filter(item => canAccess(user?.rol, item.modulo));
@@ -120,6 +122,21 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
 
         {/* Perfil / Footer */}
         <div style={{ padding:'16px 12px', borderTop:'1px solid var(--border)', background:'rgba(255,255,255,0.02)' }}>
+          <button 
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
+            style={{
+              width:'100%', padding:'10px', borderRadius:'12px',
+              background: 'rgba(255,255,255,0.05)', border:'1px solid var(--border)',
+              display:'flex', alignItems:'center', justifyContent: isPinned ? 'flex-start' : 'center',
+              gap:'12px', cursor:'pointer', marginBottom:'16px', transition:'var(--transition)',
+              color: 'var(--text-primary)'
+            }}
+          >
+            <span style={{ fontSize:'1.2rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
+            {isPinned && <span style={{ fontSize:'0.85rem', fontWeight:600 }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>}
+          </button>
+
           {isPinned && user && (
             <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ marginBottom:'10px', paddingLeft:'4px' }}>
               <span className={`badge ${ROL_BADGE_CLASS[user.rol]}`} style={{ fontSize:'0.65rem', padding:'2px 8px' }}>
