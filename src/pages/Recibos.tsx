@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useClinica } from '../contexts/ClinicaContext';
 import { useMoneda } from '../contexts/MonedaContext';
-import { getRecibos, deleteRecibo, type Recibo } from '../api';
+import { getRecibos, deleteRecibo, type Recibo, CLINICAS } from '../api';
 import { generarReportePDF } from '../utils/reportes';
 import ConfirmDialog from '../components/ConfirmDialog';
 import RoleGuard from '../components/RoleGuard';
@@ -22,9 +22,12 @@ export default function Recibos() {
     });
   }, [clinica.id]);
 
-  const imprimirRecibo = (r: Recibo) => {
-    generarReportePDF({
+  const imprimirRecibo = async (r: Recibo) => {
+    const sedeNombre = CLINICAS.find(c => c.id === r.clinicaId)?.nombre || clinica.nombre;
+    
+    await generarReportePDF({
       titulo: 'RECIBO DE SERVICIOS',
+      clinica: sedeNombre,
       subtitulo: `Nro: ${r.nroRecibo} · Fecha: ${r.fecha}`,
       usuario: 'Administración',
       columnas: ['Concepto', 'Total'],

@@ -243,10 +243,11 @@ export default function Finanzas(){
   const PERIODOS:PeriodoReporte[]=['Semanal','Quincenal','Mensual','Trimestral','Semestral','Anual'];
 
   // ── PDF Exportar ──────────────────────────────────────────────────
-  const generarPDF = () => {
+  const generarPDF = async () => {
     const cobrados = pagosFiltrados.filter(p => p.estado==='Pagado'||p.estado==='Parcial');
-    generarReportePDF({
+    await generarReportePDF({
       titulo: `Reporte Financiero – ${tab.charAt(0).toUpperCase()+tab.slice(1)}`,
+      clinica: clinica.nombre,
       subtitulo: `Periodo: ${periodo} · Moneda: ${fmt(1).startsWith('$')?'USD':'Bs'} · Tasa BCV: Bs ${tasaBCV.toLocaleString('es-VE',{maximumFractionDigits:0})}`,
       usuario: user?.nombre,
       columnas: tab==='ingresos'||tab==='resumen'

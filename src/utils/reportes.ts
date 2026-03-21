@@ -55,12 +55,25 @@ function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string) {
   doc.setFont('helvetica', 'bold');
   doc.text(config.titulo, 14, 42);
 
+  let startYPos = 50;
+
+  if (config.clinica) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 90, 180);
+    doc.text(`Ámbito: ${config.clinica}`, 14, startYPos);
+    startYPos += 6;
+  }
+
   if (config.subtitulo) {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(90, 90, 90);
-    doc.text(config.subtitulo, 14, 49);
+    doc.text(config.subtitulo, 14, startYPos);
+    startYPos += 6;
   }
+  
+  return startYPos + 4; // Retornamos la posición Y para iniciar la tabla
 }
 
 function addFooter(doc: jsPDF) {
@@ -84,13 +97,11 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     const correlativo = await getGlobalCorrelativo();
 
-    addHeader(doc, config, correlativo);
-
-    const startY = config.subtitulo ? 56 : 50;
+    const tblStartY = addHeader(doc, config, correlativo);
 
     // Tabla principal de datos
     autoTable(doc, {
-      startY,
+      startY: tblStartY,
       head: [config.columnas],
       body: config.filas.map(f => f.map(String)),
       theme: 'grid',
@@ -161,7 +172,7 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
     }, correlativo);
 
     const W = doc.internal.pageSize.getWidth();
-    let currentY = 65;
+    let currentY = 70; // bajamos un poco por si hay ámbito
 
     doc.setFontSize(11);
     doc.setTextColor(40, 40, 40);
@@ -174,8 +185,8 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
       // Verificar si necesitamos nueva página
       if (currentY + (lines.length * 6) > 260) {
         doc.addPage();
-        addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] }, correlativo);
-        currentY = 65;
+        let newTblStartY = addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] }, correlativo);
+        currentY = newTblStartY;
       }
 
       doc.text(lines, 14, currentY);

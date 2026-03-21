@@ -52,9 +52,10 @@ export default function Dashboard() {
   };
 
   // PDF
-  const generarPDF = () => {
-    generarReportePDF({
-      titulo: `Resumen Ejecutivo – ${clinica.nombre}`,
+  const generarPDF = async () => {
+    await generarReportePDF({
+      titulo: `Resumen Ejecutivo`,
+      clinica: clinica.nombre,
       subtitulo: `Periodo: ${periodo} · Generado: ${new Date().toLocaleString('es-VE')}`,
       usuario: user?.nombre,
       columnas: ['Métrica', 'Valor'],

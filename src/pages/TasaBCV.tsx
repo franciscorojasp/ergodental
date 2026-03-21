@@ -33,9 +33,10 @@ export default function TasaBCV() {
     setTimeout(() => setGuardado(false), 3000);
   };
 
-  const handlePDF = () => {
-    generarReportePDF({
+  const handlePDF = async () => {
+    await generarReportePDF({
       titulo: 'Historial de Tasa BCV',
+      clinica: 'Sistema Global (Consolidado)',
       subtitulo: `Últimos ${filtro} días · Tasa hoy: Bs ${tasaBCV > 0 ? tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'no registrada'} / $1`,
       usuario: user?.nombre,
       columnas: ['Fecha', 'Tasa (Bs/USD)', 'Fuente', 'Variación'],

@@ -5,7 +5,7 @@ import { useMoneda } from '../contexts/MonedaContext';
 import { 
   getPresupuestos, createPresupuesto, updatePresupuesto, deletePresupuesto,
   getPacientes, createRecibo, createPago,
-  type Presupuesto, type Paciente, type EstadoPresupuesto 
+  type Presupuesto, type Paciente, type EstadoPresupuesto, CLINICAS 
 } from '../api';
 import { generarReportePDF } from '../utils/reportes';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -200,9 +200,11 @@ export default function Presupuestos() {
     }
   };
 
-  const imprimirPresupuesto = (p: Presupuesto) => {
-    generarReportePDF({
+  const imprimirPresupuesto = async (p: Presupuesto) => {
+    const sedeNombre = CLINICAS.find(c => c.id === p.clinicaId)?.nombre || clinica.nombre;
+    await generarReportePDF({
       titulo: 'PRESUPUESTO ODONTOLÓGICO',
+      clinica: sedeNombre,
       subtitulo: `Nro: ${p.id} · Fecha: ${p.fecha}`,
       usuario: 'Administración',
       columnas: ['Descripción', 'Cant.', 'Precio Unit.', 'Subtotal'],
