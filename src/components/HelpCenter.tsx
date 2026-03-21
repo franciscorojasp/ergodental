@@ -8,7 +8,7 @@ import { generarAyudaPDF } from '../utils/reportes';
 interface HelpTopic {
   id: string;
   titulo: string;
-  contenido: React.ReactNode;
+  contenido: () => React.ReactNode;
   puntos: string[]; // Resumen para PDF
   tags: string[];
 }
@@ -25,7 +25,7 @@ const HELP_DATABASE: HelpTopic[] = [
       'Tasa BCV: Actualiza diariamente la tasa en Configuración. Así la app cotiza automáticamente todo lo que cobres en Bs.',
       'Seguridad: Todas las acciones quedan registradas en red, y los permisos varían según tu nivel (Administrador, Asistente, Odontólogo).'
     ],
-    contenido: (
+    contenido: () => (
       <div className="help-content">
         <p><strong>ErgoDental</strong> es el ecosistema definitivo para el flujo de tu clínica. Hemos diseñado la interfaz para que sea predictiva y rápida de aprender.</p>
         <div className="info-box">
@@ -48,7 +48,7 @@ const HELP_DATABASE: HelpTopic[] = [
       'Gestión de Personal: Crea cuentas para tus odontólogos para poder calcular comisiones.',
       'Estructura de Precios: Configura la tasa de cambio aquí. Asegúrate que a nivel de servidor nadie la haya alterado.'
     ],
-    contenido: (
+    contenido: () => (
       <div className="help-content">
         <p>El primer paso vital es revisar que el panel de Configuración tenga todo en orden:</p>
         <ol>
@@ -69,7 +69,7 @@ const HELP_DATABASE: HelpTopic[] = [
       'Odontograma Interactivo: Cada pieza dental (11 al 48 infantil/adulto) puede alterarse seleccionando un estado (Caries, Implante, Corona, etc).',
       'Actualización en vivo: Cada guardado sella fecha y hora en tu registro local de la nube.'
     ],
-    contenido: (
+    contenido: () => (
       <div className="help-content">
         <p>El corazón de tu clínica son tus pacientes. En el módulo de <strong>Pacientes</strong> tienes acceso al historial sin demoras.</p>
         <ul>
@@ -90,7 +90,7 @@ const HELP_DATABASE: HelpTopic[] = [
       'Honorarios (Comisiones): Al anotar quién fue el Doctor en una intervención y el "Tipo de Referencia", el Dashboard cruza la regla (ej. 70/30) y destina lo correspondiente a Honorarios por Pagar al Doctor.',
       'Egresos: No dediques la clínica solo a registrar ingresos. Anota compras de materiales, nómina, etc. Para ver ganancias Netas operativas.'
     ],
-    contenido: (
+    contenido: () => (
       <div className="help-content">
         <p>El libro de control contable sin la complicación contable.</p>
         <ul>
@@ -110,7 +110,7 @@ const HELP_DATABASE: HelpTopic[] = [
       'Documentos Únicos: Todo PDF exportado tiene un N° DOC-000XXX para trazabilidad legal y administrativa dentro de la empresa.',
       'Configuración: El PDF saldrá con la información real de la Sede desde donde lo mandas a hacer.'
     ],
-    contenido: (
+    contenido: () => (
       <div className="help-content">
         <p>Mantén la elegancia con todos tus pacientes.</p>
         <ul>
@@ -225,11 +225,11 @@ export default function HelpCenter() {
 
               <div className={`help-main-content ${!activeTopic ? 'mobile-hide' : ''}`}>
                 {activeTopic ? (
-                  <>
+                  <div key={activeTopic.id} className="topic-container">
                     <button type="button" className="mobile-only help-back-btn" onClick={() => setActiveTopic(null)}>← Volver a la lista</button>
                     <h4>{activeTopic.titulo}</h4>
-                    {activeTopic.contenido}
-                  </>
+                    {activeTopic.contenido()}
+                  </div>
                 ) : (
                   <p className="no-results">Busca un término arriba para encontrar respuestas.</p>
                 )}
