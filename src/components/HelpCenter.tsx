@@ -19,154 +19,104 @@ const HELP_DATABASE: HelpTopic[] = [
     titulo: 'Bienvenida a ErgoDental',
     tags: ['inicio', 'general', 'bienvenida'],
     puntos: [
-      'ergodental es una plataforma integral para la gestión de clínicas odontológicas multi-sede.',
-      'Sedes: Cambia de sede desde el menú lateral superior. Cada sede tiene sus propios pacientes y finanzas.',
-      'Tasa BCV: Debe ingresarse al inicio del día para sincronizar precios en Bs.',
-      'Sincronización: Los datos se guardan en tiempo real en la nube.'
+      'ErgoDental es una plataforma ágil, integral y en la nube para la gestión clínica.',
+      'Sedes: Puedes alternar entre distintas sucursales arriba a la izquierda. La data mostrada (Citas, Finanzas, Pacientes) corresponderá exclusivamente a la clínica en la que te encuentres.',
+      'Vista Consolidada: Los perfiles administrativos pueden seleccionar "Consolidado Global" para ver métricas sumadas de todas las clínicas al mismo tiempo.',
+      'Tasa BCV: Actualiza diariamente la tasa en Configuración. Así la app cotiza automáticamente todo lo que cobres en Bs.',
+      'Seguridad: Todas las acciones quedan registradas en red, y los permisos varían según tu nivel (Administrador, Asistente, Odontólogo).'
     ],
     contenido: (
       <div className="help-content">
-        <p><strong>ergodental</strong> es una plataforma integral para la gestión de clínicas odontológicas multi-sede.</p>
-        <ul>
-          <li><strong>Sedes:</strong> Cambia de sede desde el menú lateral superior. Cada sede tiene sus propios pacientes y finanzas.</li>
-          <li><strong>Tasa BCV:</strong> Debe ingresarse al inicio del día. Si ya fue ingresada por otro colega, el sistema te lo notificará.</li>
-          <li><strong>Sincronización:</strong> Los datos se guardan en tiempo real en Google Sheets.</li>
-        </ul>
+        <p><strong>ErgoDental</strong> es el ecosistema definitivo para el flujo de tu clínica. Hemos diseñado la interfaz para que sea predictiva y rápida de aprender.</p>
+        <div className="info-box">
+          <h5>🔑 Puntos clave de filosofía de uso:</h5>
+          <ul>
+            <li><strong>Todo ocurre en la nube:</strong> Si haces un cambio en una computadora, tus compañeros lo verán al instante.</li>
+            <li><strong>Sedes Separadas pero unidas:</strong> El selector superior izquierdo dicta qué datos ves. Si estás en "Sede Sur", no verás pacientes anotados en "Sede Norte". Para ver el panorama completo, selecciona "Consolidado Global".</li>
+            <li><strong>Tasa BCV:</strong> Ingresa el dólar de hoy apenas empiece el turno administrativo. ErgoDental convertirá automáticamente presupuestos y saldos pendientes.</li>
+          </ul>
+        </div>
       </div>
     )
   },
   {
     id: 'configuracion',
-    titulo: 'Configuración Inicial',
+    titulo: 'Configuración Inicial (Ajustes)',
     tags: ['configuracion', 'ajustes', 'sedes'],
     puntos: [
-      'Datos de la Clínica: Verifica RIF, dirección y teléfonos en Configuración.',
-      'Personal: Registra doctores y asistentes asignando roles específicos.',
-      'Inventario: Carga insumos iniciales y define niveles de alerta de stock.'
+      'Datos Institucionales: Verifícalos para asegurar que los recibos y PDFs salgan a nombre de la clínica correcta.',
+      'Gestión de Personal: Crea cuentas para tus odontólogos para poder calcular comisiones.',
+      'Estructura de Precios: Configura la tasa de cambio aquí. Asegúrate que a nivel de servidor nadie la haya alterado.'
     ],
     contenido: (
       <div className="help-content">
-        <p>Pasos sugeridos para nuevos usuarios administradores:</p>
+        <p>El primer paso vital es revisar que el panel de Configuración tenga todo en orden:</p>
         <ol>
-          <li><strong>Datos de la Clínica:</strong> Verifica RIF, dirección y teléfonos en el apartado de Configuración.</li>
-          <li><strong>Personal:</strong> Registra a tus doctores y asistentes asignando sus respectivos roles.</li>
-          <li><strong>Inventario:</strong> Carga tus insumos iniciales y define niveles de alerta (Stock Mínimo).</li>
+          <li><strong>Datos de Sede:</strong> Revisa tu Dirección, Teléfono, y RIF. Esto es lo que se incrustará en todos los PDFs (Recibos, Presupuestos) que le entregues a tus pacientes.</li>
+          <li><strong>Mantenimiento de Personal:</strong> Antes de crear citas, debes tener en sistema a tus Doctores. Así podrás asignarlos como tratantes y luego, calcular su honorario.</li>
+          <li><strong>Control de Tasa:</strong> En la sección Tasa BCV puedes forzar actualizar el valor manual. Esta tasa regirá conversiones visuales en el Área de Finanzas y Presupuestos.</li>
         </ol>
       </div>
     )
   },
   {
-    id: 'dashboard',
-    titulo: 'Panel de Control (Dashboard)',
-    tags: ['dashboard', 'resumen', 'estadisticas'],
-    puntos: [
-      'Citas de Hoy: Listado cronológico de pacientes esperados.',
-      'Ingresos Mensuales: Resumen de recaudación en la moneda activa.',
-      'Botonera Rápida: Accesos directos para tareas frecuentes como registro de pacientes.'
-    ],
-    contenido: (
-      <div className="help-content">
-        <p>Tu centro de mando diario.</p>
-        <ul>
-          <li><strong>Citas de Hoy:</strong> Listado cronológico de pacientes esperados.</li>
-          <li><strong>Ingresos Mensuales:</strong> Resumen de recaudación en la moneda activa.</li>
-          <li><strong>Botonera Rápida:</strong> Accesos directos para tareas frecuentes como registrar un nuevo paciente.</li>
-        </ul>
-      </div>
-    )
-  },
-  {
-    id: 'citas',
-    titulo: 'Agenda y Notificaciones',
-    tags: ['citas', 'agenda', 'whatsapp'],
-    puntos: [
-      'Creación: Vincula pacientes existentes. Si es nuevo, regístralo primero.',
-      'WhatsApp: Generación de enlace wa.me con mensaje personalizado al guardar.',
-      'Auditoría: Revisa estados (Pendiente, Confirmada, Completada).'
-    ],
-    contenido: (
-      <div className="help-content">
-        <p>Gestiona citas y reduce el ausentismo con recordatorios automáticos.</p>
-        <ul>
-          <li><strong>Creación:</strong> Vincula pacientes existentes. Si es nuevo, regístralo primero en "Pacientes".</li>
-          <li><strong>WhatsApp:</strong> Al guardar, se genera un enlace <code>wa.me</code> con un mensaje personalizado.</li>
-          <li><strong>Auditoría de Citas:</strong> Revisa el estado (Pendiente, Confirmada, Completada) para mantener el orden.</li>
-        </ul>
-      </div>
-    )
-  },
-  {
-    id: 'pacientes',
-    titulo: 'Historias Médicas',
+    id: 'historias',
+    titulo: 'Historias Médicas e Ingreso Clínico',
     tags: ['pacientes', 'historias', 'odontograma'],
     puntos: [
-      'Buscador: Localiza pacientes por Cédula o Nombre.',
-      'Odontograma Interactivo: Registro visual de hallazgos y tratamientos por cada diente.',
-      'Historial: Revisión de citas pasadas y tratamientos realizados.'
+      'Buscador Universal: Filtra por Cédula o Nombre. Es instantáneo.',
+      'Radiografías y Archivos: Próximamente habilitado. Usa las Notas del Odontograma para documentar todo.',
+      'Odontograma Interactivo: Cada pieza dental (11 al 48 infantil/adulto) puede alterarse seleccionando un estado (Caries, Implante, Corona, etc).',
+      'Actualización en vivo: Cada guardado sella fecha y hora en tu registro local de la nube.'
     ],
     contenido: (
       <div className="help-content">
-        <p>El núcleo de la atención clínica.</p>
+        <p>El corazón de tu clínica son tus pacientes. En el módulo de <strong>Pacientes</strong> tienes acceso al historial sin demoras.</p>
         <ul>
-          <li><strong>Buscador:</strong> Localiza pacientes por Cédula o Nombre.</li>
-          <li><strong>Odontograma Interactivo:</strong> Haz clic en cada pieza para marcar caries, implantes o coronas.</li>
-          <li><strong>Historial de Visitas:</strong> Revisa citas pasadas y tratamientos realizados.</li>
+          <li><strong>Odontograma Interactivo:</strong> Es la herramienta más icónica. Entra a un paciente y haz click en el diente. Se desplegará un menú radial o de lista para seleccionar la afección o tratamiento. Al guardar, quedará reflejado en la Historia Clínica.</li>
+          <li><strong>Datos Personales:</strong> Completa siempre Fecha de Nacimiento (para recordatorios), y Condiciones Sistémicas Críticas. Verás banderas de alerta si es alérgico o de riesgo.</li>
+          <li><strong>Presupuestos:</strong> En la vista del paciente, puedes enlazar presupuestos directamente a lo que arrojó el odontograma.</li>
         </ul>
       </div>
     )
   },
   {
     id: 'finanzas',
-    titulo: 'Caja y Transacciones',
+    titulo: 'Caja, Ingresos y Egresos',
     tags: ['finanzas', 'pagos', 'bolivares', 'dolares'],
     puntos: [
-      'Registrar Pago: Cálculo automático a Bs según la tasa activa.',
-      'Métodos de Pago: Soporte para Pago Móvil, Zelle, Efectivo y Transferencias.',
-      'Egresos: Registro de consumos y pagos a terceros para balance neto.'
+      'Sistema Multimoneda: Montos base en dólares (generalmente) y el sistema calculará equivalencias en Bolívares al momento.',
+      'Generación de Recibos: Al registrar un pago a favor de un tratamiento, puedes exportarlo inmediatamente en PDF con el botón correspondiente.',
+      'Honorarios (Comisiones): Al anotar quién fue el Doctor en una intervención y el "Tipo de Referencia", el Dashboard cruza la regla (ej. 70/30) y destina lo correspondiente a Honorarios por Pagar al Doctor.',
+      'Egresos: No dediques la clínica solo a registrar ingresos. Anota compras de materiales, nómina, etc. Para ver ganancias Netas operativas.'
     ],
     contenido: (
       <div className="help-content">
-        <p>Control exacto del flujo de caja multi-moneda.</p>
+        <p>El libro de control contable sin la complicación contable.</p>
         <ul>
-          <li><strong>Registrar Pago:</strong> Introduce el monto y el sistema calculará el equivalente en Bs según la tasa activa.</li>
-          <li><strong>Método de Pago:</strong> Soporta Pago Móvil (banco/referencia), Zelle, Efectivo y más.</li>
-          <li><strong>Egresos:</strong> No olvides registrar pagos a proveedores o nómina para tener un balance neto real.</li>
+          <li><strong>Dólares o Bolívares:</strong> Al reportar ingresos de pacientes, el sistema asume montos fijos en USD pero recibe pagos en Punto Venta (Bs). El campo <em>Cobro en Bs</em> te mostrará la conversión exacta automática.</li>
+          <li><strong>Cálculo de Comisiones a Doctores:</strong> El éxito del sistema recae en los porcentajes pre-acordados. Al cobrarle a un paciente 100$, si el doctor está al 60%, verás 60$ acumulándose en la sección "Doctores".</li>
+          <li><strong>Reportes Trimestrales:</strong> En Finanzas, filtra por mes o trimestre y genera un Reporte Financiero completo con un click para mostrárselo a gerencia o socios.</li>
         </ul>
       </div>
     )
   },
   {
-    id: 'inventario',
-    titulo: 'Control de Inventario',
-    tags: ['inventario', 'insumos', 'stock'],
+    id: 'documentos',
+    titulo: 'Impresión y Envío de PDFs',
+    tags: ['pdf', 'recibos', 'impresion'],
     puntos: [
-      'Stock Mínimo: Alerta visual si el inventario cae por debajo del límite.',
-      'Proveedores: Vincular compras a proveedores para histórico de costos.'
+      'Todo lo que haces, es Exportable: Presupuestos, Recibos de Pago, y Resumen Financiero.',
+      'Documentos Únicos: Todo PDF exportado tiene un N° DOC-000XXX para trazabilidad legal y administrativa dentro de la empresa.',
+      'Configuración: El PDF saldrá con la información real de la Sede desde donde lo mandas a hacer.'
     ],
     contenido: (
       <div className="help-content">
-        <p>Evita quedarte sin materiales críticos.</p>
+        <p>Mantén la elegancia con todos tus pacientes.</p>
         <ul>
-          <li><strong>Stock Mínimo:</strong> Aparecerá una alerta visual si el inventario cae por debajo de este límite.</li>
-          <li><strong>Proveedores:</strong> Vincula tus compras a proveedores específicos para histórico de costos.</li>
+          <li><strong>¿Qué puedes exportar?</strong> Puedes descargar en PDF el Odontograma (próximamente), los Recibos de pago cuando un paciente abona, y los Presupuestos con desglose de ítems.</li>
+          <li><strong>Envío por WhatsApp:</strong> Aunque el botón actual descarga localmente el PDF, puedes compartir el archivo recién bajado directamente por WhatsApp en tu equipo o celular de la clínica, dando un toque muy moderno de atención al usuario.</li>
         </ul>
-      </div>
-    )
-  },
-  {
-    id: 'faq',
-    titulo: 'Preguntas Frecuentes',
-    tags: ['faq', 'dudas', 'errores'],
-    puntos: [
-      'Cambio de Tasa: Solo Administradores pueden actualizarla.',
-      'Internet: Se requiere conexión constante para sincronizar con Google Sheets.',
-      'Visibilidad: Si no ves pacientes, asegúrate de estar en la sede correcta.'
-    ],
-    contenido: (
-      <div className="help-content">
-        <p><strong>¿Cómo cambio la tasa si me equivoqué?</strong> Solo un Administrador puede actualizar la tasa desde "Configuración" o el Dashboard.</p>
-        <p><strong>¿Puedo usar la app sin internet?</strong> No, se requiere conexión para sincronizar los datos con Google Sheets.</p>
-        <p><strong>¿Por qué no veo a todos los pacientes?</strong> Asegúrate de que estás en la Sede correcta. Los pacientes se filtran por clínica por defecto.</p>
       </div>
     )
   }
@@ -176,6 +126,7 @@ export default function HelpCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTopic, setActiveTopic] = useState<HelpTopic | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
 
@@ -186,12 +137,38 @@ export default function HelpCenter() {
     setActiveTopic(suggested);
   }, [location]);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!activeTopic) return;
-    generarAyudaPDF({
-      titulo: activeTopic.titulo,
-      puntos: activeTopic.puntos
-    }, user?.nombre);
+    setIsGenerating(true);
+    try {
+      await generarAyudaPDF({
+        titulo: activeTopic.titulo,
+        puntos: activeTopic.puntos
+      }, user?.nombre);
+    } catch (e) {
+      alert('Hubo un error al generar la ayuda: ' + e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadAllPDF = async () => {
+    setIsGenerating(true);
+    try {
+      // Combinar todos los temas
+      const puntosCombinados = HELP_DATABASE.map(
+        t => `[${t.titulo.toUpperCase()}] ${t.puntos.join(' · ')}`
+      );
+      
+      await generarAyudaPDF({
+        titulo: 'Manual Completo de Usuario ErgoDental',
+        puntos: puntosCombinados
+      }, user?.nombre);
+    } catch (e) {
+      alert('Hubo un error al generar la ayuda total: ' + e);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const filteredTopics = HELP_DATABASE.filter(t => 
@@ -222,10 +199,10 @@ export default function HelpCenter() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
           >
             <div className="help-header">
-              <h3>📖 Centro de Ayuda</h3>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.2rem', color: '#fff' }}>📖 Centro de Ayuda Asistida</h3>
               <input 
                 type="text" 
-                placeholder="¿En qué podemos ayudarte?" 
+                placeholder="Busca por duda, ej: 'Pdf', 'Citas' o 'Dólares'..." 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="help-search"
@@ -254,14 +231,23 @@ export default function HelpCenter() {
                     {activeTopic.contenido}
                   </>
                 ) : (
-                  <p className="no-results">No se encontraron temas de ayuda.</p>
+                  <p className="no-results">Busca un término arriba para encontrar respuestas.</p>
                 )}
               </div>
             </div>
 
             <div className="help-footer">
-              <span>Versión 2.0.4 - ErgoDental</span>
-              <button type="button" className="btn-link" onClick={handleDownloadPDF}>Descargar PDF</button>
+              <span>Módulo V2.1 - Sistema Guía Online</span>
+              <div style={{ display:'flex', gap:'12px', alignItems:'center'}}>
+                {activeTopic && (
+                  <button type="button" className="btn-link" disabled={isGenerating} onClick={handleDownloadPDF}>
+                    ↓ Tema Actual
+                  </button>
+                )}
+                <button type="button" className="btn-link" disabled={isGenerating} onClick={handleDownloadAllPDF}>
+                  ⬇️ Todo el Manual
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -374,10 +360,20 @@ export default function HelpCenter() {
           line-height: 1.6;
         }
 
-        .help-main-content h4 { margin: 0 0 16px 0; color: #00c6ff; }
-        .help-content ul { padding-left: 20px; }
+        .help-main-content h4 { margin: 0 0 16px 0; color: #00c6ff; font-size: 1.25rem; }
+        .info-box {
+          background: rgba(0, 198, 255, 0.1);
+          border-left: 4px solid #00c6ff;
+          padding: 12px;
+          margin: 12px 0;
+          border-radius: 4px;
+        }
+        .info-box h5 { margin: 0 0 8px; color: #fff; font-size: 0.95rem; }
+        
+        .help-content ul, .help-content ol { padding-left: 20px; }
         .help-content li { margin-bottom: 8px; font-size: 0.9rem; color: #94a3b8; }
-        .help-content li strong { color: white; }
+        .help-content li strong { color: white; display: inline-block; margin-bottom: 3px; }
+        .help-content p { color: #94a3b8; font-size: 0.95rem; line-height: 1.6; }
 
         .help-footer {
           padding: 12px 20px;
@@ -396,7 +392,11 @@ export default function HelpCenter() {
           cursor: pointer;
           font-size: 0.75rem;
           text-decoration: underline;
+          opacity: 0.9;
+          transition: 0.2s;
         }
+        .btn-link:hover { opacity: 1; color: #fff; }
+        .btn-link:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none; }
 
         @media (max-width: 600px) {
           .mobile-hide { display: none !important; }
