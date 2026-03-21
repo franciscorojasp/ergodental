@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getPacientes, getOdontograma, saveOdontograma, type Paciente } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 
@@ -35,7 +35,6 @@ export default function Odontograma() {
   const [pacienteId, setPacienteId] = useState(searchParams.get('pacienteId') || '');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   useEffect(() => {
@@ -45,7 +44,11 @@ export default function Odontograma() {
   }, []);
 
   useEffect(() => {
-    getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
+    getPacientes().then(data => {
+      if (Array.isArray(data)) {
+        setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id));
+      }
+    });
   }, [clinica.id]);
 
   const loadOdontograma = useCallback(async (id: string) => {
@@ -53,8 +56,10 @@ export default function Odontograma() {
     setLoading(true);
     try {
       const data = await getOdontograma(id);
-      if (data) setPiezas(data.piezas);
+      if (data && data.piezas) setPiezas(data.piezas);
       else setPiezas(initPiezas());
+    } catch (e) {
+      setPiezas(initPiezas());
     } finally { setLoading(false); }
   }, []);
 
@@ -63,24 +68,14 @@ export default function Odontograma() {
   }, [pacienteId, loadOdontograma]);
 
   const handleSave = async () => {
-    if (!pacienteId) { 
-      console.warn('DEBUG: No pacienteId for save');
-      alert('Selecciona un paciente primero'); 
-      return; 
-    }
-    console.log('DEBUG: handleSave Odontograma started', { pacienteId, piezasCount: piezas.length });
+    if (!pacienteId) { alert('Selecciona un paciente primero'); return; }
     setSaving(true);
     try {
-      const result = await saveOdontograma({ pacienteId, piezas });
-      console.log('DEBUG: saveOdontograma success', result);
+      await saveOdontograma({ pacienteId, piezas });
       alert('¡Odontograma guardado con éxito!');
     } catch (err: any) {
-      console.error('DEBUG: saveOdontograma error', err);
-      alert(`Error al guardar el odontograma: ${err.message || 'Error desconocido'}`);
-    } finally { 
-      setSaving(false); 
-      console.log('DEBUG: handleSave Odontograma finished');
-    }
+      alert(`Error al guardar: ${err.message}`);
+    } finally { setSaving(false); }
   };
 
   const estadoInfo = (e: EstadoPieza) => ESTADOS.find(x => x.key === e) || ESTADOS[0];
@@ -90,205 +85,146 @@ export default function Odontograma() {
     setSelected(num);
   };
 
-  const pieza = piezas.find(p => p.numero === selected);
+  const pieza = useMemo(() => piezas.find(p => p.numero === selected), [piezas, selected]);
 
   const updateNota = (nota: string) => {
     if (!selected) return;
     setPiezas(prev => prev.map(p => p.numero === selected ? { ...p, notas: nota } : p));
   };
 
-  const resetPiezas = () => { if(confirm('¿Reiniciar todo el mapa dental?')) { setPiezas(initPiezas()); setSelected(null); } };
-
-  const resumen = ESTADOS.map(e => ({
-    ...e,
-    count: piezas.filter(p => p.estado === e.key).length,
-  })).filter(e => e.count > 0);
+  const resumen = useMemo(() => 
+    ESTADOS.map(e => ({ ...e, count: piezas.filter(p => p.estado === e.key).length }))
+           .filter(e => e.count > 0), 
+  [piezas]);
 
   return (
-    <div>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div className="page-header">
         <div>
           <h1>Odontograma</h1>
-          <p>Mapa dental interactivo — haz clic en una pieza para cambiar su estado</p>
+          <p>Mapa clínico dental interactivo</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems:'center' }}>
-            <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: '240px' }}>
-              <option value="">Seleccionar paciente...</option>
-              {pacientes.map((p, i) => (
-                <option key={`${p.id}-${i}`} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>
-              ))}
-            </select>
-          <button className="btn btn-ghost btn-sm" onClick={resetPiezas}>↺ Reiniciar</button>
+          <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: isMobile ? '100%' : '240px' }}>
+            <option value="">Seleccionar paciente...</option>
+            {pacientes.map(p => (
+              <option key={p.id} value={p.id}>{p.nombre} {p.apellido} - {p.cedula}</option>
+            ))}
+          </select>
+          <button className="btn btn-ghost btn-sm" onClick={() => confirm('¿Reiniciar mapa?') && setPiezas(initPiezas())}>↺</button>
         </div>
       </div>
 
-      {loading && (
-        <div className="glass" style={{ padding: '20px', textAlign: 'center', marginBottom: '20px', color: 'var(--primary)' }}>
-          Cargando odontograma del paciente...
+      {!pacienteId ? (
+        <div className="glass" style={{ padding: '80px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🦷</div>
+          <h2>Esperando selección de paciente</h2>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>Por favor, utiliza el buscador de arriba para cargar el historial dental de un paciente.</p>
         </div>
-      )}
-
-      {/* Herramientas */}
-      <div className="glass" style={{ padding: '16px 20px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', fontWeight: 600 }}>
-          Herramienta activa
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {ESTADOS.map(e => (
-            <button key={e.key} onClick={() => setHerramienta(e.key)} className="btn btn-ghost btn-sm"
-              style={herramienta === e.key ? { borderColor: e.color, color: e.color, background: `color-mix(in srgb, ${e.color} 15%, transparent)` } : {}}>
-              {e.emoji} {e.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : '1fr 310px', 
-        gap: '20px', 
-        alignItems: 'start' 
-      }}>
-        {/* Mapa dental */}
-        <div className="glass" style={{ padding: isMobile ? '16px' : '24px', overflowX: 'auto' }}>
-          <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
-            ↑ Maxilar Superior ↑
-          </div>
-
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: isMobile ? 'wrap' : 'nowrap', 
-            justifyContent: 'center', 
-            gap: '4px', 
-            marginBottom: '8px',
-            minWidth: isMobile ? 'auto' : '680px' 
-          }}>
-            {/* Si es móvil, podemos mostrarlo en dos sub-filas de 8 */}
-            {SUPERIOR.map(n => {
-              const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
-              const info = estadoInfo(p.estado as EstadoPieza);
-              return (
-                <motion.button key={n} onClick={() => handlePieza(n)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    width: isMobile ? 34 : 38, height: isMobile ? 38 : 42,
-                    borderRadius: '8px 8px 4px 4px',
-                    border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
-                    background: selected === n ? `color-mix(in srgb, ${info.color} 25%, transparent)` : `color-mix(in srgb, ${info.color} 12%, transparent)`,
-                    cursor: 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
-                    transition: 'all 0.15s',
-                    boxShadow: selected === n ? `0 0 12px ${info.color}66` : 'none',
-                    margin: isMobile ? '2px' : '0'
-                  }}>
-                  <span style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{info.emoji}</span>
-                  <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 700 }}>{n}</span>
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Separador */}
-          <div style={{ borderTop: '1px dashed var(--border)', margin: '24px 0', position: 'relative' }}>
-            <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#111827', padding: '0 12px', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              LÍNEA MEDIA
-            </span>
-          </div>
-
-          {/* Inferior: 17-32 */}
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: isMobile ? 'wrap' : 'nowrap', 
-            justifyContent: 'center', 
-            gap: '4px', 
-            marginTop: '8px', 
-            minWidth: isMobile ? 'auto' : '680px' 
-          }}>
-            {/* Si es móvil, se muestra en dos sub-filas de 8 */}
-            {INFERIOR.map(n => {
-              const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
-              const info = estadoInfo(p.estado as EstadoPieza);
-              return (
-                <motion.button key={n} onClick={() => handlePieza(n)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    width: isMobile ? 34 : 38, height: isMobile ? 38 : 42,
-                    borderRadius: '4px 4px 8px 8px',
-                    border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
-                    background: selected === n ? `color-mix(in srgb, ${info.color} 25%, transparent)` : `color-mix(in srgb, ${info.color} 12%, transparent)`,
-                    cursor: 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
-                    transition: 'all 0.15s',
-                    boxShadow: selected === n ? `0 0 12px ${info.color}66` : 'none',
-                    margin: isMobile ? '2px' : '0'
-                  }}>
-                  <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 700 }}>{n}</span>
-                  <span style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{info.emoji}</span>
-                </motion.button>
-              );
-            })}
-          </div>
-
-          <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '24px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
-            ↓ Maxilar Inferior ↓
-          </div>
-        </div>
-
-        {/* Panel lateral */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Pieza seleccionada */}
-          <div className="glass" style={{ padding: '20px' }}>
-            <h4 style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '12px' }}>Pieza seleccionada</h4>
-            {pieza ? (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{ 
-                    width: 50, height: 50, borderRadius: '12px', 
-                    background: `color-mix(in srgb, ${estadoInfo(pieza.estado).color} 20%, transparent)`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 800,
-                    color: estadoInfo(pieza.estado).color, border: `1px solid ${estadoInfo(pieza.estado).color}`
-                  }}>
-                    {pieza.numero}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: estadoInfo(pieza.estado).color }}>{estadoInfo(pieza.estado).label}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Estado de la pieza</div>
-                  </div>
-                </div>
-                <div className="input-group">
-                  <label>Notas clínicas</label>
-                  <textarea className="input" rows={4} placeholder="Observaciones sobre esta pieza..."
-                    value={pieza.notas} onChange={e => updateNota(e.target.value)}
-                    style={{ resize: 'none', fontSize: '0.88rem' }} />
-                </div>
-              </>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '10px', filter: 'grayscale(1)', opacity: 0.3 }}>🦷</div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Selecciona una pieza dental para ver o editar su estado</p>
-              </div>
-            )}
-          </div>
-
-          {/* Resumen */}
-          <div className="glass" style={{ padding: '16px 20px' }}>
-            <h4 style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '12px' }}>Resumen</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {resumen.map(e => (
-                <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{e.emoji}</span>
-                    <span style={{ fontSize: '0.84rem' }}>{e.label}</span>
-                  </div>
-                  <span style={{ fontWeight: 700, color: e.color, fontSize: '0.9rem' }}>{e.count}</span>
-                </div>
+      ) : (
+        <>
+          {loading && <div style={{ marginBottom: 20, color: 'var(--primary)', textAlign:'center' }}>Cargando datos históricos...</div>}
+          
+          <div className="glass" style={{ padding: '16px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Herramienta Activa</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {ESTADOS.map(e => (
+                <button key={e.key} onClick={() => setHerramienta(e.key)} className="btn btn-ghost btn-sm"
+                  style={herramienta === e.key ? { borderColor: e.color, color: e.color, background: `color-mix(in srgb, ${e.color} 15%, transparent)` } : {}}>
+                  {e.emoji} {isMobile ? '' : e.label}
+                </button>
               ))}
             </div>
           </div>
 
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving || !pacienteId} style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
-            {saving ? '⌛ Guardando...' : '💾 Guardar Odontograma'}
-          </button>
-        </div>
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '20px' }}>
+            <div className="glass" style={{ padding: isMobile ? '15px' : '30px' }}>
+              <h4 style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '20px' }}>↑ MAXILAR SUPERIOR ↑</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginBottom: '30px' }}>
+                {SUPERIOR.map(n => {
+                  const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
+                  const info = estadoInfo(p.estado);
+                  return (
+                    <motion.button key={n} onClick={() => handlePieza(n)} whileTap={{ scale: 0.9 }}
+                      style={{
+                        width: isMobile ? 36 : 42, height: isMobile ? 40 : 46,
+                        borderRadius: '10px 10px 4px 4px',
+                        border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
+                        background: selected === n ? `${info.color}33` : `${info.color}11`,
+                        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: selected === n ? `0 0 10px ${info.color}44` : 'none',
+                        margin: 1
+                      }}>
+                      <span style={{ fontSize: isMobile ? '0.8rem' : '1.1rem' }}>{info.emoji}</span>
+                      <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 800 }}>{n}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div style={{ borderTop: '1px dashed var(--border)', margin: '30px 0', position: 'relative', textAlign: 'center' }}>
+                <span style={{ background: 'var(--bg-dark)', padding: '0 10px', fontSize: '0.65rem', color: 'var(--text-muted)', position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)' }}>LÍNEA MEDIA</span>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginTop: '30px' }}>
+                {INFERIOR.map(n => {
+                  const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
+                  const info = estadoInfo(p.estado);
+                  return (
+                    <motion.button key={n} onClick={() => handlePieza(n)} whileTap={{ scale: 0.9 }}
+                      style={{
+                        width: isMobile ? 36 : 42, height: isMobile ? 40 : 46,
+                        borderRadius: '4px 4px 10px 10px',
+                        border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
+                        background: selected === n ? `${info.color}33` : `${info.color}11`,
+                        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: selected === n ? `0 0 10px ${info.color}44` : 'none',
+                        margin: 1
+                      }}>
+                      <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 800 }}>{n}</span>
+                      <span style={{ fontSize: isMobile ? '0.8rem' : '1.1rem' }}>{info.emoji}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+              <h4 style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '20px' }}>↓ MAXILAR INFERIOR ↓</h4>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="glass" style={{ padding: '20px' }}>
+                <h3 style={{ fontSize: '0.9rem', marginBottom: '15px' }}>Detalles de Pieza</h3>
+                {pieza ? (
+                  <div className="input-group">
+                    <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:10 }}>
+                      <div style={{ width:40, height:40, borderRadius:8, background:estadoInfo(pieza.estado).color+'22', border: `1px solid ${estadoInfo(pieza.estado).color}`, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, color:estadoInfo(pieza.estado).color }}>{pieza.numero}</div>
+                      <span style={{ fontWeight:700 }}>{estadoInfo(pieza.estado).label}</span>
+                    </div>
+                    <textarea className="input" rows={4} value={pieza.notas} onChange={e => updateNota(e.target.value)} placeholder="Notas internas sobre esta pieza..." />
+                  </div>
+                ) : (
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign:'center' }}>Selecciona una pieza dental</p>
+                )}
+              </div>
+
+              <div className="glass" style={{ padding: '16px 20px' }}>
+                <h3 style={{ fontSize: '0.8rem', marginBottom: '12px', textTransform:'uppercase' }}>Resumen Clínica</h3>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {resumen.map(e => (
+                    <div key={e.key} style={{ display:'flex', justifyContent:'space-between', fontSize:'0.85rem' }}>
+                      <span>{e.emoji} {e.label}</span>
+                      <span style={{ fontWeight:800, color:e.color }}>{e.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ width: '100%', justifyContent: 'center', padding: '14px' }}>
+                {saving ? 'Guardando...' : '💾 Guardar Cambios'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
