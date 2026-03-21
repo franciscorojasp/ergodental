@@ -23,6 +23,7 @@ export default function Presupuestos() {
   const [filtro, setFiltro] = useState<EstadoPresupuesto | 'Todos'>('Todos');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingPresupuesto, setEditingPresupuesto] = useState<Presupuesto | null>(null);
 
   const [form, setForm] = useState<{
     pacienteId: string;
@@ -78,6 +79,22 @@ export default function Presupuestos() {
     setForm({ ...form, items: form.items.filter(i => i.id !== id) });
   };
 
+  const openEdit = (p: Presupuesto) => {
+    setEditingPresupuesto(p);
+    setForm({
+      pacienteId: p.pacienteId,
+      notas: p.notas || '',
+      items: p.items.map(item => ({ ...item, id: item.id || Math.random().toString() }))
+    });
+    setModal(true);
+  };
+
+  const openNew = () => {
+    setEditingPresupuesto(null);
+    setForm({ pacienteId: '', notas: '', items: [{ id: Math.random().toString(), descripcion: '', cantidad: 1, precio: 0, subtotal: 0 }] });
+    setModal(true);
+  };
+
   const handleSave = async () => {
     if (!form.pacienteId || form.items.some(i => !i.descripcion)) {
       alert('Favor completar el paciente y todas las descripciones de ítems.');
@@ -86,19 +103,49 @@ export default function Presupuestos() {
     setSaving(true);
     try {
       const pac = pacientes.find(p => p.id === form.pacienteId);
-      const nuevo = await createPresupuesto({
-        pacienteId: form.pacienteId,
-        pacienteNombre: pac ? `${pac.nombre} ${pac.apellido}` : 'Desconocido',
-        clinicaId: clinica.id,
-        items: form.items,
-        total: total,
-        estado: 'Borrador',
-        fecha: new Date().toLocaleDateString('en-CA'),
-        notas: form.notas
-      });
-      setPresupuestos([nuevo, ...presupuestos]);
+      
+      if (editingPresupuesto) {
+        // ACTUALIZAR
+        await updatePresupuesto({
+          id: editingPresupuesto.id,
+          pacienteId: form.pacienteId,
+          pacienteNombre: pac ? `${pac.nombre} ${pac.apellido}` : 'Desconocido',
+          items: form.items,
+          total: total,
+          notas: form.notas,
+          // No cambiamos el estado ni la fecha original al editar, 
+          // a menos que sea necesario volver a Borrador si estaba en Rechazado/Aprobado?
+          // Por ahora mantenemos el estado actual.
+        });
+        
+        setPresupuestos(prev => prev.map(p => p.id === editingPresupuesto.id ? {
+          ...p,
+          pacienteId: form.pacienteId,
+          pacienteNombre: pac ? `${pac.nombre} ${pac.apellido}` : 'Desconocido',
+          items: form.items,
+          total: total,
+          notas: form.notas
+        } : p));
+      } else {
+        // CREAR NUEVO
+        const nuevo = await createPresupuesto({
+          pacienteId: form.pacienteId,
+          pacienteNombre: pac ? `${pac.nombre} ${pac.apellido}` : 'Desconocido',
+          clinicaId: clinica.id,
+          items: form.items,
+          total: total,
+          estado: 'Borrador',
+          fecha: new Date().toLocaleDateString('en-CA'),
+          notas: form.notas
+        });
+        setPresupuestos([nuevo, ...presupuestos]);
+      }
+      
       setModal(false);
+      setEditingPresupuesto(null);
       setForm({ pacienteId: '', notas: '', items: [{ id: Math.random().toString(), descripcion: '', cantidad: 1, precio: 0, subtotal: 0 }] });
+    } catch (e) {
+      alert('Error al guardar presupuesto: ' + e);
     } finally {
       setSaving(false);
     }
@@ -198,7 +245,7 @@ export default function Presupuestos() {
           <h1>Presupuestos</h1>
           <p>Planes de tratamiento y estimaciones — {clinica.nombreCorto}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)} disabled={loading}>+ Nuevo Presupuesto</button>
+        <button className="btn btn-primary" onClick={openNew} disabled={loading}>+ Nuevo Presupuesto</button>
       </div>
 
       {error && (
@@ -247,6 +294,7 @@ export default function Presupuestos() {
                 <td>
                    <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => imprimirPresupuesto(p)} title="Imprimir PDF">📄</button>
+                       <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)} title="Editar Presupuesto">✏️</button>
                        <RoleGuard modulo="presupuestos" accion="eliminar">
                          <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id || `idx-${i}`)} title="Eliminar" style={{ color:'var(--danger)' }}>🗑️</button>
                        </RoleGuard>
@@ -276,7 +324,7 @@ export default function Presupuestos() {
           <div className="modal-overlay">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="modal" style={{ maxWidth: '800px' }}>
               <div className="modal-header">
-                <h3>🛠️ Crear Nuevo Plan de Tratamiento</h3>
+                <h3>{editingPresupuesto ? `✏️ Editar Presupuesto #${editingPresupuesto.id.slice(-6)}` : '🛠️ Crear Nuevo Plan de Tratamiento'}</h3>
                 <button className="btn-close" onClick={() => setModal(false)}>✕</button>
               </div>
               <div className="modal-body">
@@ -342,7 +390,7 @@ export default function Presupuestos() {
               <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={() => setModal(false)}>Cancelar</button>
                 <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                   {saving ? 'Guardando...' : '💾 Generar Presupuesto'}
+                   {saving ? 'Guardando...' : editingPresupuesto ? '💾 Guardar Cambios' : '💾 Generar Presupuesto'}
                 </button>
               </div>
             </motion.div>
