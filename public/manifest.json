@@ -1,0 +1,17 @@
+{
+  "name": "ERGODENTALVE 1.0",
+  "short_name": "Ergodental",
+  "description": "Sistema de Gestión Dental Premium",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

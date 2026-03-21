@@ -398,8 +398,26 @@ export const DEMO_PROVEEDORES: Proveedor[] = [
 const API_KEY = import.meta.env.VITE_API_KEY || 'ERGO_SECRET_2024';
 
 // Simple memory cache (2 min)
-const CACHE_TTL = 120 * 1000;
-const apiCache = new Map<string, { data: any, timestamp: number }>();
+// Persistent Cache System (Resilience for internet/power flickering)
+const CACHE_KEY = 'ergodental_api_cache';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas para lectura en modo offline
+
+function getPersistentCache(): Map<string, { data: any, timestamp: number }> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return new Map();
+    return new Map(Object.entries(JSON.parse(raw)));
+  } catch (e) { return new Map(); }
+}
+
+function setPersistentCache(cache: Map<string, { data: any, timestamp: number }>) {
+  try {
+    const obj = Object.fromEntries(cache.entries());
+    localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
+  } catch (e) {}
+}
+
+const apiCache = getPersistentCache();
 
 const ACTION_FALLBACKS: Record<string, string[]> = {
   updateCita: ['actualizarCita', 'saveCita', 'editCita'],
@@ -445,8 +463,9 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
     if (!isQuery) {
       options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
       options.body = JSON.stringify(data || {});
-      // Invalidate cache on mutations
+      // Invalidate cache on mutations for current session
       apiCache.clear();
+      setPersistentCache(apiCache);
     }
 
     try {
@@ -468,13 +487,24 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
       // Store in cache for successful queries
       if (isQuery && actionName !== 'login' && !skipCache) {
         apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
+        setPersistentCache(apiCache);
       }
 
       return result;
     } catch (err: any) {
       console.error('API Error:', err);
+      
+      // OFFLINE RESILIENCE: If network fails and we have it in cache, return it!
+      if ((err.message.includes('Failed to fetch') || err.message.includes('Error de conexión')) && isQuery) {
+        const cached = apiCache.get(cacheKey);
+        if (cached) {
+          console.warn('Network failed. Returning cached data for action:', actionName);
+          return cached.data;
+        }
+      }
+
       if (err.message.includes('Failed to fetch')) {
-        throw new Error('Error de conexión. Revisa si la URL del script es correcta o si tu navegador bloquea a Google.');
+        throw new Error('Sin conexión a Internet. Si es una consulta, revisa que hayas cargado los datos previamente.');
       }
       throw err;
     }
