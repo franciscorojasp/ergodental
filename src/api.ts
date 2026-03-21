@@ -390,32 +390,40 @@ const API_KEY = import.meta.env.VITE_API_KEY || 'ERGO_SECRET_2024';
 const CACHE_TTL = 120 * 1000;
 const apiCache = new Map<string, { data: any, timestamp: number }>();
 
+const ACTION_FALLBACKS: Record<string, string[]> = {
+  updateCita: ['actualizarCita', 'saveCita', 'editCita'],
+  updatePaciente: ['actualizarPaciente', 'savePaciente', 'editPaciente'],
+  updatePersonal: ['actualizarPersonal', 'savePersonal', 'editPersonal'],
+  updateClinica: ['actualizarClinica', 'saveClinica', 'editClinica'],
+  updatePresupuesto: ['actualizarPresupuesto', 'savePresupuesto', 'editPresupuesto'],
+};
+
 async function apiFetch<T>(action: string, data?: object): Promise<T> {
-  if (IS_DEMO_MODE) throw new Error('DEMO');
-  
-  const isQuery = action === 'login' || !data;
-  const cacheKey = `${action}_${JSON.stringify(data || {})}`;
+  const callApi = async (actionName: string): Promise<T> => {
+    if (IS_DEMO_MODE) throw new Error('DEMO');
 
-  // Check cache for queries
-  if (isQuery && action !== 'login') {
-    const cached = apiCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-      return cached.data;
+    const isQuery = actionName === 'login' || !data;
+    const cacheKey = `${actionName}_${JSON.stringify(data || {})}`;
+
+    // Check cache for queries
+    if (isQuery && actionName !== 'login') {
+      const cached = apiCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+        return cached.data;
+      }
     }
-  }
 
-  // En producción usamos el proxy de Vercel para ocultar la URL del script y la API KEY
-  const isProd = import.meta.env.PROD;
-  const baseUrl = isProd ? '/api/proxy' : APPS_SCRIPT_URL;
-  
-  const urlParams = new URLSearchParams();
-  urlParams.set('action', action);
-  urlParams.set('key', API_KEY);
-  if (isQuery && data) urlParams.set('payload', JSON.stringify(data));
-  
-  const url = `${baseUrl}?${urlParams.toString()}`;
-  
-  try {
+    // En producción usamos el proxy de Vercel para ocultar la URL del script y la API KEY
+    const isProd = import.meta.env.PROD;
+    const baseUrl = isProd ? '/api/proxy' : APPS_SCRIPT_URL;
+
+    const urlParams = new URLSearchParams();
+    urlParams.set('action', actionName);
+    urlParams.set('key', API_KEY);
+    if (isQuery && data) urlParams.set('payload', JSON.stringify(data));
+
+    const url = `${baseUrl}?${urlParams.toString()}`;
+
     const options: RequestInit = {
       method: isQuery ? 'GET' : 'POST',
       mode: 'cors',
@@ -429,33 +437,53 @@ async function apiFetch<T>(action: string, data?: object): Promise<T> {
       apiCache.clear();
     }
 
-    const res = await fetch(url, options);
-    const text = await res.text();
-    
-    let result;
     try {
-      result = JSON.parse(text);
-    } catch (e) {
-      if (text.includes('google-signin') || text.includes('Service Login')) {
-        throw new Error('Permisos de Google: Abre el script en tu navegador y autorízalo.');
+      const res = await fetch(url, options);
+      const text = await res.text();
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        if (text.includes('google-signin') || text.includes('Service Login')) {
+          throw new Error('Permisos de Google: Abre el script en tu navegador y autorízalo.');
+        }
+        throw new Error('La base de datos no respondió correctamente. Revisa la URL.');
       }
-      throw new Error('La base de datos no respondió correctamente. Revisa la URL.');
-    }
 
-    if (result.error) throw new Error(result.error);
-    
-    // Store in cache for successful queries
-    if (isQuery && action !== 'login') {
-      apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
-    }
+      if (result.error) throw new Error(result.error);
 
-    return result;
-  } catch (err: any) {
-    console.error('API Error:', err);
-    if (err.message.includes('Failed to fetch')) {
-      throw new Error('Error de conexión. Revisa si la URL del script es correcta o si tu navegador bloquea a Google.');
+      // Store in cache for successful queries
+      if (isQuery && actionName !== 'login') {
+        apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+
+      return result;
+    } catch (err: any) {
+      console.error('API Error:', err);
+      if (err.message.includes('Failed to fetch')) {
+        throw new Error('Error de conexión. Revisa si la URL del script es correcta o si tu navegador bloquea a Google.');
+      }
+      throw err;
     }
-    throw err;
+  };
+
+  const fallbackActions = ACTION_FALLBACKS[action] || [];
+
+  try {
+    return await callApi(action);
+  } catch (error: any) {
+    const message: string = error?.message || '';
+    if (message.includes('Acción no reconocida') && fallbackActions.length) {
+      for (const fallback of fallbackActions) {
+        try {
+          return await callApi(fallback);
+        } catch (inner: any) {
+          if (!inner.message.includes('Acción no reconocida')) throw inner;
+        }
+      }
+    }
+    throw error;
   }
 }
 

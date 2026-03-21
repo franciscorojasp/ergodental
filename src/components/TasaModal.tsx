@@ -36,7 +36,7 @@ export default function TasaModal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
+            position: 'fixed', inset: 0, zIndex: 1100,
             background: 'rgba(5, 8, 20, 0.92)',
             backdropFilter: 'blur(18px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',

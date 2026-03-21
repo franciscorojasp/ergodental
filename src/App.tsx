@@ -21,6 +21,8 @@ import Proveedores from './pages/Proveedores';
 import TasaBCV from './pages/TasaBCV';
 import ConfiguracionClinica from './pages/ConfiguracionClinica';
 import Agenda from './pages/Agenda';
+import Presupuestos from './pages/Presupuestos';
+import Recibos from './pages/Recibos';
 import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
@@ -128,6 +130,12 @@ export default function App() {
               } />
               <Route path="/tasabcv" element={
                 <ProtectedLayout><RoleGuard modulo="finanzas" redirigir><TasaBCV /></RoleGuard></ProtectedLayout>
+              } />
+              <Route path="/presupuestos" element={
+                <ProtectedLayout><RoleGuard modulo="presupuestos" redirigir><Presupuestos /></RoleGuard></ProtectedLayout>
+              } />
+              <Route path="/recibos" element={
+                <ProtectedLayout><RoleGuard modulo="recibos" redirigir><Recibos /></RoleGuard></ProtectedLayout>
               } />
               <Route path="/configuracion" element={
                 <ProtectedLayout><RoleGuard modulo="configuracion" redirigir><ConfiguracionClinica /></RoleGuard></ProtectedLayout>

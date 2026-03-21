@@ -14,6 +14,8 @@ const NAV: { to: string; icon: string; label: string; modulo: Modulo }[] = [
   { to: '/personal',    icon: '👨‍⚕️', label: 'Personal',    modulo: 'personal'    },
   { to: '/odontograma', icon: '🗺️', label: 'Odontograma', modulo: 'odontograma' },
   { to: '/finanzas',    icon: '💰', label: 'Finanzas',    modulo: 'finanzas'    },
+  { to: '/presupuestos', icon: '🛠️', label: 'Presupuestos',modulo: 'presupuestos' },
+  { to: '/recibos',      icon: '🧾', label: 'Recibos',      modulo: 'recibos'      },
   { to: '/inventario',  icon: '📦', label: 'Inventario',  modulo: 'inventario'  },
   { to: '/proveedores', icon: '🏢', label: 'Proveedores', modulo: 'proveedores' },
   // Tasa BCV — visible solo para quienes acceden a finanzas

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useClinica } from '../contexts/ClinicaContext';
 import { getCitas, getPersonal, type Cita, type Personal } from '../api';
+import CitaModal from '../components/CitaModal';
 
 const HOURS = Array.from({ length: 13 }, (_, i) => `${(i + 7).toString().padStart(2, '0')}:00`); // 07:00 a 19:00
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -16,6 +17,9 @@ export default function Agenda() {
     const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); // lunes
     return new Date(d.setDate(diff));
   });
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingCita, setEditingCita] = useState<Cita | null>(null);
 
   useEffect(() => {
     getCitas().then(data => setCitas(data.filter(c => c.clinicaId === clinica.id)));
@@ -41,6 +45,19 @@ export default function Agenda() {
     const d = new Date(currentWeekStart);
     d.setDate(d.getDate() + (offset * 7));
     setCurrentWeekStart(d);
+  };
+
+  const handleCitaSaved = (saved: Cita) => {
+    setCitas(prev => {
+      const exists = prev.find(c => c.id === saved.id);
+      if (exists) return prev.map(c => c.id === saved.id ? saved : c);
+      return [...prev, saved];
+    });
+  };
+
+  const openEdit = (c: Cita) => {
+    setEditingCita(c);
+    setModalOpen(true);
   };
 
   return (
@@ -108,16 +125,27 @@ export default function Agenda() {
                   <div key={dIdx} style={{ 
                     borderLeft: dIdx > 0 ? '1px solid var(--border)' : 'none', 
                     padding: '4px',
-                    position: 'relative'
-                  }}>
+                    position: 'relative',
+                    background: 'rgba(255,255,255,0.01)'
+                  }}
+                  onClick={() => {
+                    setEditingCita(null); // Nueva cita
+                    // Opcional: pasar fecha/hora seleccionada al modal
+                    setModalOpen(true);
+                  }}
+                  >
                     {dayCitas.map(c => (
                       <motion.div 
                         key={c.id}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Evitar disparar el onClick del slot
+                          openEdit(c);
+                        }}
                         style={{
-                          background: c.estado === 'Confirmada' ? 'var(--success)' : (c.estado === 'Pendiente' ? 'var(--warning)' : 'var(--primary)'),
+                          background: c.estado === 'Confirmada' ? 'var(--success)' : (c.estado === 'Pendiente' ? 'var(--warning)' : (c.estado === 'Cancelada' ? 'var(--danger)' : 'var(--primary)')),
                           color: '#fff',
                           padding: '6px 8px',
                           borderRadius: '8px',
@@ -142,6 +170,13 @@ export default function Agenda() {
           ))}
         </div>
       </div>
+
+      <CitaModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        onSaved={handleCitaSaved}
+        editingCita={editingCita}
+      />
 
       <style>{`
         .agenda-container {

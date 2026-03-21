@@ -17,15 +17,30 @@ const REF_BADGE: Record<TipoReferencia, string> = {
   'Foraneo-10':               'badge-asistente',
 };
 
-function calcularEdad(fechaNacimiento: string): string {
-  if (!fechaNacimiento) return '—';
-  const hoy = new Date();
-  const nac = new Date(fechaNacimiento + 'T12:00:00');
-  if (isNaN(nac.getTime())) return '—';
-  let edad = hoy.getFullYear() - nac.getFullYear();
-  if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) edad--;
-  return `${edad} años`;
-}
+function calcularEdad(fecha: string): string {
+  if (!fecha) return '—';
+  try {
+    const hoy = new Date();
+    const cumple = new Date(fecha);
+    if (isNaN(cumple.getTime())) return '—';
+    let edad = hoy.getFullYear() - cumple.getFullYear();
+    const m = hoy.getMonth() - cumple.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) edad--;
+    return `${edad} años`;
+  } catch (e) { return '—'; }
+};
+
+const formatForDateInput = (val: string) => {
+  if (!val) return '';
+  try {
+    // Si ya viene como YYYY-MM-DD, devolver tal cual
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    // Si es ISO (2024-03-20T...) o similar, extraer la parte de la fecha
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
+  } catch (e) { return ''; }
+};
 
 export default function Pacientes() {
   const { clinica } = useClinica();
@@ -44,6 +59,7 @@ export default function Pacientes() {
     email: '', direccion: '',
     tipoReferencia: 'Paciente-Clinica' as TipoReferencia,
     referidorNombre: '', referidorContacto: '',
+    lastUpdated: undefined as number | undefined,
   };
 
   const [form, setForm] = useState(initForm);
@@ -54,37 +70,56 @@ export default function Pacientes() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('DEBUG: handleSave triggered', { editingId, form });
     
-    if (!editingId) {
-      const existe = pacientes.find(p => p.cedula.trim().toLowerCase() === form.cedula.trim().toLowerCase());
-      if (existe) {
-        alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}. No se permiten duplicados.`);
-        return;
-      }
-    }
-
-    setSaving(true);
     try {
+      if (!editingId) {
+        if (!form.cedula) {
+          console.warn('DEBUG: Cedula is empty');
+        } else {
+          const cedulaBuscada = String(form.cedula || '').trim().toLowerCase();
+          const existe = pacientes.find(p => String(p?.cedula || '').trim().toLowerCase() === cedulaBuscada);
+          if (existe) {
+            console.warn('DEBUG: Duplicate cedula found', form.cedula);
+            alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}. No se permiten duplicados.`);
+            return;
+          }
+        }
+      }
+
+      setSaving(true);
       if (editingId) {
+        console.log('DEBUG: Calling updatePaciente', editingId);
         const actualizado = await updatePaciente({ ...form, id: editingId });
         setPacientes(prev => prev.map(p => p.id === editingId ? actualizado : p));
       } else {
+        console.log('DEBUG: Calling createPaciente', form);
         const nuevo = await createPaciente(form);
+        console.log('DEBUG: Paciente created successfully', nuevo);
         setPacientes(prev => [nuevo, ...prev]);
       }
       closeModal();
-    } catch (err) {
-      alert('Error al guardar el paciente');
-    } finally { setSaving(false); }
+    } catch (err: any) {
+      console.error('DEBUG: EXCEPTION in handleSave', err);
+      alert(`Error al guardar: ${err.message || 'Error desconocido'}`);
+    } finally { 
+      setSaving(false); 
+      console.log('DEBUG: handleSave finished');
+    }
   };
 
   const handleDelete = async () => {
     if (!deletingId) return;
+    console.log('DEBUG: handleDelete started', deletingId);
     try {
       await deletePaciente(deletingId);
+      console.log('DEBUG: Paciente deleted successfully');
       setPacientes(prev => prev.filter(p => p.id !== deletingId));
       setDeletingId(null);
-    } catch (err) { alert('Error al eliminar'); }
+    } catch (err) { 
+      console.error('DEBUG: Error in handleDelete', err);
+      alert('Error al eliminar'); 
+    }
   };
 
   const openEdit = (p: Paciente) => {
@@ -92,12 +127,13 @@ export default function Pacientes() {
     setForm({
       clinicaId: p.clinicaId,
       nombre: p.nombre, apellido: p.apellido, cedula: p.cedula,
-      fechaNacimiento: p.fechaNacimiento || '',
+      fechaNacimiento: formatForDateInput(p.fechaNacimiento),
       telefono: p.telefono || '', email: p.email || '',
       direccion: p.direccion || '',
       tipoReferencia: p.tipoReferencia || 'Paciente-Clinica',
       referidorNombre: p.referidorNombre || '',
       referidorContacto: p.referidorContacto || '',
+      lastUpdated: p.lastUpdated,
     });
     setModal(true);
   };
@@ -157,7 +193,7 @@ export default function Pacientes() {
               {filtrado.map((p, i) => {
                 const regla = TABLA_REFERENCIAS.find(r => r.tipo === p.tipoReferencia);
                 return (
-                  <motion.tr key={p.id} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}>
+                  <motion.tr key={`${p.id}-${i}`} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}>
                     <td onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                         <div style={{
@@ -180,8 +216,8 @@ export default function Pacientes() {
                     </td>
                     <td>
                       <div style={{ display:'flex', gap:'6px' }}>
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)} title="Editar">✏️</button>
-                        <button className="btn btn-ghost btn-sm" onClick={() => setDeletingId(p.id)} style={{ color:'var(--danger)' }} title="Eliminar">🗑️</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => { console.log('DEBUG: Edit clicked', p.id); openEdit(p); }} title="Editar">✏️</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => { console.log('DEBUG: Delete clicked', p.id); setDeletingId(p.id); }} style={{ color:'var(--danger)' }} title="Eliminar">🗑️</button>
                       </div>
                     </td>
                   </motion.tr>

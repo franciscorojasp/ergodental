@@ -30,6 +30,7 @@ export default function Personal() {
   const initForm: Omit<Personal,'id'> = {
     clinicaId: clinica.id,
     nombre:'', apellido:'', tipo:'Odontólogo', especialidad:'', matricula:'', turno:'Completo (8am-5pm)', telefono:'', email:'', activo: true,
+    lastUpdated: undefined as number | undefined,
   };
 
   const [form, setForm] = useState(initForm);
@@ -83,6 +84,7 @@ export default function Personal() {
       especialidad: p.especialidad || '', matricula: p.matricula || '',
       turno: p.turno || '', telefono: p.telefono || '', email: p.email || '',
       activo: p.activo ?? true,
+      lastUpdated: p.lastUpdated,
     });
     setModal(true);
   };

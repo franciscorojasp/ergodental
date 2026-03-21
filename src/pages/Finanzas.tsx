@@ -257,14 +257,14 @@ export default function Finanzas(){
         ? ['Doctor','Servicios','Total Generado','Honorario']
         : ['Paciente','Concepto','Monto','Plazo','Estado'],
       filas: tab==='ingresos'||tab==='resumen'
-        ? cobrados.map(p=>[p.fecha,p.pacienteNombre,p.doctorNombre||'—',p.concepto,`$${p.monto.toFixed(2)}`,
-            `Bs ${(p.monto*tasaBCV).toLocaleString('es-VE',{maximumFractionDigits:0})}`,p.estado,
+        ? cobrados.map(p=>[p.fecha,p.pacienteNombre,p.doctorNombre||'—',p.concepto,fmt(p.monto),
+            fmt(p.monto, 0),p.estado,
             TABLA_REFERENCIAS.find(r=>r.tipo===p.tipoReferencia)?.label||'—'])
         : tab==='egresos'
-        ? egresosFiltrados.map(e=>[e.fecha,e.concepto,e.categoria,`$${e.monto.toFixed(2)}`,e.metodoPago,e.proveedorNombre||'—'])
+        ? egresosFiltrados.map(e=>[e.fecha,e.concepto,e.categoria,fmt(e.monto),e.metodoPago,e.proveedorNombre||'—'])
         : tab==='doctores'
-        ? doctoresData.map(d=>[d.nombre,String(d.pagos.length),`$${d.totalGenerado.toFixed(2)}`,`$${d.honorarios.toFixed(2)}`])
-        : pagos.filter(p=>p.tipoPago==='Crédito').map(p=>[p.pacienteNombre,p.concepto,`$${p.monto.toFixed(2)}`,`${p.diasCredito??'—'} días`,p.estado]),
+        ? doctoresData.map(d=>[d.nombre,String(d.pagos.length),fmt(d.totalGenerado),fmt(d.honorarios)])
+        : pagos.filter(p=>p.tipoPago==='Crédito').map(p=>[p.pacienteNombre,p.concepto,fmt(p.monto),`${p.diasCredito??'—'} días`,p.estado]),
       totales: [
         {label:`Ingresos (${periodo}):`, valor: fmt(totalIngresos)},
         {label:`Egresos (${periodo}):`,  valor: fmt(totalEgresos)},
@@ -343,7 +343,7 @@ export default function Finanzas(){
               .sort(([,a],[,b])=>b-a).map(([m,t])=>(
                 <div key={m} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid var(--border)'}}>
                   <span style={{fontSize:'0.88rem'}}>{METODO_ICON[m as MetodoPago]} {m}</span>
-                  <span style={{fontWeight:700,color:'var(--success)'}}>${t.toFixed(0)}</span>
+                  <span style={{fontWeight:700,color:'var(--success)'}}>{fmt(t, 0)}</span>
                 </div>
               ))}
           </motion.div>

@@ -55,17 +55,27 @@ export default function Odontograma() {
   }, [pacienteId, loadOdontograma]);
 
   const handleSave = async () => {
-    if (!pacienteId) { alert('Selecciona un paciente primero'); return; }
+    if (!pacienteId) { 
+      console.warn('DEBUG: No pacienteId for save');
+      alert('Selecciona un paciente primero'); 
+      return; 
+    }
+    console.log('DEBUG: handleSave Odontograma started', { pacienteId, piezasCount: piezas.length });
     setSaving(true);
     try {
-      await saveOdontograma({ pacienteId, piezas });
+      const result = await saveOdontograma({ pacienteId, piezas });
+      console.log('DEBUG: saveOdontograma success', result);
       alert('¡Odontograma guardado con éxito!');
-    } catch (err) {
-      alert('Error al guardar el odontograma');
-    } finally { setSaving(false); }
+    } catch (err: any) {
+      console.error('DEBUG: saveOdontograma error', err);
+      alert(`Error al guardar el odontograma: ${err.message || 'Error desconocido'}`);
+    } finally { 
+      setSaving(false); 
+      console.log('DEBUG: handleSave Odontograma finished');
+    }
   };
 
-  const estadoInfo = (e: EstadoPieza) => ESTADOS.find(x => x.key === e)!;
+  const estadoInfo = (e: EstadoPieza) => ESTADOS.find(x => x.key === e) || ESTADOS[0];
 
   const handlePieza = (num: number) => {
     setPiezas(prev => prev.map(p => p.numero === num ? { ...p, estado: herramienta } : p));
@@ -94,12 +104,12 @@ export default function Odontograma() {
           <p>Mapa dental interactivo — haz clic en una pieza para cambiar su estado</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems:'center' }}>
-          <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: '240px' }}>
-            <option value="">Seleccionar paciente...</option>
-            {pacientes.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>
-            ))}
-          </select>
+            <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: '240px' }}>
+              <option value="">Seleccionar paciente...</option>
+              {pacientes.map((p, i) => (
+                <option key={`${p.id}-${i}`} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>
+              ))}
+            </select>
           <button className="btn btn-ghost btn-sm" onClick={resetPiezas}>↺ Reiniciar</button>
         </div>
       </div>
@@ -135,8 +145,8 @@ export default function Odontograma() {
           {/* Superior: 1-16, izquierda a derecha */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px', minWidth: '680px' }}>
             {SUPERIOR.map(n => {
-              const p = piezas[n - 1];
-              const info = estadoInfo(p.estado);
+              const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
+              const info = estadoInfo(p.estado as EstadoPieza);
               return (
                 <motion.button key={n} onClick={() => handlePieza(n)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                   style={{
@@ -166,8 +176,8 @@ export default function Odontograma() {
           {/* Inferior: 17-32 */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '8px', minWidth: '680px' }}>
             {INFERIOR.map(n => {
-              const p = piezas[n - 1];
-              const info = estadoInfo(p.estado);
+              const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
+              const info = estadoInfo(p.estado as EstadoPieza);
               return (
                 <motion.button key={n} onClick={() => handlePieza(n)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                   style={{
