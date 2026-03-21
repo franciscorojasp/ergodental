@@ -165,8 +165,8 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
   };
 
   const notifyWhatsapp = (tipo: 'paciente' | 'doctor') => {
-    const formatPhone = (phone: string) => {
-      let cleaned = phone.replace(/\D/g, '');
+    const formatPhone = (phone: any) => {
+      let cleaned = String(phone || '').replace(/\D/g, '');
       if (cleaned.startsWith('04')) cleaned = '58' + cleaned.substring(1);
       else if (cleaned.startsWith('4')) cleaned = '58' + cleaned;
       return cleaned;
