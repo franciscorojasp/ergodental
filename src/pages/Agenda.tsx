@@ -20,6 +20,16 @@ export default function Agenda() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCita, setEditingCita] = useState<Cita | null>(null);
+  
+  // Estado para responsive
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [selectedDayIdx, setSelectedDayIdx] = useState(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); // 0 = Lunes
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     getCitas().then(data => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
@@ -79,33 +89,52 @@ export default function Agenda() {
             {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
           </select>
           <button className="btn btn-ghost" onClick={() => navWeek(-1)}>◀</button>
-          <div style={{ fontWeight: 800, fontSize: '1.1rem', minWidth: '180px', textAlign: 'center' }}>
-             {weekDates[0].getDate()}/{weekDates[0].getMonth()+1} - {weekDates[6].getDate()}/{weekDates[6].getMonth()+1}
-          </div>
+          {!isMobile && (
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', minWidth: '180px', textAlign: 'center' }}>
+               {weekDates[0].getDate()}/{weekDates[0].getMonth()+1} - {weekDates[6].getDate()}/{weekDates[6].getMonth()+1}
+            </div>
+          )}
+          {isMobile && (
+            <div style={{ fontWeight: 800, fontSize: '1rem', minWidth: '120px', textAlign: 'center' }}>
+              {weekDates[selectedDayIdx].toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })}
+            </div>
+          )}
           <button className="btn btn-ghost" onClick={() => navWeek(1)}>▶</button>
-          <button className="btn btn-primary" onClick={() => setCurrentWeekStart(new Date())}>Hoy</button>
+          <button className="btn btn-primary" onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
         </div>
       </div>
 
-      <div className="glass" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', background: 'rgba(255,255,255,0.03)' }}>
-          <div style={{ borderRight: '1px solid var(--border)', padding: '12px' }}></div>
-          {weekDates.map((date, i) => (
-            <div key={i} style={{ 
-              padding: '12px', 
-              textAlign: 'center', 
-              borderLeft: i > 0 ? '1px solid var(--border)' : 'none',
-              background: date.toDateString() === new Date().toDateString() ? 'var(--primary-dim)' : 'transparent'
-            }}>
-              <div style={{ fontSize: '0.7rem', color: date.toDateString() === new Date().toDateString() ? 'var(--primary)' : 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{DAYS[i]}</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 900, color: date.toDateString() === new Date().toDateString() ? 'var(--primary)' : 'inherit' }}>{date.getDate()}</div>
-            </div>
+      {isMobile && (
+        <div className="glass" style={{ display: 'flex', gap: '4px', padding: '8px', marginBottom: '12px', overflowX: 'auto' }}>
+          {DAYS.map((d, i) => (
+            <button key={d} onClick={() => setSelectedDayIdx(i)} className={`btn btn-sm ${selectedDayIdx === i ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1, minWidth: '70px', padding: '6px' }}>
+              {d.substring(0, 3)}
+            </button>
           ))}
         </div>
+      )}
+
+      <div className="glass" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border)' }}>
+        {!isMobile && (
+          <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', background: 'rgba(255,255,255,0.03)' }}>
+            <div style={{ borderRight: '1px solid var(--border)', padding: '12px' }}></div>
+            {weekDates.map((date, i) => (
+              <div key={i} style={{ 
+                padding: '12px', 
+                textAlign: 'center', 
+                borderLeft: i > 0 ? '1px solid var(--border)' : 'none',
+                background: date.toDateString() === new Date().toDateString() ? 'var(--primary-dim)' : 'transparent'
+              }}>
+                <div style={{ fontSize: '0.7rem', color: date.toDateString() === new Date().toDateString() ? 'var(--primary)' : 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{DAYS[i]}</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 900, color: date.toDateString() === new Date().toDateString() ? 'var(--primary)' : 'inherit' }}>{date.getDate()}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ maxHeight: '700px', overflowY: 'auto', position: 'relative' }}>
           {HOURS.map((hour) => (
-            <div key={hour} style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', minHeight: '80px', borderTop: '1px solid var(--border)' }}>
+            <div key={hour} style={{ display: 'grid', gridTemplateColumns: isMobile ? '70px 1fr' : '80px repeat(7, 1fr)', minHeight: isMobile ? '60px' : '80px', borderTop: '1px solid var(--border)' }}>
               {/* Hora */}
               <div style={{ 
                 padding: '8px', 
@@ -119,19 +148,19 @@ export default function Agenda() {
                 {hour}
               </div>
               
-              {/* Slots de días */}
+              {/* Slots de días (Mobile: Solo el seleccionado) */}
               {weekDates.map((date, dIdx) => {
+                if (isMobile && dIdx !== selectedDayIdx) return null;
                 const dayCitas = getCitasByDayAndHour(date, hour);
                 return (
                   <div key={dIdx} style={{ 
-                    borderLeft: dIdx > 0 ? '1px solid var(--border)' : 'none', 
+                    borderLeft: dIdx > 0 && !isMobile ? '1px solid var(--border)' : 'none', 
                     padding: '4px',
                     position: 'relative',
                     background: 'rgba(255,255,255,0.01)'
                   }}
                   onClick={() => {
-                    setEditingCita(null); // Nueva cita
-                    // Opcional: pasar fecha/hora seleccionada al modal
+                    setEditingCita(null);
                     setModalOpen(true);
                   }}
                   >
@@ -142,24 +171,25 @@ export default function Agenda() {
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
                         onClick={(e) => {
-                          e.stopPropagation(); // Evitar disparar el onClick del slot
+                          e.stopPropagation();
                           openEdit(c);
                         }}
                         style={{
                           background: c.estado === 'Confirmada' ? 'var(--success)' : (c.estado === 'Pendiente' ? 'var(--warning)' : (c.estado === 'Cancelada' ? 'var(--danger)' : 'var(--primary)')),
                           color: '#fff',
-                          padding: '6px 8px',
-                          borderRadius: '8px',
-                          fontSize: '0.72rem',
-                          marginBottom: '4px',
+                          padding: '8px 10px',
+                          borderRadius: '10px',
+                          fontSize: '0.78rem',
+                          marginBottom: '6px',
                           cursor: 'pointer',
                           border: '1px solid rgba(255,255,255,0.1)',
-                          lineHeight: '1.2'
+                          lineHeight: '1.3',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                         }}
                       >
                         <div style={{ fontWeight: 800 }}>{c.pacienteNombre}</div>
-                        <div style={{ fontSize: '0.65rem', opacity: 0.9 }}>{c.doctorNombre}</div>
-                        <div style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.2)', padding: '1px 4px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                        <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>{c.doctorNombre}</div>
+                        <div style={{ fontSize: '0.65rem', background: 'rgba(0,0,0,0.2)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
                           {c.hora}
                         </div>
                       </motion.div>
