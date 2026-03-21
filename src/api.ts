@@ -773,3 +773,14 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
   }
   return apiFetch<Odontograma>('saveOdontograma', o);
 }
+
+// ─── REPORTES Y CORRELATIVO ─────────────────────────────────────────────────
+export async function getGlobalCorrelativo(): Promise<string> {
+  if (IS_DEMO_MODE) {
+    const next = parseInt(localStorage.getItem('ERGO_DEMO_CORR') || '0', 10) + 1;
+    localStorage.setItem('ERGO_DEMO_CORR', next.toString());
+    return `DOC-${next.toString().padStart(6, '0')}`;
+  }
+  const result = await apiFetch<{correlativo: string}>('getGlobalCorrelativo');
+  return result.correlativo;
+}

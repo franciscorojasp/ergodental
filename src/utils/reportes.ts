@@ -3,6 +3,7 @@
 // Estándares: portada institucional, encabezado/pie, tabla de datos, resumen de totales
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getGlobalCorrelativo } from '../api';
 
 export interface ConfigReporte {
   titulo: string;               // "Reporte de Ingresos"
@@ -18,14 +19,6 @@ export interface ConfigReporte {
 
 const BRAND_COLOR: [number, number, number] = [30, 90, 180];   // #1e5ab4
 const ACCENT_COLOR: [number, number, number] = [0, 210, 140];  // #00d28c
-
-export function obtenerSiguienteCorrelativo(): string {
-  const key = 'ergo_doc_correlativo';
-  const actual = parseInt(localStorage.getItem(key) || '0', 10);
-  const siguiente = actual + 1;
-  localStorage.setItem(key, siguiente.toString());
-  return `DOC-${siguiente.toString().padStart(6, '0')}`;
-}
 
 function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string) {
   const W = doc.internal.pageSize.getWidth();
@@ -86,10 +79,10 @@ function addFooter(doc: jsPDF) {
   }
 }
 
-export function generarReportePDF(config: ConfigReporte): void {
+export async function generarReportePDF(config: ConfigReporte): Promise<void> {
   try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-    const correlativo = obtenerSiguienteCorrelativo();
+    const correlativo = await getGlobalCorrelativo();
 
     addHeader(doc, config, correlativo);
 
@@ -154,10 +147,10 @@ export function generarReportePDF(config: ConfigReporte): void {
   }
 }
 
-export function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): void {
+export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): Promise<void> {
   try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-    const correlativo = obtenerSiguienteCorrelativo();
+    const correlativo = await getGlobalCorrelativo();
     
     // Reutilizamos el header con una config mínima
     addHeader(doc, { 
