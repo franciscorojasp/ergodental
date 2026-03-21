@@ -19,7 +19,7 @@ export default function Inventario() {
   });
 
   useEffect(() => { 
-    getInventario().then(data => setItems(data.filter(i => i.clinicaId === clinica.id))); 
+    getInventario().then(data => setItems(data.filter(i => clinica.id === 'consolidado' || i.clinicaId === clinica.id))); 
   }, [clinica.id]);
 
   const filtrados = items.filter(i => {

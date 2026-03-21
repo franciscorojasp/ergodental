@@ -59,7 +59,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
   useEffect(() => {
     if (isOpen) {
-      getPacientes().then(data => setPacientes(data.filter(p => p.clinicaId === clinica.id)));
+      getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
       getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id && p.tipo === 'Odontólogo' && p.activo)));
       
       if (editingCita) {

@@ -36,7 +36,7 @@ export default function Personal() {
   const [form, setForm] = useState(initForm);
 
   useEffect(() => { 
-    getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id))); 
+    getPersonal().then(data => setPersonal(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id))); 
   }, [clinica.id]);
 
   const handleSave = async (e: React.FormEvent) => {

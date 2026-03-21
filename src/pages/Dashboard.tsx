@@ -27,10 +27,10 @@ export default function Dashboard() {
   const hoy = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    getCitas().then(data => setCitas(data.filter(c => c.clinicaId === clinica.id)));
-    getPacientes().then(data => setTotalPac(data.filter(p => p.clinicaId === clinica.id).length));
-    getPersonal().then(data => setTotalPers(data.filter(p => p.clinicaId === clinica.id).length));
-    getPagos().then(data => setPagos(data.filter(p => p.clinicaId === clinica.id)));
+    getCitas().then(data => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
+    getPacientes().then(data => setTotalPac(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id).length));
+    getPersonal().then(data => setTotalPers(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id).length));
+    getPagos().then(data => setPagos(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
   }, [clinica.id]);
 
   // Filtrar por periodo

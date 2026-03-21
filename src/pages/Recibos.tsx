@@ -17,7 +17,7 @@ export default function Recibos() {
 
   useEffect(() => {
     getRecibos().then(data => {
-      setRecibos(data.filter(f => f.clinicaId === clinica.id));
+      setRecibos(data.filter(f => clinica.id === 'consolidado' || f.clinicaId === clinica.id));
       setLoading(false);
     });
   }, [clinica.id]);

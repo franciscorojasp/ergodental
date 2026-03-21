@@ -42,8 +42,8 @@ export default function Presupuestos() {
       getPresupuestos(),
       getPacientes()
     ]).then(([presData, pacData]) => {
-      setPresupuestos(presData.filter(p => p.clinicaId === clinica.id));
-      setPacientes(pacData.filter(p => p.clinicaId === clinica.id));
+      setPresupuestos(presData.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id));
+      setPacientes(pacData.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id));
     }).catch(err => {
       setError('Error al cargar datos: ' + (err.message || err));
     }).finally(() => {
@@ -191,7 +191,7 @@ export default function Presupuestos() {
 
       // 4. Refrescar lista
       const data = await getPresupuestos();
-      setPresupuestos(data.filter(px => px.clinicaId === clinica.id));
+      setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id));
       alert('Presupuesto cobrado y recibo generado con éxito.');
     } catch (e) {
       alert('Error al generar recibo: ' + e);
@@ -301,7 +301,7 @@ export default function Presupuestos() {
                        {p.estado === 'Borrador' && (
                          <button className="btn btn-ghost btn-sm" onClick={() => {
                            updatePresupuesto({ id: p.id, estado: 'Aprobado' }).then(() => {
-                              getPresupuestos().then(data => setPresupuestos(data.filter(px => px.clinicaId === clinica.id)));
+                              getPresupuestos().then(data => setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id)));
                            });
                          }} title="Aprobar">✅</button>
                        )}

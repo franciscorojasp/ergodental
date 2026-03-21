@@ -6,6 +6,7 @@
 import { type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useClinica } from '../contexts/ClinicaContext';
 import { canAccess, canDo, type Modulo, type Accion } from '../permissions';
 
 interface RoleGuardProps {
@@ -26,6 +27,7 @@ export default function RoleGuard({
   fallback = null,
 }: RoleGuardProps) {
   const { user } = useAuth();
+  const { clinica } = useClinica();
   const rol = user?.rol;
 
   // Verificar acceso al módulo
@@ -34,6 +36,12 @@ export default function RoleGuard({
     : canAccess(rol, modulo);
 
   if (!tieneAcceso) {
+    if (redirigir) return <Navigate to="/unauthorized" replace />;
+    return <>{fallback}</>;
+  }
+
+  // Prevenir creación/edición en vista consolidada
+  if (clinica.id === 'consolidado' && accion && accion !== 'ver') {
     if (redirigir) return <Navigate to="/unauthorized" replace />;
     return <>{fallback}</>;
   }

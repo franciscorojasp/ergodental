@@ -22,6 +22,17 @@ export interface Clinica {
 }
 
 export const CLINICAS: Clinica[] = [
+  {
+    id: 'consolidado',
+    nombre: 'Consolidado Global',
+    nombreCorto: 'Global',
+    razonSocial: 'Múltiples Clínicas',
+    rif: 'N/A',
+    direccion: 'Multisede',
+    telefonos: [],
+    correos: [],
+    instagram: '',
+  },
   { 
     id: 'la-vina', 
     nombre: 'Clínica Odontológica La Viña', 

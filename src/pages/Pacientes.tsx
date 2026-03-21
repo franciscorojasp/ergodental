@@ -85,7 +85,7 @@ export default function Pacientes() {
   const [form, setForm] = useState(initForm);
 
   useEffect(() => { 
-    getPacientes().then(data => setPacientes(data.filter(p => p.clinicaId === clinica.id))); 
+    getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id))); 
   }, [clinica.id]);
 
   const handleSave = async (e: React.FormEvent) => {

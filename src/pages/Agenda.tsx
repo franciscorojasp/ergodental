@@ -22,7 +22,7 @@ export default function Agenda() {
   const [editingCita, setEditingCita] = useState<Cita | null>(null);
 
   useEffect(() => {
-    getCitas().then(data => setCitas(data.filter(c => c.clinicaId === clinica.id)));
+    getCitas().then(data => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
     getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id && p.tipo === 'Odontólogo')));
   }, [clinica.id]);
 

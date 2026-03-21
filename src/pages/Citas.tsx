@@ -27,7 +27,7 @@ export default function Citas() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    getCitas().then((data: Cita[]) => setCitas(data.filter(c => c.clinicaId === clinica.id)));
+    getCitas().then((data: Cita[]) => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
   }, [clinica.id]);
 
   const filtradas = citas.filter(c => filtroEstado === 'Todos' || c.estado === filtroEstado);

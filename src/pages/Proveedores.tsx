@@ -28,7 +28,7 @@ export default function Proveedores() {
   });
 
   useEffect(() => { 
-    getProveedores().then(data => setProveedores(data.filter(p => p.clinicaId === clinica.id))); 
+    getProveedores().then(data => setProveedores(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id))); 
   }, [clinica.id]);
 
   const tipos = ['Todos', ...TIPOS];

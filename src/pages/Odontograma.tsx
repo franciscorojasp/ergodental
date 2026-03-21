@@ -37,7 +37,7 @@ export default function Odontograma() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    getPacientes().then(data => setPacientes(data.filter(p => p.clinicaId === clinica.id)));
+    getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
   }, [clinica.id]);
 
   const loadOdontograma = useCallback(async (id: string) => {

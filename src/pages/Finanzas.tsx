@@ -111,9 +111,9 @@ export default function Finanzas(){
   });
 
   useEffect(()=>{
-    getPagos().then(data => setPagos(data.filter(p => p.clinicaId === clinica.id)));
-    getEgresos().then(data => setEgresos(data.filter(e => e.clinicaId === clinica.id)));
-    getPacientes().then(data => setPacientes(data.filter(p => p.clinicaId === clinica.id)));
+    getPagos().then(data => setPagos(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
+    getEgresos().then(data => setEgresos(data.filter(e => clinica.id === 'consolidado' || e.clinicaId === clinica.id)));
+    getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
     getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id && p.tipo==='Odontólogo'&& p.activo)));
     getProveedores().then(data => setProveedores(data.filter(x => x.clinicaId === clinica.id && x.activo)));
   },[clinica.id]);
