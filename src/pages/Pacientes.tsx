@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getPacientes, createPaciente, updatePaciente, deletePaciente, 
-  TABLA_REFERENCIAS 
+  TABLA_REFERENCIAS, getEvoluciones, createEvolucion, getPagos, getPresupuestos
 } from '../api';
-import type { Paciente, TipoReferencia } from '../api';
+import type { Paciente, TipoReferencia, EvolucionClinica, Pago, Presupuesto } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useMoneda } from '../contexts/MonedaContext';
 import RoleGuard from '../components/RoleGuard';
 import ConfirmDialog from '../components/ConfirmDialog';
 
@@ -72,6 +74,12 @@ export default function Pacientes() {
   const [saving, setSaving]           = useState(false);
   const [editingId, setEditingId]     = useState<string | null>(null);
   const [deletingId, setDeletingId]   = useState<string | null>(null);
+  const [tab, setTab]                 = useState<'datos'|'evolucion'|'galeria'|'cuentas'>('datos');
+  const [evoluciones, setEvoluciones] = useState<EvolucionClinica[]>([]);
+  const [pagos, setPagos]             = useState<Pago[]>([]);
+  const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([]);
+  const { user } = useAuth();
+  const { fmt } = useMoneda();
 
   const initForm = {
     clinicaId: clinica.id,
@@ -79,6 +87,8 @@ export default function Pacientes() {
     email: '', direccion: '',
     tipoReferencia: 'Paciente-Clinica' as TipoReferencia,
     referidorNombre: '', referidorContacto: '',
+    alergias: false,
+    alergiasDetalle: '',
     lastUpdated: undefined as number | undefined,
   };
 
@@ -86,6 +96,9 @@ export default function Pacientes() {
 
   useEffect(() => { 
     getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id))); 
+    getEvoluciones().then(setEvoluciones);
+    getPagos().then(setPagos);
+    getPresupuestos().then(setPresupuestos);
   }, [clinica.id]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -153,6 +166,8 @@ export default function Pacientes() {
       tipoReferencia: p.tipoReferencia || 'Paciente-Clinica',
       referidorNombre: p.referidorNombre || '',
       referidorContacto: p.referidorContacto || '',
+      alergias: !!p.alergias,
+      alergiasDetalle: p.alergiasDetalle || '',
       lastUpdated: p.lastUpdated,
     });
     setModal(true);
@@ -253,24 +268,124 @@ export default function Pacientes() {
         {detalle && (
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e=>e.target===e.currentTarget&&setDetalleId(null)}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}}>
+            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} style={{ maxWidth: 800 }}>
               <div className="modal-header">
-                <h3>{detalle.nombre} {detalle.apellido}</h3>
+                <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+                  <div style={{ width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, color:'#fff' }}>
+                    {detalle.nombre.charAt(0)}{detalle.apellido.charAt(0)}
+                  </div>
+                  <h3>{detalle.nombre} {detalle.apellido}</h3>
+                </div>
                 <button className="btn-close" onClick={()=>setDetalleId(null)}>✕</button>
               </div>
-              <div className="modal-body">
-                {[
-                  ['🪪 Cédula', detalle.cedula],
-                  ['🎂 Edad', calcularEdad(detalle.fechaNacimiento)],
-                  ['📞 Teléfono', detalle.telefono],
-                  ['✉️ Email', detalle.email],
-                  ['📍 Dirección', detalle.direccion],
-                ].map(([label, value]) => (
-                  <div key={label as string} style={{ padding:'9px 0', borderBottom:'1px solid var(--border)' }}>
-                    <div style={{ fontSize:'0.73rem', color:'var(--text-muted)', textTransform:'uppercase' }}>{label}</div>
-                    <div style={{ fontSize:'0.9rem', fontWeight:500 }}>{value}</div>
-                  </div>
+
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
+                {['datos', 'evolucion', 'galeria', 'cuentas'].map(t => (
+                  <button key={t} onClick={() => setTab(t as any)} 
+                    style={{ 
+                      flex: 1, padding: '12px', border: 'none', background: 'none', cursor: 'pointer',
+                      color: tab === t ? 'var(--primary)' : 'var(--text-secondary)',
+                      borderBottom: tab === t ? '2px solid var(--primary)' : 'none',
+                      fontWeight: tab === t ? 700 : 500, transition: '0.2s', textTransform: 'uppercase', fontSize: '0.75rem'
+                    }}>
+                    {t === 'datos' && '🪪 Perfil'}
+                    {t === 'evolucion' && '🦷 Evolución'}
+                    {t === 'galeria' && '📁 Galería'}
+                    {t === 'cuentas' && '💰 Cuentas'}
+                  </button>
                 ))}
+              </div>
+
+              <div className="modal-body">
+                {tab === 'datos' && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className="grid-2">
+                       {[
+                        ['🪪 Cédula', detalle.cedula],
+                        ['🎂 Edad', calcularEdad(detalle.fechaNacimiento)],
+                        ['📞 Teléfono', detalle.telefono],
+                        ['✉️ Email', detalle.email],
+                        ['📍 Dirección', detalle.direccion],
+                        ['⚠️ Alergias', detalle.alergias ? `SÍ (${detalle.alergiasDetalle})` : 'No'],
+                      ].map(([label, value]) => (
+                        <div key={label as string} style={{ padding:'9px 0', borderBottom:'1px solid var(--border)' }}>
+                          <div style={{ fontSize:'0.73rem', color:'var(--text-muted)', textTransform:'uppercase' }}>{label}</div>
+                          <div style={{ fontSize:'0.9rem', fontWeight:500 }}>{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {tab === 'evolucion' && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div style={{ display:'flex', gap:'8px', marginBottom:'16px' }}>
+                      <input className="input" placeholder="Nuevo tratamiento / Nota..." id="evo-proc" />
+                      <button className="btn btn-primary" onClick={async () => {
+                        const proc = (document.getElementById('evo-proc') as HTMLInputElement).value;
+                        if(!proc) return;
+                        const nueva = await createEvolucion({
+                          pacienteId: detalle.id,
+                          clinicaId: clinica.id,
+                          doctorNombre: user?.nombre || 'Doctor',
+                          fecha: new Date().toISOString(),
+                          procedimiento: proc,
+                          notas: ''
+                        });
+                        setEvoluciones(prev => [nueva, ...prev]);
+                        (document.getElementById('evo-proc') as HTMLInputElement).value = '';
+                      }}>+ Añadir</button>
+                    </div>
+                    <div className="table-wrap" style={{ maxHeight: 300 }}>
+                      <table>
+                        <thead><tr><th>Fecha</th><th>Procedimiento</th><th>Doctor</th></tr></thead>
+                        <tbody>
+                          {evoluciones.filter(e => e.pacienteId === detalle.id).map(e => (
+                            <tr key={e.id}>
+                              <td style={{ fontSize:'0.75rem' }}>{new Date(e.fecha).toLocaleDateString()}</td>
+                              <td>{e.procedimiento}</td>
+                              <td style={{ fontSize:'0.75rem', color:'var(--text-secondary)' }}>{e.doctorNombre}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </motion.div>
+                )}
+
+                {tab === 'galeria' && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className="glass" style={{ padding:'20px', textAlign:'center', border:'2px dashed var(--border)' }}>
+                      <p style={{ color:'var(--text-secondary)', marginBottom:'12px' }}>📂 Historial de Imágenes y Archivos</p>
+                      <button className="btn btn-ghost" onClick={() => window.open(`https://drive.google.com/drive/search?q=${detalle.cedula}`, '_blank')}>
+                        🔍 Buscar en Google Drive
+                      </button>
+                      <p style={{ fontSize:'0.7rem', marginTop:'10px', opacity:0.6 }}>Consejo: Sube tus archivos a Drive con la cédula del paciente para encontrarlos rápido.</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {tab === 'cuentas' && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    {(() => {
+                      const totalPresupuestado = presupuestos.filter(p => p.pacienteId === detalle.id).reduce((sum, p) => sum + p.total, 0);
+                      const totalPagado = pagos.filter(p => p.pacienteId === detalle.id && p.estado === 'Pagado').reduce((sum, p) => sum + p.monto, 0);
+                      const deuda = totalPresupuestado - totalPagado;
+                      return (
+                        <div className="grid-2">
+                          <div className="stat-card">
+                            <div className="stat-label">Total Presupuestado</div>
+                            <div className="stat-value">{fmt(totalPresupuestado)}</div>
+                          </div>
+                          <div className="stat-card" style={{ background: deuda > 0 ? 'rgba(255,77,106,0.1)' : 'var(--bg-card)' }}>
+                            <div className="stat-label" style={{ color: deuda > 0 ? 'var(--danger)' : 'inherit' }}>Saldo Pendiente</div>
+                            <div className="stat-value" style={{ color: deuda > 0 ? 'var(--danger)' : 'inherit' }}>{fmt(deuda)}</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </motion.div>
+                )}
                 
                 <div style={{ display:'flex', gap:'8px', marginTop:'20px', marginBottom:'12px' }}>
                   <button type="button" className="btn btn-primary" style={{ flex:1, justifyContent:'center' }}
@@ -317,6 +432,22 @@ export default function Pacientes() {
                     <div className="input-group"><label>Email</label><input className="input" type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} /></div>
                   </div>
                   <div className="input-group"><label>Dirección</label><input className="input" value={form.direccion} onChange={e=>setForm(f=>({...f,direccion:e.target.value}))} /></div>
+
+                  <div style={{ marginTop:'18px', padding:'12px', background:form.alergias ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)', borderRadius:'12px', border: `1px solid ${form.alergias ? 'var(--danger)' : 'var(--border)'}`, transition:'all 0.3s ease' }}>
+                    <label style={{ display:'flex', alignItems:'center', gap:'10px', cursor:'pointer', marginBottom: form.alergias ? '10px' : '0' }}>
+                      <input type="checkbox" checked={form.alergias} onChange={e=>setForm(f=>({...f,alergias:e.target.checked}))} style={{ width:'18px', height:'18px', accentColor:'var(--danger)' }} />
+                      <span style={{ fontWeight:700, fontSize:'0.9rem', color: form.alergias ? 'var(--danger)' : 'inherit' }}>⚠️ ¿El paciente posee alergias?</span>
+                    </label>
+                    
+                    {form.alergias && (
+                      <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }}>
+                        <div className="input-group" style={{ marginBottom:0 }}>
+                          <label style={{ fontSize:'0.75rem', color:'var(--danger)', fontWeight:600 }}>ESPECIFIQUE LA ALERGIA *</label>
+                          <input className="input" required={form.alergias} placeholder="Ej: Penicilina, Látex, AINES..." value={form.alergiasDetalle} onChange={e=>setForm(f=>({...f,alergiasDetalle:e.target.value}))} style={{ borderColor:'var(--danger)', background:'rgba(239, 68, 68, 0.05)' }} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
 
                   <div style={{ borderTop:'1px solid var(--border)', paddingTop:'14px', marginTop:'10px' }}>
                     <div style={{ fontSize:'0.8rem', fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', marginBottom:'10px' }}>🔗 Referencia</div>

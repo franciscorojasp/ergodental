@@ -19,6 +19,7 @@ export type Modulo =
   | 'proveedores'
   | 'presupuestos'
   | 'recibos'
+  | 'laboratorios'
   | 'configuracion';
 
 // ── Acciones posibles ─────────────────────────────────────────────────────────
@@ -135,6 +136,15 @@ export const PERMISSIONS: Record<Modulo, PermisoModulo> = {
       eliminar: ['ADMIN'],
     },
   },
+  laboratorios: {
+    rolesConAcceso: ['ADMIN', 'DOCTOR'],
+    acciones: {
+      ver:      ['ADMIN', 'DOCTOR'],
+      crear:    ['ADMIN', 'DOCTOR'],
+      editar:   ['ADMIN', 'DOCTOR'],
+      eliminar: ['ADMIN'],
+    },
+  },
   configuracion: {
     rolesConAcceso: ['ADMIN'],
     acciones: {
@@ -172,6 +182,7 @@ export const RUTA_MODULO: Record<string, Modulo> = {
   '/proveedores': 'proveedores',
   '/presupuestos': 'presupuestos',
   '/recibos':      'recibos',
+  '/laboratorios': 'laboratorios',
   '/configuracion': 'configuracion',
 };
 

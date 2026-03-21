@@ -181,6 +181,8 @@ export interface Paciente {
   tipoReferencia?: TipoReferencia;
   referidorNombre?: string;
   referidorContacto?: string;
+  alergias: boolean;
+  alergiasDetalle: string;
   lastUpdated?: number;
 }
 
@@ -202,6 +204,30 @@ export interface Cita {
   referidorNombre?: string;
   referidorContacto?: string;
   lastUpdated?: number;
+}
+
+export interface EvolucionClinica {
+  id: string;
+  clinicaId: string;
+  pacienteId: string;
+  fecha: string;
+  doctorNombre: string;
+  procedimiento: string;
+  notas: string;
+  materiales?: string;
+}
+
+export interface Laboratorio {
+  id: string;
+  clinicaId: string;
+  pacienteId: string;
+  pacienteNombre: string;
+  trabajo: string;
+  laboratorioNombre: string;
+  fechaEnvio: string;
+  fechaEntregaPrevista: string;
+  estado: 'Enviado' | 'Recibido' | 'Atrasado';
+  costo: number;
 }
 
 export interface PiezaDental {
@@ -346,11 +372,11 @@ export const DEMO_PERSONAL: Personal[] = [
 ];
 
 export const DEMO_PACIENTES: Paciente[] = [
-  { id: 'pac1', clinicaId: 'la-vina', nombre: 'José',      apellido: 'Hernández', cedula: 'V-12345678', fechaNacimiento: '1985-03-15', telefono: '0412-1112222', email: 'jose@gmail.com',       direccion: 'Av. Principal, Casa 5',    fechaRegistro: '2024-01-10', tipoReferencia: 'Profesional-Especialista', referidorNombre: 'Dr. Lugo (Cardiología)', referidorContacto: '0412-9990000' },
-  { id: 'pac2', clinicaId: 'la-vina', nombre: 'Carmen',    apellido: 'López',     cedula: 'V-23456789', fechaNacimiento: '1992-07-22', telefono: '0414-2223333', email: 'carmen@gmail.com',     direccion: 'Calle 2, Apto 3B',         fechaRegistro: '2024-01-15', tipoReferencia: 'Paciente-Clinica',          referidorNombre: 'Clínica Ergodental' },
-  { id: 'pac3', clinicaId: 'la-vina', nombre: 'Roberto',   apellido: 'Díaz',      cedula: 'V-34567890', fechaNacimiento: '1978-11-08', telefono: '0416-3334444', email: 'roberto@gmail.com',    direccion: 'Urb. Las Flores, Casa 12', fechaRegistro: '2024-02-03', tipoReferencia: 'Foraneo-30',                referidorNombre: 'Clínica Dental Valencia',  referidorContacto: '0241-1234567' },
-  { id: 'pac4', clinicaId: 'la-vina', nombre: 'Valentina', apellido: 'Torres',    cedula: 'V-45678901', fechaNacimiento: '2001-05-30', telefono: '0424-4445555', email: 'valentina@gmail.com', direccion: 'Res. El Parque, Piso 4',   fechaRegistro: '2024-02-20', tipoReferencia: 'Foraneo-10',                referidorNombre: 'Casa Médica Caracas',       referidorContacto: '0212-5552222' },
-  { id: 'pac5', clinicaId: 'la-vina', nombre: 'Miguel',    apellido: 'Ramírez',   cedula: 'V-56789012', fechaNacimiento: '1969-09-14', telefono: '0426-5556666', email: 'miguel@gmail.com',     direccion: 'Sector Norte, Mz 3 Casa 8', fechaRegistro: '2024-03-05', tipoReferencia: 'Paciente-Clinica',         referidorNombre: 'Clínica Ergodental' },
+  { id: 'pac1', clinicaId: 'la-vina', nombre: 'José',      apellido: 'Hernández', cedula: 'V-12345678', fechaNacimiento: '1985-03-15', telefono: '0412-1112222', email: 'jose@gmail.com',       direccion: 'Av. Principal, Casa 5',    fechaRegistro: '2024-01-10', tipoReferencia: 'Profesional-Especialista', referidorNombre: 'Dr. Lugo (Cardiología)', referidorContacto: '0412-9990000', alergias: false, alergiasDetalle: '' },
+  { id: 'pac2', clinicaId: 'la-vina', nombre: 'Carmen',    apellido: 'López',     cedula: 'V-23456789', fechaNacimiento: '1992-07-22', telefono: '0414-2223333', email: 'carmen@gmail.com',     direccion: 'Calle 2, Apto 3B',         fechaRegistro: '2024-01-15', tipoReferencia: 'Paciente-Clinica',          referidorNombre: 'Clínica Ergodental', alergias: true, alergiasDetalle: 'Penicilina' },
+  { id: 'pac3', clinicaId: 'la-vina', nombre: 'Roberto',   apellido: 'Díaz',      cedula: 'V-34567890', fechaNacimiento: '1978-11-08', telefono: '0416-3334444', email: 'roberto@gmail.com',    direccion: 'Urb. Las Flores, Casa 12', fechaRegistro: '2024-02-03', tipoReferencia: 'Foraneo-30',                referidorNombre: 'Clínica Dental Valencia',  referidorContacto: '0241-1234567', alergias: false, alergiasDetalle: '' },
+  { id: 'pac4', clinicaId: 'la-vina', nombre: 'Valentina', apellido: 'Torres',    cedula: 'V-45678901', fechaNacimiento: '2001-05-30', telefono: '0424-4445555', email: 'valentina@gmail.com', direccion: 'Res. El Parque, Piso 4',   fechaRegistro: '2024-02-20', tipoReferencia: 'Foraneo-10',                referidorNombre: 'Casa Médica Caracas',       referidorContacto: '0212-5552222', alergias: false, alergiasDetalle: '' },
+  { id: 'pac5', clinicaId: 'la-vina', nombre: 'Miguel',    apellido: 'Ramírez',   cedula: 'V-56789012', fechaNacimiento: '1969-09-14', telefono: '0426-5556666', email: 'miguel@gmail.com',     direccion: 'Sector Norte, Mz 3 Casa 8', fechaRegistro: '2024-03-05', tipoReferencia: 'Paciente-Clinica',         referidorNombre: 'Clínica Ergodental', alergias: false, alergiasDetalle: '' },
 ];
 
 export const DEMO_CITAS: Cita[] = [
@@ -425,7 +451,18 @@ const ACTION_FALLBACKS: Record<string, string[]> = {
   updatePersonal: ['actualizarPersonal', 'savePersonal', 'editPersonal'],
   updateClinica: ['actualizarClinica', 'saveClinica', 'editClinica'],
   updatePresupuesto: ['actualizarPresupuesto', 'savePresupuesto', 'editPresupuesto'],
+  updateLaboratorio: ['actualizarLaboratorio', 'saveLaboratorio', 'editLaboratorio'],
 };
+
+// --- Evoluciones ---
+export async function getEvoluciones() { return apiFetch<EvolucionClinica[]>('getEvoluciones'); }
+export async function createEvolucion(data: Partial<EvolucionClinica>) { return apiFetch<EvolucionClinica>('createEvolucion', data); }
+
+// --- Laboratorios ---
+export async function getLaboratorios() { return apiFetch<Laboratorio[]>('getLaboratorios'); }
+export async function createLaboratorio(data: Partial<Laboratorio>) { return apiFetch<Laboratorio>('createLaboratorio', data); }
+export async function updateLaboratorio(data: Partial<Laboratorio>) { return apiFetch<Laboratorio>('updateLaboratorio', data); }
+export async function deleteLaboratorio(id: string) { return apiFetch<any>('deleteLaboratorio', { id }); }
 
 async function apiFetch<T>(action: string, data?: object): Promise<T> {
   const callApi = async (actionName: string): Promise<T> => {

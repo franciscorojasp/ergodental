@@ -23,6 +23,7 @@ import ConfiguracionClinica from './pages/ConfiguracionClinica';
 import Agenda from './pages/Agenda';
 import Presupuestos from './pages/Presupuestos';
 import Recibos from './pages/Recibos';
+import Laboratorios from './pages/Laboratorios';
 import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
@@ -140,6 +141,9 @@ export default function App() {
               {/* ── ADMIN only ── */}
               <Route path="/finanzas" element={
                 <ProtectedLayout><RoleGuard modulo="finanzas" redirigir><Finanzas /></RoleGuard></ProtectedLayout>
+              } />
+              <Route path="/laboratorios" element={
+                <ProtectedLayout><RoleGuard modulo="laboratorios" redirigir><Laboratorios /></RoleGuard></ProtectedLayout>
               } />
               <Route path="/proveedores" element={
                 <ProtectedLayout><RoleGuard modulo="proveedores" redirigir><Proveedores /></RoleGuard></ProtectedLayout>
