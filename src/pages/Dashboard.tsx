@@ -108,7 +108,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid-responsive" style={{ marginBottom: '28px' }}>
+      <div className="grid-responsive" style={{ marginBottom: '20px' }}>
         {[
           { label:'Pacientes',             value: totalPac,                        icon:'🦷', color:'var(--primary)' },
           { label:`Citas (${periodo})`,    value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
