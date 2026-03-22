@@ -22,8 +22,8 @@ export default function CurrencyToggle() {
     <div style={{
       display:'flex', flexDirection:'column', gap:'5px',
       padding:'10px 12px', margin:'8px 0',
-      background:'rgba(30,90,180,0.08)',
-      border:'1px solid rgba(30,90,180,0.18)',
+      background:'var(--primary-dim)',
+      border:'1px solid var(--primary-dim)',
       borderRadius:'10px',
     }}>
       {/* Tasa BCV */}
@@ -63,7 +63,7 @@ export default function CurrencyToggle() {
             onChange={e=>setValor(e.target.value)}
             onKeyDown={e=>{ if(e.key==='Enter') handleActualizar(); if(e.key==='Escape') setEditando(false); }}
             style={{
-              flex:1, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(0,198,255,0.4)',
+              flex:1, background:'var(--bg-card)', border:'1px solid var(--primary)',
               borderRadius:'6px', color:'var(--text-primary)', padding:'4px 8px', fontSize:'0.82rem',
               outline:'none', minWidth:0,
             }}
@@ -73,7 +73,7 @@ export default function CurrencyToggle() {
             padding:'4px 8px', cursor:'pointer', fontSize:'0.8rem', fontWeight:700,
           }}>✓</button>
           <button onClick={()=>setEditando(false)} style={{
-            background:'rgba(255,255,255,0.06)', border:'none', borderRadius:'6px', color:'var(--text-muted)',
+            background:'var(--bg-card)', border:'none', borderRadius:'6px', color:'var(--text-muted)',
             padding:'4px 6px', cursor:'pointer', fontSize:'0.8rem',
           }}>✕</button>
         </div>
@@ -81,7 +81,7 @@ export default function CurrencyToggle() {
 
       {/* Toggle USD / BS */}
       <div style={{
-        display:'flex', background:'rgba(0,0,0,0.15)', borderRadius:'7px', padding:'2px', marginTop:'4px',
+        display:'flex', background:'var(--bg-dark)', borderRadius:'7px', padding:'2px', marginTop:'4px', opacity: 0.8
       }}>
         {(['USD','BS'] as const).map(m => (
           <button key={m} onClick={() => setMoneda(m)} style={{

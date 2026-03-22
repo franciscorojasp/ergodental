@@ -20,13 +20,13 @@ export default function ClinicaBadge() {
         style={{
           display: 'flex', alignItems: 'center', gap: '12px',
           padding: '12px 16px',
-          background: 'rgba(25) 255, 255, 0.1)', // Slightly more visible
-          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
           borderRadius: '12px',
           cursor: esAutorizado ? 'pointer' : 'default',
           width: '100%',
           textAlign: 'left',
-          color: '#fff',
+          color: 'var(--text-primary)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         }}
       >
@@ -38,7 +38,7 @@ export default function ClinicaBadge() {
           boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)',
         }}>🏢</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Sede Activa</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Sede Activa</div>
           <div style={{ fontSize: '1rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--primary)' }}>{clinica.nombreCorto}</div>
         </div>
         {esAutorizado && <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{open ? '▲' : '▼'}</div>}
@@ -52,10 +52,10 @@ export default function ClinicaBadge() {
             exit={{    opacity: 0, y: 10, scale: 0.95 }}
             style={{
               position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px',
-              background: 'rgba(15, 23, 42, 0.95)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              background: 'var(--bg-modal)',
+              border: '1px solid var(--border)',
               borderRadius: '12px', padding: '6px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+              boxShadow: 'var(--shadow)',
               backdropFilter: 'blur(10px)',
               zIndex: 100,
             }}
@@ -70,7 +70,7 @@ export default function ClinicaBadge() {
                 style={{
                   width: '100%', padding: '10px 12px',
                   textAlign: 'left', background: 'none', border: 'none',
-                  borderRadius: '8px', color: clinica.id === c.id ? 'var(--primary)' : '#fff',
+                  borderRadius: '8px', color: clinica.id === c.id ? 'var(--primary)' : 'var(--text-primary)',
                   cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
                   display: 'flex', alignItems: 'center', gap: '10px',
                 }}

@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         style={{
           position:'fixed', top:0, left:0, bottom:0,
-          background:'rgba(10,15,35,0.98)',
+          background:'var(--bg-sidebar)',
           borderRight:'1px solid var(--border)',
           backdropFilter:'blur(24px)',
           display:'flex', flexDirection:'column', zIndex:100,
@@ -80,7 +80,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             </div>
             {isPinned && (
               <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ flex:1 }}>
-                <div style={{ fontWeight:900, fontSize:'1.1rem', letterSpacing:'-0.5px', color:'#fff' }}>ERGODENTALVE</div>
+                <div style={{ fontWeight:900, fontSize:'1.1rem', letterSpacing:'-0.5px', color:'var(--text-primary)' }}>ERGODENTALVE</div>
                 <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>1.0</div>
               </motion.div>
             )}
@@ -142,7 +142,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
           )}
           <div style={{
             display:'flex', alignItems:'center', justifyContent: isPinned ? 'flex-start' : 'center',
-            gap:'10px', padding: isPinned ? '10px' : '4px', borderRadius:'14px', background:'rgba(255,255,255,0.03)',
+            gap:'10px', padding: isPinned ? '10px' : '4px', borderRadius:'14px', background:'var(--bg-card)',
             border: '1px solid var(--border)'
           }}>
             <div style={{
