@@ -47,9 +47,15 @@
 
   --text-primary:   #0f172a;
   --text-secondary: #334155;
-  --text-muted:     #475569;
+  --text-muted:     #64748b;
+  --bg-modal:       #ffffff;
   
-  --shadow:         0 10px 40px rgba(0,0,0,0.08);
+  --shadow:         0 20px 50px rgba(0,0,0,0.12);
+  --border:         rgba(0,0,0,0.08);
+}
+
+:root {
+  --bg-modal:       #111827;
 }
 
 /* ── Reset ─────────────────────────────────────── */
@@ -179,7 +185,8 @@ body::before {
   background: rgba(255,255,255,0.08); 
   box-shadow: 0 0 0 4px var(--primary-dim); 
 }
-.input::placeholder { color: var(--text-muted); }
+.input::placeholder { color: var(--text-muted); opacity: 0.6; }
+select.input option { background: var(--bg-modal); color: var(--text-primary); }
 
 .input-group { display: flex; flex-direction: column; gap: 8px; }
 .input-group label { 
@@ -217,7 +224,8 @@ tbody td { padding: 18px 16px; font-size: 0.9rem; color: var(--text-primary); }
   padding: 24px;
 }
 .modal {
-  background: #0d1225;
+  background: var(--bg-modal);
+  color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: 20px;
   width: 100%;
@@ -239,7 +247,7 @@ tbody td { padding: 18px 16px; font-size: 0.9rem; color: var(--text-primary); }
   display: flex; gap: 12px; justify-content: flex-end; 
 }
 .btn-close { 
-  background: rgba(255,255,255,0.05); border: none; color: var(--text-muted); 
+  background: var(--bg-card); border: none; color: var(--text-muted); 
   cursor: pointer; width: 36px; height: 36px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s; 
