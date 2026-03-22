@@ -92,16 +92,16 @@ export default function Dashboard() {
           <h1>Dashboard</h1>
           <p>Bienvenido, {user?.nombre} · {new Date().toLocaleDateString('es-VE', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
         </div>
-        <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+        <div className="action-grid" style={{ width: 'auto' }}>
           <select
             className="input"
             value={periodo}
             onChange={e => setPeriodo(e.target.value as Periodo)}
-            style={{ padding:'8px 14px', fontSize:'0.88rem', minWidth:'130px' }}
+            style={{ padding:'8px 14px', fontSize:'0.88rem', minWidth:'130px', justifyContent:'center' }}
           >
             {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <button className="btn btn-ghost btn-sm" onClick={generarPDF} title="Exportar PDF">
+          <button className="btn btn-primary btn-sm" style={{ justifyContent: 'center' }} onClick={generarPDF} title="Exportar PDF">
             📄 PDF
           </button>
         </div>

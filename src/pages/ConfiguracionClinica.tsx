@@ -51,54 +51,32 @@ export default function ConfiguracionClinica() {
 
   return (
     <div className="page-container" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '8px' }}>Configuración de Sedes</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-            Gestiona la identidad y datos de contacto de las sedes registradas.
-          </p>
+          <h1>Configuración de Sedes</h1>
+          <p>Gestiona la identidad y datos de contacto de las sedes.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="action-grid" style={{ width: 'auto' }}>
           {esAdmin && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setMostrarNuevo(true)}
-              className="btn-secondary"
-              style={{ padding: '12px 24px', borderRadius: '12px', fontWeight: 700 }}
-            >
-              + Nueva Sede
-            </motion.button>
+            <button onClick={() => setMostrarNuevo(true)} className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }}>+ Nueva Sede</button>
           )}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSave}
-            disabled={saving}
-            className="btn-primary"
-            style={{ padding: '12px 24px', borderRadius: '12px', fontWeight: 700 }}
-          >
-            {saving ? 'Guardando...' : (editando ? 'Guardar Cambios' : 'Editar Perfil')}
-          </motion.button>
+          <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ justifyContent: 'center' }}>
+            {saving ? '...' : (editando ? '💾 Guardar' : '✏️ Editar')}
+          </button>
         </div>
-      </header>
+      </div>
 
       {/* Lista de Sedes (Selector rápido) */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', overflowX: 'auto', paddingBottom: '10px' }}>
+      <div className="filter-grid" style={{ marginBottom: '30px' }}>
         {clinicas.map(c => (
-          <div key={c.id} style={{
-            padding: '10px 20px', borderRadius: '12px',
-            background: clinica.id === c.id ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-            color: clinica.id === c.id ? '#fff' : 'var(--text-muted)',
-            fontWeight: 700, whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.1)',
-            cursor: 'default', opacity: clinica.id === c.id ? 1 : 0.6
-          }}>
+          <button key={c.id} className="btn btn-ghost btn-sm"
+            style={clinica.id === c.id ? { borderColor: 'var(--primary)', color: 'var(--primary)', background: 'var(--primary-dim)', justifyContent: 'center' } : { justifyContent: 'center' }}>
             {c.nombreCorto}
-          </div>
+          </button>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px' }}>
+      <div className="grid-responsive" style={{ gap: '30px', alignItems: 'start' }}>
         {/* Columna Izquierda: Logo e Identidad */}
         <section className="glass-card" style={{ padding: '30px', textAlign: 'center' }}>
           <div style={{ position: 'relative', width: '160px', height: '160px', margin: '0 auto 24px' }}>

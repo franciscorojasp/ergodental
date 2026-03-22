@@ -114,7 +114,9 @@ export default function Personal() {
             {personal.filter(p => p.activo).length} miembros activos · {personal.length} total
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Miembro</button>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Miembro</button>
+        </div>
       </div>
 
       <div className="glass" style={{ padding: '20px', marginBottom: '20px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -122,10 +124,10 @@ export default function Personal() {
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre o especialidad..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: '1 1 auto' }}>
+        <div className="filter-grid" style={{ flex: '1 1 100%' }}>
           {tipos.map(t => (
             <button key={t} onClick={() => setFiltroTipo(t)} className="btn btn-ghost btn-sm"
-              style={filtroTipo === t ? { borderColor: 'var(--primary)', color: 'var(--primary)', background: 'var(--primary-dim)', flex: '1 1 auto' } : { flex: '1 1 auto' }}>
+              style={filtroTipo === t ? { borderColor: 'var(--primary)', color: 'var(--primary)', background: 'var(--primary-dim)', justifyContent: 'center' } : { justifyContent: 'center' }}>
               {t}
             </button>
           ))}

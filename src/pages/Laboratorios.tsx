@@ -63,7 +63,9 @@ export default function Laboratorios() {
           <h1>Laboratorios Profesionales</h1>
           <p>Control de trabajos externos y prótesis — {clinica.nombreCorto}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Registrar Trabajo</button>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Registrar Trabajo</button>
+        </div>
       </div>
 
       <div className="glass" style={{ padding: '0', overflow: 'hidden' }}>

@@ -57,7 +57,9 @@ export default function Proveedores() {
           <h1>Proveedores</h1>
           <p>{proveedores.filter(p => p.activo).length} activos · {proveedores.length} total</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Proveedor</button>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Proveedor</button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -66,10 +68,10 @@ export default function Proveedores() {
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre, RIF o contacto..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+        <div className="filter-grid" style={{ flex:'1 1 100%' }}>
           {tipos.map(t => (
             <button key={t} onClick={() => setFiltroTipo(t)} className="btn btn-ghost btn-sm"
-              style={filtroTipo === t ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)' } : {}}>
+              style={filtroTipo === t ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent: 'center' } : { justifyContent: 'center' }}>
               {t !== 'Todos' ? TIPO_ICON[t as Proveedor['tipo']] : ''} {t}
             </button>
           ))}

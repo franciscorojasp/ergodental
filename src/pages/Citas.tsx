@@ -77,10 +77,10 @@ export default function Citas() {
         </div>
       </div>
 
-      <div style={{ display:'flex', gap:'6px', marginBottom:'18px', flexWrap:'wrap' }}>
+      <div className="filter-grid" style={{ marginBottom:'18px' }}>
         {(['Todos','Pendiente','Confirmada','Completada','Cancelada'] as const).map(e => (
           <button key={e} onClick={() => setFiltroEstado(e)} className="btn btn-ghost btn-sm"
-            style={filtroEstado === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', flex:'1 1 auto' } : { flex:'1 1 auto' }}>
+            style={filtroEstado === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent:'center' } : { justifyContent:'center' }}>
             {e}
           </button>
         ))}

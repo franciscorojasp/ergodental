@@ -210,10 +210,10 @@ export default function Pacientes() {
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre, cédula o correo..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', flex:'1 1 auto', justifyContent:'flex-start' }}>
+        <div className="filter-grid" style={{ flex:'1 1 100%' }}>
           {filtros.map(f => (
             <button key={f} onClick={() => setFiltroRef(f)} className="btn btn-ghost btn-sm"
-              style={filtroRef === f ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', flex:'1 1 auto' } : { flex:'1 1 auto' }}>
+              style={filtroRef === f ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent:'center' } : { justifyContent:'center' }}>
               {f}
             </button>
           ))}

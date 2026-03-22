@@ -247,7 +247,9 @@ export default function Presupuestos() {
           <h1>Presupuestos</h1>
           <p>Planes de tratamiento y estimaciones — {clinica.nombreCorto}</p>
         </div>
-        <button className="btn btn-primary" onClick={openNew} disabled={loading}>+ Nuevo Presupuesto</button>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={openNew} disabled={loading}>+ Nuevo Presupuesto</button>
+        </div>
       </div>
 
       {error && (
@@ -263,9 +265,10 @@ export default function Presupuestos() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+      <div className="filter-grid" style={{ marginBottom: '20px' }}>
          {(['Todos', 'Borrador', 'Enviado', 'Aprobado', 'Recibido'] as const).map(e => (
-           <button key={e} onClick={() => setFiltro(e)} className={`btn btn-sm ${filtro === e ? 'btn-primary' : 'btn-ghost'}`}>
+           <button key={e} onClick={() => setFiltro(e)} className="btn btn-ghost btn-sm"
+             style={filtro === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent:'center' } : { justifyContent:'center' }}>
               {e}
            </button>
          ))}

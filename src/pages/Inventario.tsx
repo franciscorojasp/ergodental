@@ -65,7 +65,9 @@ export default function Inventario() {
             {items.length} productos · {bajoStock > 0 ? `⚠️ ${bajoStock} con stock bajo` : '✅ Stock en regla'}
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Producto</button>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Producto</button>
+        </div>
       </div>
 
       {bajoStock > 0 && (
@@ -82,10 +84,12 @@ export default function Inventario() {
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar producto o categoría..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={() => setFiltroAlerta(!filtroAlerta)}
-          style={filtroAlerta ? { borderColor: 'var(--warning)', color: 'var(--warning)', background: 'var(--warning-dim)', flex: '1 1 auto' } : { flex: '1 1 auto' }}>
-          ⚠️ Solo alertas
-        </button>
+        <div className="filter-grid" style={{ flex:'1 1 100%' }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => setFiltroAlerta(!filtroAlerta)}
+            style={filtroAlerta ? { borderColor: 'var(--warning)', color: 'var(--warning)', background: 'var(--warning-dim)', justifyContent: 'center' } : { justifyContent: 'center' }}>
+            {filtroAlerta ? '✅ Mostrar Todo' : '⚠️ Solo Alertas'}
+          </button>
+        </div>
       </div>
 
       {/* Tabla */}
