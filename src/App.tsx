@@ -72,8 +72,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
     const touchEnd = e.changedTouches[0].clientX;
     const distance = touchEnd - touchStart;
     
-    // Si desliza hacia la derecha (>50px) y empezó cerca del borde (<50px)
-    if (distance > 60 && touchStart < 60) setSidebarOpen(true);
+    // Si desliza hacia la derecha (>50px) y empezó en el primer cuarto de pantalla (<100px)
+    if (distance > 70 && touchStart < 100) setSidebarOpen(true);
     setTouchStart(null);
   };
 
