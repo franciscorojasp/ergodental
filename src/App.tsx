@@ -53,6 +53,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'var(--text-secondary)' }}>
       Cargando...
@@ -60,8 +62,22 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   );
   if (!user) return <Navigate to="/login" replace />;
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchEnd - touchStart;
+    
+    // Si desliza hacia la derecha (>50px) y empezó cerca del borde (<50px)
+    if (distance > 60 && touchStart < 60) setSidebarOpen(true);
+    setTouchStart(null);
+  };
+
   return (
-    <div className="app-layout">
+    <div className="app-layout" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -73,17 +89,6 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <TasaModal />
       <HelpCenter />
 
-      {/* Swipe Area - Borde izquierdo para móviles */}
-      {!sidebarOpen && (
-        <div 
-          onClick={() => setSidebarOpen(true)}
-          style={{
-            position:'fixed', top:0, left:0, bottom:0, width:'20px',
-            zIndex: 1500, cursor: 'pointer'
-          }}
-          title="Abrir menú"
-        />
-      )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header - Siempre visible en móvil, o en desktop si el sidebar está cerrado */}
