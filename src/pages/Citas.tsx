@@ -70,20 +70,21 @@ export default function Citas() {
             {filtradas.length} citas encontradas
           </p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <RoleGuard modulo="citas" accion="crear">
-            <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva Cita</button>
+            <button className="btn btn-primary" onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva Cita</button>
           </RoleGuard>
         </div>
       </div>
 
-      <div className="filter-grid" style={{ marginBottom:'18px' }}>
-        {(['Todos','Pendiente','Confirmada','Completada','Cancelada'] as const).map(e => (
-          <button key={e} onClick={() => setFiltroEstado(e)} className="btn btn-ghost btn-sm"
-            style={filtroEstado === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent:'center' } : { justifyContent:'center' }}>
-            {e}
-          </button>
-        ))}
+      <div className="filter-glass">
+        <div className="filter-grid">
+          {(['Todos','Pendiente','Confirmada','Completada','Cancelada'] as const).map(e => (
+            <button key={e} onClick={() => setFiltroEstado(e)} className={`btn btn-sm ${filtroEstado === e ? 'btn-primary' : 'btn-ghost'}`}>
+              {e}
+            </button>
+          ))}
+        </div>
       </div>
 
       <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
