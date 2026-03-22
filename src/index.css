@@ -445,21 +445,22 @@ tbody td { padding: 18px 16px; font-size: 0.9rem; color: var(--text-primary); }
 /* ── Scrollbar ─────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-dim); border: 2px solid transparent; background-clip: content-box; }
 
 /* ── Mobile UI ─────────────────────────────────── */
 .mobile-header {
   display: none;
   height: 64px;
-  background: rgba(10, 15, 30, 0.8);
+  background: var(--bg-sidebar);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   align-items: center;
   padding: 0 20px;
   position: sticky;
   top: 0;
-  z-index: 90;
+  z-index: 1000;
 }
 .mobile-header.force-flex { display: flex !important; }
 
