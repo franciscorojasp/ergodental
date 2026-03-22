@@ -289,19 +289,18 @@ export default function Finanzas(){
       {/* Header */}
       <div className="page-header">
         <div><h1>Finanzas</h1><p>Ingresos · Egresos · Honorarios · Comisiones</p></div>
-        <div style={{display:'flex',gap:'8px'}}>
-          <button className="btn btn-ghost btn-sm" onClick={generarPDF}>📄 PDF</button>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setModalEgreso(true)}>+ Egreso</button>
-          <button className="btn btn-primary" onClick={()=>setModalPago(true)}>+ Ingreso</button>
+        <div className="action-grid" style={{ width: 'auto' }}>
+          <button className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }} onClick={generarPDF}>📄 PDF</button>
+          <button className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }} onClick={()=>setModalEgreso(true)}>+ Egreso</button>
+          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={()=>setModalPago(true)}>+ Ingreso</button>
         </div>
       </div>
 
       {/* Selector periodo */}
-      <div style={{display:'flex',gap:'6px',marginBottom:'20px',flexWrap:'wrap',alignItems:'center'}}>
-        <span style={{fontSize:'0.8rem',color:'var(--text-muted)',marginRight:'4px'}}>Reporte:</span>
+      <div className="filter-grid" style={{ marginBottom:'20px' }}>
         {PERIODOS.map(p=>(
           <button key={p} onClick={()=>setPeriodo(p)} className="btn btn-ghost btn-sm"
-            style={periodo===p?{borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)'}:{}}>
+            style={periodo===p?{borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)', justifyContent:'center'}:{justifyContent:'center'}}>
             {p}
           </button>
         ))}
@@ -326,10 +325,10 @@ export default function Finanzas(){
       </div>
 
       {/* Tabs */}
-      <div style={{display:'flex',gap:'4px',marginBottom:'18px',flexWrap:'wrap'}}>
+      <div className="filter-grid" style={{ marginBottom:'18px' }}>
         {TABS.map(t=>(
           <button key={t.key} onClick={()=>setTab(t.key)} className="btn btn-ghost btn-sm"
-            style={tab===t.key?{borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)'}:{}}>
+            style={tab===t.key?{borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)', justifyContent:'center'}:{justifyContent:'center'}}>
             {t.label}
           </button>
         ))}
