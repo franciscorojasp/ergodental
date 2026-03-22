@@ -405,6 +405,7 @@ tbody td { padding: 18px 16px; font-size: 0.9rem; color: var(--text-primary); }
   top: 0;
   z-index: 90;
 }
+.mobile-header.force-flex { display: flex !important; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
