@@ -193,9 +193,9 @@ export default function Pacientes() {
       <div className="page-header">
         <div>
           <h1>Pacientes</h1>
-          <p style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+          <p>
             <span className="badge badge-primary" style={{ fontSize:'0.7rem' }}>{clinica.nombreCorto}</span>
-            {pacientes.length} pacientes registrados
+            <span style={{ fontSize:'0.85rem', color:'var(--text-secondary)', marginLeft:'8px' }}>{pacientes.length} pacientes registrados</span>
           </p>
         </div>
         <div className="action-grid">
@@ -300,7 +300,7 @@ export default function Pacientes() {
               <div className="modal-body">
                 {tab === 'datos' && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    <div className="grid-2">
+                    <div className="grid-2" style={{ gap:'12px' }}>
                        {[
                         ['🪪 Cédula', detalle.cedula],
                         ['🎂 Edad', calcularEdad(detalle.fechaNacimiento)],
@@ -309,9 +309,9 @@ export default function Pacientes() {
                         ['📍 Dirección', detalle.direccion],
                         ['⚠️ Alergias', detalle.alergias ? `SÍ (${detalle.alergiasDetalle})` : 'No'],
                       ].map(([label, value]) => (
-                        <div key={label as string} style={{ padding:'9px 0', borderBottom:'1px solid var(--border)' }}>
-                          <div style={{ fontSize:'0.73rem', color:'var(--text-muted)', textTransform:'uppercase' }}>{label}</div>
-                          <div style={{ fontSize:'0.9rem', fontWeight:500 }}>{value}</div>
+                        <div key={label as string} style={{ padding:'12px', background:'var(--bg-card)', borderRadius:'10px', border:'1px solid var(--border)' }}>
+                          <div style={{ fontSize:'0.65rem', color:'var(--text-muted)', textTransform:'uppercase', fontWeight:800, marginBottom:'4px' }}>{label}</div>
+                          <div style={{ fontSize:'0.9rem', fontWeight:600 }}>{value}</div>
                         </div>
                       ))}
                     </div>

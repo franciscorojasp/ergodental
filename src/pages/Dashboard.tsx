@@ -97,18 +97,18 @@ export default function Dashboard() {
             className="input"
             value={periodo}
             onChange={e => setPeriodo(e.target.value as Periodo)}
-            style={{ padding:'8px 14px', fontSize:'0.88rem', minWidth:'130px', justifyContent:'center' }}
+            style={{ padding:'8px 14px', fontSize:'0.88rem', minWidth:'130px' }}
           >
             {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <button className="btn btn-primary btn-sm" style={{ justifyContent: 'center' }} onClick={generarPDF} title="Exportar PDF">
+          <button className="btn btn-primary btn-sm" onClick={generarPDF} title="Exportar PDF">
             📄 PDF
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid-responsive" style={{ marginBottom: '20px' }}>
+      <div className="grid-responsive">
         {[
           { label:'Pacientes',             value: totalPac,                        icon:'🦷', color:'var(--primary)' },
           { label:`Citas (${periodo})`,    value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
@@ -116,7 +116,7 @@ export default function Dashboard() {
           { label:'Personal activo',        value: totalPers,                        icon:'👨‍⚕️', color:'var(--success)' },
           { label:`Ingresos (${periodo})`, value: fmt(ingresosPeriodo, 0),         icon:'💰', color:'var(--success)' },
         ].map((s,i) => (
-          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.09}}>
+          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}} style={{ margin:0, width:'100%' }}>
             <div className="stat-icon" style={{background:`color-mix(in srgb,${s.color} 15%,transparent)`, color:s.color}}>{s.icon}</div>
             <div className="stat-value">{s.value}</div>
             <div className="stat-label">{s.label}</div>
@@ -124,7 +124,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid-responsive">
+      <div className="grid-responsive" style={{ marginTop:'24px' }}>
         {/* Citas de hoy */}
         <motion.div className="glass" style={{padding:'24px'}} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4}}>
           <h3 style={{fontWeight:700,marginBottom:'16px',display:'flex',alignItems:'center',gap:'8px'}}>

@@ -65,6 +65,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
 body::before {
@@ -301,11 +302,24 @@ tbody td { padding: 18px 16px; font-size: 0.9rem; color: var(--text-primary); }
 }
 
 @media (max-width: 768px) {
-  .page-content { margin-left: 0; padding: 16px; padding-top: 12px; }
+  .page-content { margin-left: 0; padding: 12px; padding-top: 8px; }
   .mobile-header { display: flex; }
-  .page-header { margin-bottom: 20px; gap: 12px; }
-  .action-grid { gap: 8px; }
-  .filter-glass { padding: 12px; margin-bottom: 16px; gap: 10px; }
+  .page-header { margin-bottom: 16px; gap: 8px !important; }
+  .action-grid { gap: 6px; margin-bottom: 12px; }
+  .filter-glass { padding: 10px; margin-bottom: 12px; gap: 8px; }
+}
+
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .grid-responsive {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 /* ── Symmetrical Header System ──────────────────── */
@@ -320,12 +334,16 @@ tbody td { padding: 18px 16px; font-size: 0.9rem; color: var(--text-primary); }
 }
 .page-header > *:first-child { flex: 1 1 300px; min-width: 0; }
 .page-header > *:last-child { flex: 0 1 auto; min-width: fit-content; }
-.page-header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; }
-.page-header p { color: var(--text-secondary); font-size: 1rem; margin-top: 6px; }
-
-@media (max-width: 768px) {
-  .page-header h1 { font-size: 1.8rem; letter-spacing: -0.5px; }
-  .page-header p { font-size: 0.85rem; margin-top: 2px; }
+.page-header h1 { 
+  font-size: clamp(1.6rem, 4vw, 2.5rem); 
+  font-weight: 800; 
+  letter-spacing: -1.5px; 
+  line-height: 1.1; 
+}
+.page-header p { 
+  color: var(--text-secondary); 
+  font-size: clamp(0.75rem, 2vw, 1rem); 
+  margin-top: 4px; 
 }
 
 .action-grid {
