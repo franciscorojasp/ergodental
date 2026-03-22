@@ -139,14 +139,14 @@ export default function Odontograma() {
           <h1>Odontograma</h1>
           <p>Mapa clínico dental interactivo</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems:'center' }}>
-          <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: isMobile ? '100%' : '240px' }}>
+        <div className="action-grid">
+          <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: '280px' }}>
             <option value="">Seleccionar paciente...</option>
             {pacientes.map(p => (
               <option key={p.id} value={p.id}>{p.nombre} {p.apellido} - {p.cedula}</option>
             ))}
           </select>
-          <button className="btn btn-ghost btn-sm" onClick={() => confirm('¿Reiniciar mapa?') && setPiezas(initPiezas())}>↺</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => confirm('¿Reiniciar mapa?') && setPiezas(initPiezas())} title="Reiniciar Odontograma">↺ Limpiar</button>
         </div>
       </div>
 
@@ -160,69 +160,71 @@ export default function Odontograma() {
         <>
           {loading && <div style={{ marginBottom: 20, color: 'var(--primary)', textAlign:'center' }}>Cargando datos históricos...</div>}
           
-          <div className="glass" style={{ padding: '16px', marginBottom: '20px' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Herramienta Activa</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div className="filter-glass">
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', width: '100%', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 800 }}>Herramienta Activa</div>
+            <div className="filter-grid">
               {ESTADOS.map(e => (
-                <button key={e.key} onClick={() => setHerramienta(e.key)} className="btn btn-ghost btn-sm"
-                  style={herramienta === e.key ? { borderColor: e.color, color: e.color, background: `color-mix(in srgb, ${e.color} 15%, transparent)` } : {}}>
-                  {e.emoji} {isMobile ? '' : e.label}
+                <button key={e.key} onClick={() => setHerramienta(e.key)} className={`btn btn-sm ${herramienta === e.key ? 'btn-primary' : 'btn-ghost'}`}
+                  style={herramienta === e.key ? { borderColor: e.color, boxShadow: `0 0 10px ${e.color}44` } : {}}>
+                  {e.emoji} {e.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '20px' }}>
-            <div className="glass" style={{ padding: isMobile ? '15px' : '30px' }}>
-              <h4 style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '20px' }}>↑ MAXILAR SUPERIOR ↑</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginBottom: '30px' }}>
-                {SUPERIOR.map(n => {
-                  const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
-                  const info = estadoInfo(p.estado);
-                  return (
-                    <motion.button key={n} onClick={() => handlePieza(n)} whileTap={{ scale: 0.9 }}
-                      style={{
-                        width: isMobile ? 36 : 42, height: isMobile ? 40 : 46,
-                        borderRadius: '10px 10px 4px 4px',
-                        border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
-                        background: selected === n ? `${info.color}33` : `${info.color}11`,
-                        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: selected === n ? `0 0 10px ${info.color}44` : 'none',
-                        margin: 1
-                      }}>
-                      <span style={{ fontSize: isMobile ? '0.8rem' : '1.1rem' }}>{info.emoji}</span>
-                      <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 800 }}>{n}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
+            <div className="glass" style={{ padding: isMobile ? '15px' : '30px', overflowX: 'auto' }}>
+              <div style={{ minWidth: isMobile ? '650px' : 'auto' }}>
+                <h4 style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '20px' }}>↑ MAXILAR SUPERIOR ↑</h4>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '30px' }}>
+                  {SUPERIOR.map(n => {
+                    const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
+                    const info = estadoInfo(p.estado);
+                    return (
+                      <motion.button key={n} onClick={() => handlePieza(n)} whileTap={{ scale: 0.9 }}
+                        style={{
+                          width: 42, height: 46,
+                          borderRadius: '10px 10px 4px 4px',
+                          border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
+                          background: selected === n ? `${info.color}33` : `${info.color}11`,
+                          cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: selected === n ? `0 0 10px ${info.color}44` : 'none',
+                          margin: 1, flexShrink: 0
+                        }}>
+                        <span style={{ fontSize: '1.1rem' }}>{info.emoji}</span>
+                        <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 800 }}>{n}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
 
-              <div style={{ borderTop: '1px dashed var(--border)', margin: '30px 0', position: 'relative', textAlign: 'center' }}>
-                <span style={{ background: 'var(--bg-dark)', padding: '0 10px', fontSize: '0.65rem', color: 'var(--text-muted)', position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)' }}>LÍNEA MEDIA</span>
-              </div>
+                <div style={{ borderTop: '1px dashed var(--border)', margin: '30px 0', position: 'relative', textAlign: 'center' }}>
+                  <span style={{ background: 'var(--bg-dark)', padding: '0 10px', fontSize: '0.65rem', color: 'var(--text-muted)', position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)' }}>LÍNEA MEDIA</span>
+                </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginTop: '30px' }}>
-                {INFERIOR.map(n => {
-                  const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
-                  const info = estadoInfo(p.estado);
-                  return (
-                    <motion.button key={n} onClick={() => handlePieza(n)} whileTap={{ scale: 0.9 }}
-                      style={{
-                        width: isMobile ? 36 : 42, height: isMobile ? 40 : 46,
-                        borderRadius: '4px 4px 10px 10px',
-                        border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
-                        background: selected === n ? `${info.color}33` : `${info.color}11`,
-                        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: selected === n ? `0 0 10px ${info.color}44` : 'none',
-                        margin: 1
-                      }}>
-                      <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 800 }}>{n}</span>
-                      <span style={{ fontSize: isMobile ? '0.8rem' : '1.1rem' }}>{info.emoji}</span>
-                    </motion.button>
-                  );
-                })}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '30px' }}>
+                  {INFERIOR.map(n => {
+                    const p = piezas.find(x => x.numero === n) || { numero: n, estado: 'sano', notas: '' };
+                    const info = estadoInfo(p.estado);
+                    return (
+                      <motion.button key={n} onClick={() => handlePieza(n)} whileTap={{ scale: 0.9 }}
+                        style={{
+                          width: 42, height: 46,
+                          borderRadius: '4px 4px 10px 10px',
+                          border: selected === n ? `2px solid ${info.color}` : '1px solid var(--border)',
+                          background: selected === n ? `${info.color}33` : `${info.color}11`,
+                          cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: selected === n ? `0 0 10px ${info.color}44` : 'none',
+                          margin: 1, flexShrink: 0
+                        }}>
+                        <span style={{ fontSize: '0.6rem', color: info.color, fontWeight: 800 }}>{n}</span>
+                        <span style={{ fontSize: '1.1rem' }}>{info.emoji}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                <h4 style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '20px' }}>↓ MAXILAR INFERIOR ↓</h4>
               </div>
-              <h4 style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '20px' }}>↓ MAXILAR INFERIOR ↓</h4>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

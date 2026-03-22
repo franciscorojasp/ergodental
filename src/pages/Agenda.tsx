@@ -78,39 +78,36 @@ export default function Agenda() {
           <h1>Agenda Visual</h1>
           <p>Planificación semanal de citas — {clinica.nombreCorto}</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="action-grid">
           <select 
             className="input" 
-            style={{ width: '200px', marginRight: '16px' }}
+            style={{ width: '220px' }}
             value={doctorId}
             onChange={e => setDoctorId(e.target.value)}
           >
             <option value="Todos">Todos los Doctores</option>
             {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
           </select>
-          <button className="btn btn-ghost" onClick={() => navWeek(-1)}>◀</button>
-          {!isMobile && (
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', minWidth: '180px', textAlign: 'center' }}>
-               {weekDates[0].getDate()}/{weekDates[0].getMonth()+1} - {weekDates[6].getDate()}/{weekDates[6].getMonth()+1}
+          <div className="filter-grid" style={{ width:'auto' }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => navWeek(-1)}>◀</button>
+            <div style={{ fontWeight: 800, fontSize: '0.9rem', minWidth: '100px', textAlign: 'center', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {isMobile ? weekDates[selectedDayIdx].toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }) : `${weekDates[0].getDate()}/${weekDates[0].getMonth()+1} - ${weekDates[6].getDate()}/${weekDates[6].getMonth()+1}`}
             </div>
-          )}
-          {isMobile && (
-            <div style={{ fontWeight: 800, fontSize: '1rem', minWidth: '120px', textAlign: 'center' }}>
-              {weekDates[selectedDayIdx].toLocaleDateString('es-VE', { day: 'numeric', month: 'short' })}
-            </div>
-          )}
-          <button className="btn btn-ghost" onClick={() => navWeek(1)}>▶</button>
-          <button className="btn btn-primary" onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => navWeek(1)}>▶</button>
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
         </div>
       </div>
 
       {isMobile && (
-        <div className="glass" style={{ display: 'flex', gap: '4px', padding: '8px', marginBottom: '12px', overflowX: 'auto' }}>
-          {DAYS.map((d, i) => (
-            <button key={d} onClick={() => setSelectedDayIdx(i)} className={`btn btn-sm ${selectedDayIdx === i ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1, minWidth: '70px', padding: '6px' }}>
-              {d.substring(0, 3)}
-            </button>
-          ))}
+        <div className="filter-glass" style={{ padding:'8px', marginBottom: '12px', justifyContent:'center' }}>
+          <div className="filter-grid" style={{ width:'100%', justifyContent:'space-between' }}>
+            {DAYS.map((d, i) => (
+              <button key={d} onClick={() => setSelectedDayIdx(i)} className={`btn btn-sm ${selectedDayIdx === i ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1, padding: '8px 4px', fontSize:'0.75rem' }}>
+                {d.substring(0, 3)}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

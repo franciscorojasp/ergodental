@@ -198,22 +198,21 @@ export default function Pacientes() {
             {pacientes.length} pacientes registrados
           </p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <RoleGuard modulo="pacientes" accion="crear">
-            <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Paciente</button>
+            <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Paciente</button>
           </RoleGuard>
         </div>
       </div>
 
-      <div className="glass" style={{ padding:'14px 18px', marginBottom:'18px', display:'flex', gap:'12px', alignItems:'center', flexWrap:'wrap' }}>
-        <div className="search-wrap" style={{ flex:'1 1 300px' }}>
+      <div className="filter-glass">
+        <div className="search-wrap">
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre, cédula o correo..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div className="filter-grid" style={{ flex:'1 1 100%' }}>
+        <div className="filter-grid">
           {filtros.map(f => (
-            <button key={f} onClick={() => setFiltroRef(f)} className="btn btn-ghost btn-sm"
-              style={filtroRef === f ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent:'center' } : { justifyContent:'center' }}>
+            <button key={f} onClick={() => setFiltroRef(f)} className={`btn btn-sm ${filtroRef === f ? 'btn-primary' : 'btn-ghost'}`}>
               {f}
             </button>
           ))}
