@@ -73,6 +73,18 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <TasaModal />
       <HelpCenter />
 
+      {/* Swipe Area - Borde izquierdo para móviles */}
+      {!sidebarOpen && (
+        <div 
+          onClick={() => setSidebarOpen(true)}
+          style={{
+            position:'fixed', top:0, left:0, bottom:0, width:'20px',
+            zIndex: 1500, cursor: 'pointer'
+          }}
+          title="Abrir menú"
+        />
+      )}
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header - Siempre visible en móvil, o en desktop si el sidebar está cerrado */}
         <header className={`mobile-header ${!sidebarOpen ? 'force-flex' : ''}`}>
@@ -80,10 +92,11 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
             onClick={() => setSidebarOpen(true)}
             style={{ 
               background:'none', border:'none', color:'var(--text-primary)', 
-              fontSize:'1.5rem', cursor:'pointer', padding:'8px', marginLeft:'-8px' 
+              display:'flex', alignItems:'center', gap:'10px',
+              fontSize:'1.3rem', cursor:'pointer', padding:'8px'
             }}
           >
-            ☰
+            ☰ <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'1px' }}>MENÚ</span>
           </button>
           {!sidebarOpen && <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodental</div>}
         </header>
