@@ -126,13 +126,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
           <button 
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
-            style={{
-              width:'100%', padding:'10px', borderRadius:'12px',
-              background: 'rgba(255,255,255,0.05)', border:'1px solid var(--border)',
-              display:'flex', alignItems:'center', justifyContent: isPinned ? 'flex-start' : 'center',
-              gap:'12px', cursor:'pointer', marginBottom:'16px', transition:'var(--transition)',
-              color: 'var(--text-primary)'
-            }}
+            className="btn btn-ghost"
+            style={{ width:'100%', marginBottom:'16px', justifyContent: isPinned ? 'flex-start' : 'center' }}
           >
             <span style={{ fontSize:'1.2rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
             {isPinned && <span style={{ fontSize:'0.85rem', fontWeight:600 }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>}

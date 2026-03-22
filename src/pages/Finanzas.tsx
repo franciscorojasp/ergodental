@@ -289,7 +289,7 @@ export default function Finanzas(){
       {/* Header */}
       <div className="page-header">
         <div><h1>Finanzas</h1><p>Ingresos · Egresos · Honorarios · Comisiones</p></div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <button className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }} onClick={generarPDF}>📄 PDF</button>
           <button className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }} onClick={()=>setModalEgreso(true)}>+ Egreso</button>
           <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={()=>setModalPago(true)}>+ Ingreso</button>

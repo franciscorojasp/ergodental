@@ -247,7 +247,7 @@ export default function Presupuestos() {
           <h1>Presupuestos</h1>
           <p>Planes de tratamiento y estimaciones — {clinica.nombreCorto}</p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={openNew} disabled={loading}>+ Nuevo Presupuesto</button>
         </div>
       </div>

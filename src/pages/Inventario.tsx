@@ -65,7 +65,7 @@ export default function Inventario() {
             {items.length} productos · {bajoStock > 0 ? `⚠️ ${bajoStock} con stock bajo` : '✅ Stock en regla'}
           </p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Producto</button>
         </div>
       </div>

@@ -57,7 +57,7 @@ export default function Proveedores() {
           <h1>Proveedores</h1>
           <p>{proveedores.filter(p => p.activo).length} activos · {proveedores.length} total</p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Proveedor</button>
         </div>
       </div>

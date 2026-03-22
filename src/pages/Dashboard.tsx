@@ -92,7 +92,7 @@ export default function Dashboard() {
           <h1>Dashboard</h1>
           <p>Bienvenido, {user?.nombre} · {new Date().toLocaleDateString('es-VE', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <select
             className="input"
             value={periodo}
@@ -117,8 +117,8 @@ export default function Dashboard() {
           { label:`Ingresos (${periodo})`, value: fmt(ingresosPeriodo, 0),         icon:'💰', color:'var(--success)' },
         ].map((s,i) => (
           <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.09}}>
-            <div className="stat-icon" style={{background:`color-mix(in srgb,${s.color} 15%,transparent)`}}>{s.icon}</div>
-            <div className="stat-value" style={{color:s.color,fontSize:'clamp(1.2rem, 4vw, 1.8rem)'}}>{s.value}</div>
+            <div className="stat-icon" style={{background:`color-mix(in srgb,${s.color} 15%,transparent)`, color:s.color}}>{s.icon}</div>
+            <div className="stat-value">{s.value}</div>
             <div className="stat-label">{s.label}</div>
           </motion.div>
         ))}

@@ -56,7 +56,7 @@ export default function ConfiguracionClinica() {
           <h1>Configuración de Sedes</h1>
           <p>Gestiona la identidad y datos de contacto de las sedes.</p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           {esAdmin && (
             <button onClick={() => setMostrarNuevo(true)} className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }}>+ Nueva Sede</button>
           )}

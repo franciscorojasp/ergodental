@@ -114,7 +114,7 @@ export default function Personal() {
             {personal.filter(p => p.activo).length} miembros activos · {personal.length} total
           </p>
         </div>
-        <div className="action-grid" style={{ width: 'auto' }}>
+        <div className="action-grid">
           <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Miembro</button>
         </div>
       </div>
