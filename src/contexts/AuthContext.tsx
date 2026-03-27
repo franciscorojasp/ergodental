@@ -1,12 +1,15 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { type Usuario, loginUser } from '../api';
+import { type Usuario, loginUser, IS_DEMO_MODE, resetPasswordForEmail, updatePassword } from '../api';
+import { supabase } from '../lib/supabase';
 
 interface AuthCtx {
   user: Usuario | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<Usuario>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthCtx | null>(null);
@@ -16,27 +19,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Intentar cargar usuario desde localStorage primero (si es modo Demo o si forzamos sesión Demo)
     const saved = localStorage.getItem('ergo_user');
     if (saved) {
-      try { setUser(JSON.parse(saved)); } catch { /* ignore */ }
+      try { 
+        const u = JSON.parse(saved);
+        setUser(u); 
+      } catch { /* ignore */ }
+      if (IS_DEMO_MODE) {
+        setLoading(false);
+        return;
+      }
     }
-    setLoading(false);
-  }, []);
+
+    if (IS_DEMO_MODE) {
+      setLoading(false);
+      return;
+    }
+
+    // Supabase Auth Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: string, session: any) => {
+      if (session?.user) {
+        try {
+          // Si ya tenemos el usuario en estado y el ID coincide, no hace falta re-consultar
+          if (user?.id === session.user.id) return;
+
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (!error && profile) {
+            // Helper local para camelCase (mismo que en api.ts)
+            const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+            const mapKeys = (obj: any): any => {
+              return Object.keys(obj).reduce((acc, k) => {
+                acc[toCamel(k)] = obj[k];
+                return acc;
+              }, {} as any);
+            };
+
+            setUser(mapKeys(profile) as Usuario);
+            // Al ser usuario real, removemos cualquier rastro de demo si lo hubiera
+            localStorage.removeItem('ergo_user');
+          }
+        } catch (e) {
+          console.error("Error fetching profile:", e);
+        }
+      } else {
+        // IMPORTANTE: Si NO hay sesión de Supabase pero hay un usuario Demo guardado, 
+        // NO lo borramos.
+        const saved = localStorage.getItem('ergo_user');
+        if (!saved) {
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [user?.id]);
 
   const login = async (email: string, password: string): Promise<Usuario> => {
     const u = await loginUser(email, password);
-    setUser(u);
-    localStorage.setItem('ergo_user', JSON.stringify(u));
+    // Verificamos si es un correo de prueba (admin@, doctor@, etc)
+    const isDemoAccount = ['admin@ergodental.com', 'doctor@ergodental.com', 'asistente@ergodental.com', 'recepcion@ergodental.com', 'pro@ergodental.com'].includes(u.email);
+    
+    if (IS_DEMO_MODE || isDemoAccount) {
+      setUser(u);
+      localStorage.setItem('ergo_user', JSON.stringify(u));
+    }
+    // Si es Supabase real, onAuthStateChange se encargará más tarde
     return u;
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
     localStorage.removeItem('ergo_user');
+    if (!IS_DEMO_MODE) {
+      await supabase.auth.signOut();
+    }
+    setUser(null);
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await resetPasswordForEmail(email);
+    if (error) throw error;
+  };
+
+  const updatePasswordNew = async (password: string) => {
+    const { error } = await updatePassword(password);
+    if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, resetPassword, updatePassword: updatePasswordNew }}>
       {children}
     </AuthContext.Provider>
   );

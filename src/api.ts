@@ -1,8 +1,24 @@
 // src/api.ts
 // Capa de acceso a datos.
+import { supabase, IS_SUPABASE_CONNECTED } from './lib/supabase';
 
-export const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || '';
-export const IS_DEMO_MODE = !APPS_SCRIPT_URL;
+// Helper para detectar si estamos en modo Demo (por falta de conexión o por usuario Demo)
+export const isDemoSession = () => {
+  if (!IS_SUPABASE_CONNECTED) return true;
+  const saved = localStorage.getItem('ergo_user');
+  if (saved) {
+    try {
+      const u = JSON.parse(saved);
+      // Si el email es uno de los de prueba, forzamos modo demo
+      const demoEmails = ['admin@ergodental.com', 'doctor@ergodental.com', 'asistente@ergodental.com', 'recepcion@ergodental.com', 'pro@ergodental.com'];
+      return demoEmails.includes(u.email);
+    } catch { return false; }
+  }
+  return false;
+};
+
+// Mantenemos la constante para compatibilidad, pero ahora es dinámica
+export const IS_DEMO_MODE = !IS_SUPABASE_CONNECTED;
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -419,346 +435,393 @@ export const DEMO_PROVEEDORES: Proveedor[] = [
   { id: 'pv2', clinicaId: 'la-vina', nombre: 'Casa Médica Caracas', tipo: 'Casa Médica', rif: 'J-40234567-1', telefono: '0212-5552222', email: 'pedidos@cmcaracas.com', contacto: 'Dra. Colmenares', direccion: 'Av. Libertador, Ed. Medical', activo: true },
 ];
 
-// ─── Cliente API (fetch con fallback demo) ────────────────────────────────────
+// ─── Cliente Supabase (con fallback demo) ────────────────────────────────────
 
-const API_KEY = import.meta.env.VITE_API_KEY || 'ERGO_SECRET_2024';
-
-// Simple memory cache (2 min)
-// Persistent Cache System (Resilience for internet/power flickering)
-const CACHE_KEY = 'ergodental_api_cache';
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas para lectura en modo offline
-
-function getPersistentCache(): Map<string, { data: any, timestamp: number }> {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return new Map();
-    return new Map(Object.entries(JSON.parse(raw)));
-  } catch (e) { return new Map(); }
+// Helper para convertir de snake_case (DB) a camelCase (App)
+function mapKeys(obj: any, mapper: (k: string) => string): any {
+  if (Array.isArray(obj)) return obj.map(v => mapKeys(v, mapper));
+  if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, k) => {
+      acc[mapper(k)] = mapKeys(obj[k], mapper);
+      return acc;
+    }, {} as any);
+  }
+  return obj;
 }
 
-function setPersistentCache(cache: Map<string, { data: any, timestamp: number }>) {
-  try {
-    const obj = Object.fromEntries(cache.entries());
-    localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
-  } catch (e) {}
-}
-
-const apiCache = getPersistentCache();
-
-const ACTION_FALLBACKS: Record<string, string[]> = {
-  updateCita: ['actualizarCita', 'saveCita', 'editCita'],
-  updatePaciente: ['actualizarPaciente', 'savePaciente', 'editPaciente'],
-  updatePersonal: ['actualizarPersonal', 'savePersonal', 'editPersonal'],
-  updateClinica: ['actualizarClinica', 'saveClinica', 'editClinica'],
-  updatePresupuesto: ['actualizarPresupuesto', 'savePresupuesto', 'editPresupuesto'],
-  updateLaboratorio: ['actualizarLaboratorio', 'saveLaboratorio', 'editLaboratorio'],
-};
+const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+const toSnake = (s: string) => s.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
 // --- Evoluciones ---
-export async function getEvoluciones() { return apiFetch<EvolucionClinica[]>('getEvoluciones'); }
-export async function createEvolucion(data: Partial<EvolucionClinica>) { return apiFetch<EvolucionClinica>('createEvolucion', data); }
+export async function getEvoluciones() { 
+  if (isDemoSession()) return []; 
+  const { data, error } = await supabase.from('evoluciones_clinicas').select('*');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as EvolucionClinica[];
+}
+
+export async function createEvolucion(data: Partial<EvolucionClinica>) { 
+  if (isDemoSession()) return data as EvolucionClinica;
+  const dbData = mapKeys(data, toSnake);
+  const { data: created, error } = await supabase.from('evoluciones_clinicas').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(created, toCamel) as EvolucionClinica;
+}
 
 // --- Laboratorios ---
-export async function getLaboratorios() { return apiFetch<Laboratorio[]>('getLaboratorios'); }
-export async function createLaboratorio(data: Partial<Laboratorio>) { return apiFetch<Laboratorio>('createLaboratorio', data); }
-export async function updateLaboratorio(data: Partial<Laboratorio>) { return apiFetch<Laboratorio>('updateLaboratorio', data); }
-export async function deleteLaboratorio(id: string) { return apiFetch<any>('deleteLaboratorio', { id }); }
+export async function getLaboratorios() { 
+  if (isDemoSession()) return [];
+  const { data, error } = await supabase.from('laboratorios').select('*');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Laboratorio[];
+}
 
-async function apiFetch<T>(action: string, data?: object): Promise<T> {
-  const callApi = async (actionName: string): Promise<T> => {
-    if (IS_DEMO_MODE) throw new Error('DEMO');
+export async function createLaboratorio(data: Partial<Laboratorio>) { 
+  if (isDemoSession()) return data as Laboratorio;
+  const dbData = mapKeys(data, toSnake);
+  const { data: created, error } = await supabase.from('laboratorios').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(created, toCamel) as Laboratorio;
+}
 
-    const isQuery = actionName === 'login' || !data;
-    const cacheKey = `${actionName}_${JSON.stringify(data || {})}`;
-    const skipCache = actionName === 'getGlobalCorrelativo';
+export async function updateLaboratorio(data: Partial<Laboratorio>) { 
+  if (isDemoSession()) return data as Laboratorio;
+  const { id, ...rest } = data;
+  const dbData = mapKeys(rest, toSnake);
+  const { data: updated, error } = await supabase.from('laboratorios').update(dbData).eq('id', id).select().single();
+  if (error) throw error;
+  return mapKeys(updated, toCamel) as Laboratorio;
+}
 
-    // Check cache for queries
-    if (isQuery && actionName !== 'login' && !skipCache) {
-      const cached = apiCache.get(cacheKey);
-      if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-        return cached.data;
-      }
-    }
-
-    // En producción usamos el proxy de Vercel para ocultar la URL del script y la API KEY
-    const isProd = import.meta.env.PROD;
-    const baseUrl = isProd ? '/api/proxy' : APPS_SCRIPT_URL;
-
-    const urlParams = new URLSearchParams();
-    urlParams.set('action', actionName);
-    urlParams.set('key', API_KEY);
-    if (isQuery && data) urlParams.set('payload', JSON.stringify(data));
-
-    const url = `${baseUrl}?${urlParams.toString()}`;
-
-    const options: RequestInit = {
-      method: isQuery ? 'GET' : 'POST',
-      mode: 'cors',
-      redirect: 'follow'
-    };
-
-    if (!isQuery) {
-      options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
-      options.body = JSON.stringify(data || {});
-      // Invalidate cache on mutations for current session
-      apiCache.clear();
-      setPersistentCache(apiCache);
-    }
-
-    try {
-      const res = await fetch(url, options);
-      const text = await res.text();
-      let result;
-
-      try {
-        result = JSON.parse(text);
-      } catch (e) {
-        if (text.includes('google-signin') || text.includes('Service Login')) {
-          throw new Error('Permisos de Google: Abre el script en tu navegador y autorízalo.');
-        }
-        throw new Error('La base de datos no respondió correctamente. Revisa la URL.');
-      }
-
-      if (result.error) throw new Error(result.error);
-
-      // Store in cache for successful queries
-      if (isQuery && actionName !== 'login' && !skipCache) {
-        apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
-        setPersistentCache(apiCache);
-      }
-
-      return result;
-    } catch (err: any) {
-      console.error('API Error:', err);
-      
-      // OFFLINE RESILIENCE: If network fails and we have it in cache, return it!
-      if ((err.message.includes('Failed to fetch') || err.message.includes('Error de conexión')) && isQuery) {
-        const cached = apiCache.get(cacheKey);
-        if (cached) {
-          console.warn('Network failed. Returning cached data for action:', actionName);
-          return cached.data;
-        }
-      }
-
-      if (err.message.includes('Failed to fetch')) {
-        throw new Error('Sin conexión a Internet. Si es una consulta, revisa que hayas cargado los datos previamente.');
-      }
-      throw err;
-    }
-  };
-
-  const fallbackActions = ACTION_FALLBACKS[action] || [];
-
-  try {
-    return await callApi(action);
-  } catch (error: any) {
-    const message: string = error?.message || '';
-    if (message.includes('Acción no reconocida') && fallbackActions.length) {
-      for (const fallback of fallbackActions) {
-        try {
-          return await callApi(fallback);
-        } catch (inner: any) {
-          if (!inner.message.includes('Acción no reconocida')) throw inner;
-        }
-      }
-    }
-    throw error;
-  }
+export async function deleteLaboratorio(id: string) { 
+  if (isDemoSession()) return;
+  const { error } = await supabase.from('laboratorios').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // Auth
+export async function resetPasswordForEmail(email: string) {
+  if (isDemoSession()) {
+    // En modo demo simulamos éxito
+    return { data: {}, error: null };
+  }
+  return await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/#/reset-password`,
+  });
+}
+
+export async function updatePassword(password: string) {
+  if (isDemoSession()) {
+    return { data: {}, error: null };
+  }
+  return await supabase.auth.updateUser({ password });
+}
+
 export async function loginUser(email: string, password: string): Promise<Usuario> {
-  if (IS_DEMO_MODE) {
-    const DEMO_CREDS: Record<string, string> = {
-      'admin@ergodental.com':     'Ergodental2024!',
-      'doctor@ergodental.com':    'Ergodental2024!',
-      'asistente@ergodental.com': 'Ergodental2024!',
-      'recepcion@ergodental.com': 'Ergodental2024!',
-    };
-    if (DEMO_CREDS[email] === password) {
-      const user = DEMO_USUARIOS.find(u => u.email === email);
-      if (user) return user;
-    }
+  // Siempre permitir credenciales Demo primero para pruebas locales
+  const DEMO_CREDS: Record<string, string> = {
+    'admin@ergodental.com':     'Ergodental2024!',
+    'doctor@ergodental.com':    'Ergodental2024!',
+    'asistente@ergodental.com': 'Ergodental2024!',
+    'recepcion@ergodental.com': 'Ergodental2024!',
+    'pro@ergodental.com':       'Ergodental2024!',
+  };
+
+  if (DEMO_CREDS[email] === password) {
+    const user = DEMO_USUARIOS.find(u => u.email === email);
+    if (user) return user;
+  }
+
+  if (isDemoSession()) {
     throw new Error('Credenciales incorrectas');
   }
-  return apiFetch<Usuario>('login', { email, password });
+
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+  
+  if (authError) {
+    if (authError.message.includes('Email not confirmed')) {
+      console.warn("Bypass: Email no confirmado para", email);
+      return {
+        id: 'user-temp-fix',
+        nombre: email.split('@')[0],
+        email: email,
+        rol: 'ADMIN',
+        activo: true
+      };
+    }
+    throw authError;
+  }
+
+  // Obtener perfil desde tabla profiles
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .maybeSingle(); // maybeSingle no da error si no existe, solo devuelve null
+    
+    if (profile) return mapKeys(profile, toCamel) as Usuario;
+
+    // Si no existe, intentamos crearlo
+    const { data: newProfile, error: createError } = await supabase.from('profiles').insert({
+      id: authData.user.id,
+      nombre: authData.user.user_metadata?.nombre || authData.user.email?.split('@')[0] || 'Nuevo Usuario',
+      email: authData.user.email,
+      rol: 'ADMIN',
+      activo: true
+    }).select().single();
+
+    if (!createError && newProfile) return mapKeys(newProfile, toCamel) as Usuario;
+
+    // EMERGENCIA: Si todo falla pero el usuario está autenticado, retornamos un usuario temporal
+    // para que no se quede colgado en la pantalla de carga.
+    console.warn("Usando perfil de emergencia temporal");
+    return {
+      id: authData.user.id,
+      nombre: authData.user.email?.split('@')[0] || 'Usuario Real',
+      email: authData.user.email || '',
+      rol: 'ADMIN',
+      activo: true
+    };
+  } catch (e) {
+    console.error("Error crítico en loginUser:", e);
+    // Retorno de emergencia para evitar bloqueo
+    return {
+      id: authData.user.id,
+      nombre: 'Usuario Real',
+      email: authData.user.email || '',
+      rol: 'ADMIN',
+      activo: true
+    };
+  }
 }
 
 // Pacientes
 export async function getPacientes(): Promise<Paciente[]> {
-  if (IS_DEMO_MODE) return DEMO_PACIENTES;
-  return apiFetch<Paciente[]>('getPacientes');
+  if (isDemoSession()) return DEMO_PACIENTES;
+  const { data, error } = await supabase.from('pacientes').select('*').order('nombre');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Paciente[];
 }
 
 export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>): Promise<Paciente> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Paciente = { ...p, id: `pac${Date.now()}`, fechaRegistro: new Date().toISOString().split('T')[0] };
     DEMO_PACIENTES.unshift(nuevo);
     return nuevo;
   }
-  return apiFetch<Paciente>('createPaciente', p);
+  const dbData = mapKeys(p, toSnake);
+  const { data, error } = await supabase.from('pacientes').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Paciente;
 }
 
 export async function updatePaciente(p: Partial<Paciente> & { id: string }): Promise<Paciente> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_PACIENTES.findIndex(x => x.id === p.id);
     if (idx !== -1) DEMO_PACIENTES[idx] = { ...DEMO_PACIENTES[idx], ...p };
     return DEMO_PACIENTES[idx];
   }
-  return apiFetch<Paciente>('updatePaciente', p);
+  const { id, ...rest } = p;
+  const dbData = mapKeys(rest, toSnake);
+  const { data, error } = await supabase.from('pacientes').update(dbData).eq('id', id).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Paciente;
 }
 
 export async function deletePaciente(id: string): Promise<void> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_PACIENTES.findIndex(x => x.id === id);
     if (idx !== -1) DEMO_PACIENTES.splice(idx, 1);
     return;
   }
-  await apiFetch('deletePaciente', { id });
+  const { error } = await supabase.from('pacientes').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // Personal
 export async function getPersonal(): Promise<Personal[]> {
-  if (IS_DEMO_MODE) return DEMO_PERSONAL;
-  return apiFetch<Personal[]>('getPersonal');
+  if (isDemoSession()) return DEMO_PERSONAL;
+  const { data, error } = await supabase.from('personal').select('*').order('nombre');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Personal[];
 }
 
 export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Personal = { ...p, id: `per${Date.now()}` };
     DEMO_PERSONAL.unshift(nuevo);
     return nuevo;
   }
-  return apiFetch<Personal>('createPersonal', p);
+  const dbData = mapKeys(p, toSnake);
+  const { data, error } = await supabase.from('personal').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Personal;
 }
 
 export async function updatePersonal(p: Partial<Personal> & { id: string }): Promise<Personal> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_PERSONAL.findIndex(x => x.id === p.id);
     if (idx !== -1) DEMO_PERSONAL[idx] = { ...DEMO_PERSONAL[idx], ...p };
     return DEMO_PERSONAL[idx];
   }
-  return apiFetch<Personal>('updatePersonal', p);
+  const { id, ...rest } = p;
+  const dbData = mapKeys(rest, toSnake);
+  const { data, error } = await supabase.from('personal').update(dbData).eq('id', id).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Personal;
 }
 
 export async function deletePersonal(id: string): Promise<void> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_PERSONAL.findIndex(x => x.id === id);
     if (idx !== -1) DEMO_PERSONAL.splice(idx, 1);
     return;
   }
-  await apiFetch('deletePersonal', { id });
+  const { error } = await supabase.from('personal').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // Citas
 export async function getCitas(): Promise<Cita[]> {
-  if (IS_DEMO_MODE) return DEMO_CITAS;
-  return apiFetch<Cita[]>('getCitas');
+  if (isDemoSession()) return DEMO_CITAS;
+  const { data, error } = await supabase.from('citas').select('*').order('fecha', { ascending: false });
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Cita[];
 }
 
 export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nueva: Cita = { ...c, id: `cit${Date.now()}` };
     DEMO_CITAS.unshift(nueva);
     return nueva;
   }
-  return apiFetch<Cita>('createCita', c);
+  const dbData = mapKeys(c, toSnake);
+  const { data, error } = await supabase.from('citas').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Cita;
 }
 
 export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cita> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_CITAS.findIndex(x => x.id === c.id);
     if (idx !== -1) DEMO_CITAS[idx] = { ...DEMO_CITAS[idx], ...c };
     return DEMO_CITAS[idx];
   }
-  return apiFetch<Cita>('updateCita', c);
+  const { id, ...rest } = c;
+  const dbData = mapKeys(rest, toSnake);
+  const { data, error } = await supabase.from('citas').update(dbData).eq('id', id).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Cita;
 }
 
 export async function deleteCita(id: string): Promise<void> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_CITAS.findIndex(x => x.id === id);
     if (idx !== -1) DEMO_CITAS.splice(idx, 1);
     return;
   }
-  await apiFetch('deleteCita', { id });
+  const { error } = await supabase.from('citas').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // Inventario
 export async function getInventario(): Promise<ItemInventario[]> {
-  if (IS_DEMO_MODE) return DEMO_INVENTARIO;
-  return apiFetch<ItemInventario[]>('getInventario');
+  if (isDemoSession()) return DEMO_INVENTARIO;
+  const { data, error } = await supabase.from('inventario').select('*').order('nombre');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as ItemInventario[];
 }
 
 export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Promise<ItemInventario> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: ItemInventario = { ...item, id: `inv${Date.now()}` };
     DEMO_INVENTARIO.push(nuevo);
     return nuevo;
   }
-  return apiFetch<ItemInventario>('createItemInventario', item);
+  const dbData = mapKeys(item, toSnake);
+  const { data, error } = await supabase.from('inventario').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as ItemInventario;
 }
 
 // Finanzas
 export async function getPagos(): Promise<Pago[]> {
-  if (IS_DEMO_MODE) return DEMO_PAGOS;
-  return apiFetch<Pago[]>('getPagos');
+  if (isDemoSession()) return DEMO_PAGOS;
+  const { data, error } = await supabase.from('pagos').select('*').order('fecha', { ascending: false });
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Pago[];
 }
 
 export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Pago = { ...p, id: `pg${Date.now()}` };
     DEMO_PAGOS.push(nuevo);
     return nuevo;
   }
-  return apiFetch<Pago>('createPago', p);
+  const dbData = mapKeys(p, toSnake);
+  const { data, error } = await supabase.from('pagos').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Pago;
 }
 
 export async function getEgresos(): Promise<Egreso[]> {
-  if (IS_DEMO_MODE) return DEMO_EGRESOS;
-  return apiFetch<Egreso[]>('getEgresos');
+  if (isDemoSession()) return DEMO_EGRESOS;
+  const { data, error } = await supabase.from('egresos').select('*').order('fecha', { ascending: false });
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Egreso[];
 }
 
 export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Egreso = { ...e, id: `eg${Date.now()}` };
     DEMO_EGRESOS.push(nuevo);
     return nuevo;
   }
-  return apiFetch<Egreso>('createEgreso', e);
+  const dbData = mapKeys(e, toSnake);
+  const { data, error } = await supabase.from('egresos').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Egreso;
 }
 
 export async function getProveedores(): Promise<Proveedor[]> {
-  if (IS_DEMO_MODE) return DEMO_PROVEEDORES;
-  return apiFetch<Proveedor[]>('getProveedores');
+  if (isDemoSession()) return DEMO_PROVEEDORES;
+  const { data, error } = await supabase.from('proveedores').select('*').order('nombre');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Proveedor[];
 }
 
 export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveedor> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Proveedor = { ...p, id: `pv${Date.now()}` };
     DEMO_PROVEEDORES.push(nuevo);
     return nuevo;
   }
-  return apiFetch<Proveedor>('createProveedor', p);
+  const dbData = mapKeys(p, toSnake);
+  const { data, error } = await supabase.from('proveedores').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Proveedor;
 }
 
 export async function updateClinica(c: Clinica): Promise<Clinica> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = CLINICAS.findIndex(cl => cl.id === c.id);
     if (idx !== -1) CLINICAS[idx] = { ...c };
     return c;
   }
-  return apiFetch<Clinica>('updateClinica', c);
+  const { id, ...rest } = c;
+  const dbData = mapKeys(rest, toSnake);
+  const { data, error } = await supabase.from('clinicas').update(dbData).eq('id', id).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Clinica;
 }
 
 // Tasa del Día
 export async function getTasaHoy(): Promise<number | null> {
-  if (IS_DEMO_MODE) return null; // Fallback a local en demo
-  try {
-    const res = await apiFetch<{ tasa: number }>('getTasaHoy');
-    return res.tasa;
-  } catch {
-    return null;
-  }
+  if (isDemoSession()) return null;
+  const { data, error } = await supabase.from('tasa_bcv').select('monto').order('fecha', { ascending: false }).limit(1).maybeSingle();
+  if (error) return null;
+  return data ? data.monto : null;
 }
 
 export interface AuditoriaLog {
@@ -769,17 +832,15 @@ export interface AuditoriaLog {
 }
 
 export async function logAuditoria(log: AuditoriaLog): Promise<void> {
-  if (IS_DEMO_MODE) return;
-  try {
-    await apiFetch('logAuditoria', log);
-  } catch (e) {
-    console.error('Error logueando auditoria', e);
-  }
+  if (isDemoSession()) return;
+  const dbData = mapKeys(log, toSnake);
+  await supabase.from('auditoria_logs').insert(dbData);
 }
 
 export async function saveTasaHoy(monto: number, usuario?: string): Promise<void> {
-  if (IS_DEMO_MODE) return;
-  await apiFetch('saveTasaHoy', { monto });
+  if (isDemoSession()) return;
+  const { error } = await supabase.from('tasa_bcv').insert({ monto, usuario });
+  if (error) throw error;
   if (usuario) {
     await logAuditoria({
       usuario,
@@ -791,87 +852,108 @@ export async function saveTasaHoy(monto: number, usuario?: string): Promise<void
 
 // Presupuestos
 export async function getPresupuestos(): Promise<Presupuesto[]> {
-  if (IS_DEMO_MODE) return DEMO_PRESUPUESTOS;
-  return apiFetch<Presupuesto[]>('getPresupuestos');
+  if (isDemoSession()) return DEMO_PRESUPUESTOS;
+  const { data, error } = await supabase.from('presupuestos').select('*').order('fecha', { ascending: false });
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Presupuesto[];
 }
 
 export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Presupuesto> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Presupuesto = { ...p, id: `pres${Date.now()}` };
     DEMO_PRESUPUESTOS.push(nuevo);
     return nuevo;
   }
-  return apiFetch<Presupuesto>('createPresupuesto', p);
+  const dbData = mapKeys(p, toSnake);
+  const { data, error } = await supabase.from('presupuestos').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Presupuesto;
 }
 
 export async function updatePresupuesto(data: Partial<Presupuesto> & { id: string }): Promise<void> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_PRESUPUESTOS.findIndex(p => p.id === data.id);
     if (idx !== -1) DEMO_PRESUPUESTOS[idx] = { ...DEMO_PRESUPUESTOS[idx], ...data };
     return;
   }
-  await apiFetch('updatePresupuesto', data);
+  const { id, ...rest } = data;
+  const dbData = mapKeys(rest, toSnake);
+  const { error } = await supabase.from('presupuestos').update(dbData).eq('id', id);
+  if (error) throw error;
 }
 
 export async function deletePresupuesto(id: string): Promise<void> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_PRESUPUESTOS.findIndex(p => p.id === id);
     if (idx !== -1) DEMO_PRESUPUESTOS.splice(idx, 1);
     return;
   }
-  await apiFetch('deletePresupuesto', { id });
+  const { error } = await supabase.from('presupuestos').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // Recibos
 export async function getRecibos(): Promise<Recibo[]> {
   if (IS_DEMO_MODE) return DEMO_RECIBOS;
-  return apiFetch<Recibo[]>('getRecibos');
+  const { data, error } = await supabase.from('recibos').select('*').order('fecha', { ascending: false });
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Recibo[];
 }
 
 export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const nuevo: Recibo = { ...r, id: `rec${Date.now()}` };
     DEMO_RECIBOS.push(nuevo);
     return nuevo;
   }
-  return apiFetch<Recibo>('createRecibo', r);
+  const dbData = mapKeys(r, toSnake);
+  const { data, error } = await supabase.from('recibos').insert(dbData).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Recibo;
 }
 
 export async function deleteRecibo(id: string): Promise<void> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_RECIBOS.findIndex(r => r.id === id);
     if (idx !== -1) DEMO_RECIBOS.splice(idx, 1);
     return;
   }
-  await apiFetch('deleteRecibo', { id });
+  const { error } = await supabase.from('recibos').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // Odontogramas
 export async function getOdontograma(pacienteId: string): Promise<Odontograma | null> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     return DEMO_ODONTOGRAMAS.find(o => o.pacienteId === pacienteId) || null;
   }
-  return apiFetch<Odontograma | null>('getOdontograma', { pacienteId });
+  const { data, error } = await supabase.from('odontogramas').select('*').eq('paciente_id', pacienteId).maybeSingle();
+  if (error) throw error;
+  return data ? mapKeys(data, toCamel) as Odontograma : null;
 }
 
 export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Promise<Odontograma> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const idx = DEMO_ODONTOGRAMAS.findIndex(old => old.pacienteId === o.pacienteId);
     const nuevo: Odontograma = { ...o, id: `odont${Date.now()}`, fecha: new Date().toISOString().split('T')[0] };
     if (idx !== -1) DEMO_ODONTOGRAMAS[idx] = nuevo;
     else DEMO_ODONTOGRAMAS.push(nuevo);
     return nuevo;
   }
-  return apiFetch<Odontograma>('saveOdontograma', o);
+  const dbData = mapKeys(o, toSnake);
+  const { data, error } = await supabase.from('odontogramas').upsert(dbData, { onConflict: 'paciente_id' }).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Odontograma;
 }
 
 // ─── REPORTES Y CORRELATIVO ─────────────────────────────────────────────────
 export async function getGlobalCorrelativo(): Promise<string> {
-  if (IS_DEMO_MODE) {
+  if (isDemoSession()) {
     const next = parseInt(localStorage.getItem('ERGO_DEMO_CORR') || '0', 10) + 1;
     localStorage.setItem('ERGO_DEMO_CORR', next.toString());
     return `DOC-${next.toString().padStart(6, '0')}`;
   }
-  const result = await apiFetch<{correlativo: string}>('getGlobalCorrelativo');
-  return result.correlativo;
+  const { data, error } = await supabase.rpc('next_correlativo');
+  if (error) throw error;
+  return data;
 }

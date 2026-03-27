@@ -11,6 +11,7 @@ import ClinicaModal from './components/ClinicaModal';
 import HelpCenter from './components/HelpCenter';
 import InstallAppPrompt from './components/InstallAppPrompt';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import Unauthorized from './pages/Unauthorized';
 import Dashboard from './pages/Dashboard';
 import Pacientes from './pages/Pacientes';
@@ -134,8 +135,9 @@ export default function App() {
             <HashRouter>
               <Routes>
                 {/* ... existing routes ... */}
-                <Route path="/login"        element={<Login />} />
-                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route path="/login"          element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/unauthorized"   element={<Unauthorized />} />
                 <Route path="/"             element={<HomeRedirect />} />
 
                 <Route path="/dashboard" element={
