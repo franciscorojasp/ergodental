@@ -87,6 +87,21 @@ export default function Login() {
     }
   };
 
+  const handleResendCode = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const { error: resendError } = await api.resendRegistrationCode(email);
+      if (resendError) throw resendError;
+      setSuccess('¡Código reenviado! Revisa tu bandeja de entrada.');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Error al reenviar el código');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -210,7 +225,8 @@ export default function Login() {
                 <input className="premium-input" type="text" placeholder="Código de 8 dígitos" value={verificationCode} onChange={e => setVerificationCode(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
                 {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
                 {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem' }}>✅ {success}</p>}
-                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>Activar Cuenta</button>
+                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>{loading ? 'Verificando...' : 'Activar Cuenta'}</button>
+                <button type="button" onClick={handleResendCode} disabled={loading} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', marginTop: '10px' }}>¿No te llegó? Reenviar código</button>
               </motion.form>
             )}
 
