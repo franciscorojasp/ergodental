@@ -69,8 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }, {} as any);
             };
 
-            setUser(mapKeys(profile) as Usuario);
-            // Al ser usuario real, removemos cualquier rastro de demo si lo hubiera
+            const u = mapKeys(profile) as Usuario;
+            
+            // SUPER ADMIN BYPASS: Asegurar que Francisco sea ADMIN tras refrescar la página
+            if (session.user.email === 'francisco.rojasp@gmail.com') {
+              u.rol = 'ADMIN';
+            }
+
+            setUser(u);
             localStorage.removeItem('ergo_user');
           }
         } catch (e) {
