@@ -589,8 +589,19 @@ export async function loginUser(email: string, password: string): Promise<Usuari
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
-      .maybeSingle(); // maybeSingle no da error si no existe, solo devuelve null
+      .maybeSingle(); 
     
+    // BYPASS PARA EL DESARROLLADOR: Francisco siempre es ADMIN
+    if (email === 'francisco.rojasp@gmail.com') {
+      return {
+        id: authData.user.id,
+        nombre: profile?.nombre || 'Francisco Rojas (Dev)',
+        email: email,
+        rol: 'ADMIN',
+        activo: true
+      };
+    }
+
     if (profile) return mapKeys(profile, toCamel) as Usuario;
 
     // Si no existe, intentamos crearlo
