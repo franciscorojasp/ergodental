@@ -591,11 +591,18 @@ export async function loginUser(email: string, password: string): Promise<Usuari
       .eq('id', authData.user.id)
       .maybeSingle(); 
     
-    // BYPASS PARA EL DESARROLLADOR: Francisco siempre es ADMIN
-    if (email === 'francisco.rojasp@gmail.com') {
+    // BYPASS PARA EL DESARROLLADOR Y EQUIPO: Francisco y su equipo son ADMIN
+    const SUPER_ADMINS = [
+      'francisco.rojasp@gmail.com', 
+      'blascojennifer47@gmail.com', 
+      'vera.hugo712@gmail.com', 
+      'carlosalejandroverablasco183@gmail.com'
+    ];
+
+    if (SUPER_ADMINS.includes(email.toLowerCase())) {
       return {
         id: authData.user.id,
-        nombre: profile?.nombre || 'Francisco Rojas (Dev)',
+        nombre: profile?.nombre || email.split('@')[0],
         email: email,
         rol: 'ADMIN',
         activo: true

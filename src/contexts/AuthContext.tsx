@@ -71,8 +71,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             const u = mapKeys(profile) as Usuario;
             
-            // SUPER ADMIN BYPASS: Asegurar que Francisco sea ADMIN tras refrescar la página
-            if (session.user.email === 'francisco.rojasp@gmail.com') {
+            // SUPER ADMIN BYPASS: Francisco y equipo siempre son ADMIN tras refrescar la página
+            const SUPER_ADMINS = [
+              'francisco.rojasp@gmail.com', 
+              'blascojennifer47@gmail.com', 
+              'vera.hugo712@gmail.com', 
+              'carlosalejandroverablasco183@gmail.com'
+            ];
+
+            if (session.user.email && SUPER_ADMINS.includes(session.user.email.toLowerCase())) {
               u.rol = 'ADMIN';
             }
 
