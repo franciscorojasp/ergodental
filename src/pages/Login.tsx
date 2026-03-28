@@ -26,17 +26,24 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
+      console.debug('🔐 Intentando inicio de sesión para:', email);
       const u = await login(email, password);
-      await logAuditoria({
+      
+      // No bloqueamos el login por el log de auditoría
+      logAuditoria({
         usuario: u.nombre,
         accion: 'AUTENTICACIÓN',
         detalle: 'Inicio de sesión exitoso'
-      });
+      }).catch(err => console.error('Error en log auditoría:', err));
+
+      console.debug('✅ Login exitoso, redireccionando a:', ROL_HOME[u.rol]);
       navigate(ROL_HOME[u.rol] || '/');
     } catch (err: any) {
-      setError(err.message || 'Credenciales incorrectas o sistema fuera de línea');
-    } finally {
+      console.error('❌ Error de login:', err);
+      setError(err.message || 'Error de conexión o credenciales inválidas');
       setLoading(false);
+    } finally {
+      // Solo quitamos el loading si hay error (si hay éxito, navigate se encarga)
     }
   };
 
