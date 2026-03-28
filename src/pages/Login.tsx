@@ -1,303 +1,235 @@
 // src/pages/Login.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import * as api from '../api';
-import { updatePassword } from '../api';
-import { IS_DEMO_MODE, logAuditoria } from '../api';
+import { updatePassword, logAuditoria } from '../api';
 import { ROL_HOME } from '../permissions';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [view, setView] = useState<'login' | 'forgot-password'>('login');
+  const [view, setView] = useState<'login' | 'forgot-password' | 'otp-verify'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!localStorage.getItem('ergo_clinica_activa')) {
-      setError('Por favor selecciona una sede antes de continuar');
-      return;
-    }
     setError('');
     setLoading(true);
     try {
-      const loggedUser = await login(email, password);
-      // Registrar en auditoría
-      try {
-        await logAuditoria({
-          usuario: loggedUser.nombre || loggedUser.email,
-          accion: 'INICIO DE SESIÓN',
-          detalle: 'Autenticación exitosa en el sistema'
-        });
-      } catch (e) {}
-      navigate(ROL_HOME[loggedUser.rol], { replace: true });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+      const u = await login(email, password);
+      await logAuditoria(u.id, u.nombre, 'AUTENTICACIÓN', 'Inicio de sesión exitoso');
+      navigate(ROL_HOME[u.rol] || '/');
+    } catch (err: any) {
+      setError(err.message || 'Credenciales incorrectas o sistema fuera de línea');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResetSubmit = async (e: React.FormEvent) => {
+  const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
-
-    if (!recoveryCode || !newPassword) {
-      setError('Por favor completa todos los campos');
-      return;
-    }
-
     setLoading(true);
     try {
-      // 1. Verificamos el código OTP
+      await api.resetPasswordForEmail(email);
+      setSuccess('¡Código enviado! Revisa tu bandeja de entrada.');
+      setTimeout(() => {
+        setSuccess('');
+        setView('otp-verify');
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'Error al enviar código de recuperación');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyAndUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
       const { error: verifyError } = await api.verifyRecoveryCode(email, recoveryCode);
       if (verifyError) throw verifyError;
-
-      // 2. Si es válido, actualizamos la contraseña
       await updatePassword(newPassword);
-      
-      setSuccess('Contraseña actualizada con éxito. Ya puedes iniciar sesión.');
+      setSuccess('Contraseña actualizada con éxito.');
       setTimeout(() => {
+        setSuccess('');
         setView('login');
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Error al restablecer la contraseña');
+      setError(err.message || 'Código inválido o error al actualizar');
     } finally {
       setLoading(false);
     }
   };
 
-  const DEMO_ACCOUNTS = [
-    { label: '🛡️ Admin',      email: 'admin@ergodental.com',     icon: '🛡️' },
-    { label: '👨‍⚕️ Doctor',    email: 'doctor@ergodental.com',    icon: '👨‍⚕️' },
-    { label: '🩺 Asistente',  email: 'asistente@ergodental.com', icon: '🩺' },
-    { label: '🖥️ Recepción',  email: 'recepcion@ergodental.com', icon: '🖥️' },
-  ];
-
-  const fillDemo = (email?: string) => {
-    setEmail(email || 'admin@ergodental.com');
-    setPassword('Ergodental2024!');
-  };
-
   return (
-    <div style={{
+    <div className="login-container" style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '20px',
+      padding: '20px', background: 'radial-gradient(circle at center, #1a1c2c 0%, #0a0b14 100%)',
+      fontFamily: "'Inter', sans-serif"
     }}>
+      <div className="blobs" style={{ position: 'absolute', width: '100%', height: '100%', overflow: 'hidden', zIndex: 0 }}>
+        <div style={{ position: 'absolute', top: '10%', left: '10%', width: '300px', height: '300px', background: 'rgba(52, 144, 220, 0.15)', borderRadius: '50%', filter: 'blur(80px)' }}></div>
+        <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '400px', height: '400px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '50%', filter: 'blur(100px)' }}></div>
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        style={{ width: '100%', maxWidth: '420px' }}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+        style={{ width: '100%', maxWidth: '440px', zIndex: 1 }}
       >
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            style={{
-              width: 90, height: 90, borderRadius: 24,
-              background: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-              overflow: 'hidden', border: '2px solid var(--border)'
-            }}
-          >
-            <img src="/logo.png" alt="Ergodental Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </motion.div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.5px' }}>ERGODENTALVE</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '6px', fontSize: '1rem', fontWeight: 600 }}>1.0</p>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{
+            width: 100, height: 100, borderRadius: 28, background: 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px', border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+          }}>
+            <img src="/logo.png" alt="Logo" style={{ width: '60%', height: '60%', filter: 'drop-shadow(0 0 10px rgba(52, 144, 220, 0.5))' }} />
+          </div>
+          <h1 style={{ fontSize: '2.4rem', fontWeight: 900, color: '#fff', letterSpacing: '-1.5px', marginBottom: '4px' }}>ERGODENTALVE</h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 500 }}>SISTEMA DE GESTIÓN CLÍNICA · <span style={{ color: '#3490dc' }}>1.0</span></p>
         </div>
 
-        {/* Tarjeta */}
-        <div className="glass" style={{ padding: '32px' }}>
-          {view === 'login' ? (
-            <>
-              {IS_DEMO_MODE && (
-                <div style={{
-                  background: 'var(--warning-dim)', border: '1px solid var(--warning)',
-                  borderRadius: 'var(--radius-sm)', padding: '12px 14px',
-                  marginBottom: '20px', fontSize: '0.8rem', color: 'var(--warning)',
-                }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', fontWeight:600 }}>
-                    <span>⚡</span> Modo Demo — selecciona un perfil:
-                  </div>
-                  <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', justifyContent:'center' }}>
-                    {DEMO_ACCOUNTS.map(acc => (
-                      <button key={acc.email} onClick={() => fillDemo(acc.email)}
-                        style={{
-                          background: email === acc.email ? 'var(--warning)' : 'transparent',
-                          color: email === acc.email ? '#000' : 'var(--warning)',
-                          border: '1px solid var(--warning)', borderRadius: '6px',
-                          padding: '4px 10px', cursor: 'pointer',
-                          fontSize: '0.78rem', fontWeight: 600, transition: 'var(--transition)',
-                          flex: '1 1 auto', textAlign: 'center'
-                        }}>
-                        {acc.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ marginTop:'8px', fontSize:'0.75rem', opacity:0.8 }}>
-                    Contraseña: <code>Ergodental2024!</code>
-                  </div>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <div className="glass-card" style={{
+          background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)',
+          borderRadius: '32px', padding: '40px', border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 40px 100px rgba(0,0,0,0.6)'
+        }}>
+          <AnimatePresence mode="wait">
+            {view === 'login' ? (
+              <motion.form
+                key="login"
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                onSubmit={handleLogin}
+                style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
+              >
                 <div className="input-group">
-                  <label>Correo electrónico</label>
+                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 600 }}>CORREO ELECTRÓNICO</label>
                   <input
-                    className="input"
+                    className="premium-input"
                     type="email"
-                    placeholder="correo@ergodental.com"
+                    placeholder="ejemplo@ergodental.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
+                    style={{
+                      width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '16px', padding: '16px 20px', color: '#fff', fontSize: '0.95rem',
+                      outline: 'none', transition: 'all 0.3s ease'
+                    }}
                   />
                 </div>
+
                 <div className="input-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label>Contraseña</label>
-                    <button 
-                      type="button" 
-                      onClick={() => { setView('forgot-password'); setError(''); setSuccess(''); }}
-                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <label style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600 }}>CONTRASEÑA</label>
+                    <button type="button" onClick={() => setView('forgot-password')} style={{ color: '#3490dc', fontSize: '0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600 }}>¿Olvidaste tu contraseña?</button>
                   </div>
                   <input
-                    className="input"
-                    type="password"
-                    placeholder="••••••••"
+                    className="premium-input"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••••••"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
+                    style={{
+                      width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '16px', padding: '16px 20px', color: '#fff', fontSize: '0.95rem',
+                      outline: 'none', transition: 'all 0.3s ease'
+                    }}
                   />
                 </div>
 
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    style={{
-                      background: 'var(--danger-dim)', border: '1px solid var(--danger)',
-                      borderRadius: 'var(--radius-sm)', padding: '10px 14px',
-                      fontSize: '0.85rem', color: 'var(--danger)',
-                    }}
-                  >
-                    ⚠️ {error}
-                  </motion.div>
-                )}
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255,77,77,0.1)', padding: '10px', borderRadius: '12px' }}>⚠️ {error}</p>}
 
-                <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center', padding: '13px' }}>
-                  {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                <button className="premium-btn" type="submit" disabled={loading} style={{
+                  width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)',
+                  borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700, fontSize: '1rem',
+                  cursor: 'pointer', boxShadow: '0 10px 25px rgba(52, 144, 220, 0.4)', transition: 'transform 0.2s'
+                }}>
+                  {loading ? 'Identificando...' : 'Iniciar Sesión'}
                 </button>
-              </form>
-            </>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>Restablecer Contraseña</h2>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Ingresa tu correo, el código de 8 dígitos que recibiste y tu nueva contraseña.
-                </p>
-              </div>
-
-              <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              </motion.form>
+            ) : view === 'forgot-password' ? (
+              <motion.form
+                key="forgot"
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                onSubmit={handleRequestOtp}
+                style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <h2 style={{ color: '#fff', marginBottom: '8px' }}>Recuperar</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Ingresa tu correo y te enviaremos un código de seguridad.</p>
+                </div>
                 <div className="input-group">
-                  <label>Correo electrónico</label>
                   <input
-                    className="input"
+                    className="premium-input"
                     type="email"
-                    placeholder="correo@ergodental.com"
+                    placeholder="correo@ejemplo.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }}
                   />
                 </div>
-
-                <div className="input-group">
-                  <label>Código de Verificación (8 dígitos)</label>
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="12345678"
-                    value={recoveryCode}
-                    onChange={e => setRecoveryCode(e.target.value)}
-                    maxLength={8}
-                    required
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Nueva Contraseña</label>
-                  <input
-                    className="input"
-                    type="password"
-                    placeholder="••••••••"
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    style={{
-                      background: 'var(--danger-dim)', border: '1px solid var(--danger)',
-                      borderRadius: 'var(--radius-sm)', padding: '10px 14px',
-                      fontSize: '0.85rem', color: 'var(--danger)',
-                    }}
-                  >
-                    ⚠️ {error}
-                  </motion.div>
-                )}
-
-                {success && (
-                  <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    style={{
-                      background: 'var(--success-dim)', border: '1px solid var(--success)',
-                      borderRadius: 'var(--radius-sm)', padding: '10px 14px',
-                      fontSize: '0.85rem', color: 'var(--success)',
-                    }}
-                  >
-                    ✅ {success}
-                  </motion.div>
-                )}
-
-                <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center', padding: '13px' }}>
-                  {loading ? 'Procesando...' : 'Cambiar Contraseña'}
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
+                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem' }}>✅ {success}</p>}
+                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: '#3490dc', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>
+                  {loading ? 'Enviando...' : 'Obtener Código'}
                 </button>
-
-                <button 
-                  className="btn btn-secondary" 
-                  type="button" 
-                  onClick={() => { setView('login'); setError(''); setSuccess(''); }}
-                  style={{ width: '100%', justifyContent: 'center', padding: '13px' }}
-                >
-                  Volver al inicio de sesión
+                <button type="button" onClick={() => setView('login')} style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', background: 'none', border: 'none', cursor: 'pointer' }}>Volver</button>
+              </motion.form>
+            ) : (
+              <motion.form
+                key="verify"
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                onSubmit={handleVerifyAndUpdate}
+                style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <h2 style={{ color: '#fff', marginBottom: '8px' }}>Verificar</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Escribe el código y tu nueva contraseña.</p>
+                </div>
+                <input
+                  className="premium-input"
+                  type="text"
+                  placeholder="Código de 8 dígitos"
+                  value={recoveryCode}
+                  onChange={e => setRecoveryCode(e.target.value)}
+                  required
+                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }}
+                />
+                <input
+                  className="premium-input"
+                  type="password"
+                  placeholder="Nueva Contraseña"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  required
+                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }}
+                />
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
+                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem' }}>✅ {success}</p>}
+                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: '#3490dc', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>
+                  {loading ? 'Verificando...' : 'Cambiar y Entrar'}
                 </button>
-              </form>
-            </div>
-          )}
+              </motion.form>
+            )}
+          </AnimatePresence>
         </div>
-
-        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-          © 2026 Ergodental · Todos los derechos reservados
-        </p>
       </motion.div>
     </div>
   );
