@@ -563,7 +563,11 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     throw new Error('Credenciales incorrectas (Cuenta Demo)');
   }
 
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+  // Agregamos un timeout a la autenticación para evitar que se cuelgue infinitamente
+  const loginPromise = supabase.auth.signInWithPassword({ email, password });
+  const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Tiempo de espera agotado (Supabase)')), 8000));
+  
+  const { data: authData, error: authError } = await Promise.race([loginPromise, timeoutPromise]) as any;
   
   if (authError) {
     if (authError.message.includes('Email not confirmed')) {
