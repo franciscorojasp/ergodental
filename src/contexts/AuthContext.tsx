@@ -38,7 +38,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Supabase Auth Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: string, session: any) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+      console.debug('🚀 Auth Event detected:', event);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        console.debug('🔑 Recuperación de contraseña activada, redirigiendo...');
+        window.location.hash = '#/reset-password';
+        setLoading(false);
+        return;
+      }
+
       if (session?.user) {
         try {
           // Si ya tenemos el usuario en estado y el ID coincide, no hace falta re-consultar
