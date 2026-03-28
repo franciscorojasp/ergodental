@@ -9,7 +9,7 @@ import { IS_DEMO_MODE, logAuditoria } from '../api';
 import { ROL_HOME } from '../permissions';
 
 export default function Login() {
-  const { login, resetPassword } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [view, setView] = useState<'login' | 'forgot-password'>('login');
   const [email, setEmail] = useState('');
