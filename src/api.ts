@@ -616,8 +616,8 @@ export async function loginUser(email: string, password: string): Promise<Usuari
       id: authData.user.id,
       nombre: authData.user.user_metadata?.nombre || authData.user.email?.split('@')[0] || 'Nuevo Usuario',
       email: authData.user.email,
-      rol: 'ADMIN',
-      activo: true
+      rol: null, // Sin rol por defecto
+      activo: false // Inactivo hasta aprobación
     }).select().single();
 
     if (!createError && newProfile) return mapKeys(newProfile, toCamel) as Usuario;
@@ -1006,3 +1006,33 @@ export async function getGlobalCorrelativo(): Promise<string> {
   if (error) throw error;
   return data;
 }
+
+// ─── REGISTRO DE NUEVOS USUARIOS ─────────────────────────────────────────────
+
+export async function signUpNewUser(email: string, password: string) {
+  if (!IS_SUPABASE_CONNECTED) {
+    return { data: {}, error: null };
+  }
+  // Suponiendo que Supabase está configurado para enviar confirmación
+  return await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        nombre: email.split('@')[0],
+      }
+    }
+  });
+}
+
+export async function verifyRegistrationOtp(email: string, token: string) {
+  if (!IS_SUPABASE_CONNECTED) {
+    return { data: {}, error: null };
+  }
+  return await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'signup',
+  });
+}
+

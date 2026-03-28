@@ -10,12 +10,13 @@ import { ROL_HOME } from '../permissions';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [view, setView] = useState<'login' | 'forgot-password' | 'otp-verify'>('login');
+  const [view, setView] = useState<'login' | 'forgot-password' | 'otp-verify' | 'register' | 'register-verify'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -40,10 +41,58 @@ export default function Login() {
       navigate(ROL_HOME[u.rol] || '/');
     } catch (err: any) {
       console.error('❌ Error de login:', err);
-      setError(err.message || 'Error de conexión o credenciales inválidas');
+      // Si el usuario no tiene rol o no está activo
+      if (err.message.includes('sin perfil')) {
+        setError('Tu cuenta está pendiente de aprobación por un administrador.');
+      } else {
+        setError(err.message || 'Error de conexión o credenciales inválidas');
+      }
       setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error: signUpError } = await api.signUpNewUser(email, password);
+      if (signUpError) throw signUpError;
+      
+      setSuccess('¡Cuenta creada! Hemos enviado un código a tu Gmail.');
+      setTimeout(() => {
+        setSuccess('');
+        setView('register-verify');
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || 'Error al crear la cuenta');
+      setLoading(false);
+    }
+  };
+
+  const handleVerifySignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const { error: verifyError } = await api.verifyRegistrationOtp(email, verificationCode);
+      if (verifyError) throw verifyError;
+      
+      setSuccess('¡Correo verificado con éxito! Ahora un administrador debe activar tu cuenta.');
+      setTimeout(() => {
+        setSuccess('');
+        setView('login');
+      }, 3000);
+    } catch (err: any) {
+      setError(err.message || 'Código de verificación inválido');
     } finally {
-      // Solo quitamos el loading si hay error (si hay éxito, navigate se encarga)
+      setLoading(false);
     }
   };
 
@@ -192,6 +241,94 @@ export default function Login() {
                 }}>
                   {loading ? 'Identificando...' : 'Iniciar Sesión'}
                 </button>
+
+                <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                  <button type="button" onClick={() => setView('register')} style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>¿No tienes cuenta? <span style={{ color: '#3490dc', fontWeight: 700 }}>Regístrate</span></button>
+                </div>
+              </motion.form>
+            ) : view === 'register' ? (
+              <motion.form
+                key="register"
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                onSubmit={handleSignUp}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+              >
+                <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                  <h2 style={{ color: '#fff', marginBottom: '4px' }}>Crea tu Cuenta</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>Usa un correo Gmail para recibir tu código.</p>
+                </div>
+                
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="email"
+                    placeholder="Tu correo Gmail"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="password"
+                    placeholder="Elige una Contraseña"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="password"
+                    placeholder="Confirma tu Contraseña"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }}
+                  />
+                </div>
+
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem', textAlign: 'center' }}>⚠️ {error}</p>}
+                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem', textAlign: 'center' }}>✅ {success}</p>}
+                
+                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>
+                  {loading ? 'Procesando...' : 'Obtener Código'}
+                </button>
+                <button type="button" onClick={() => setView('login')} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center' }}>¿Ya tienes cuenta? Entrar</button>
+              </motion.form>
+            ) : view === 'register-verify' ? (
+              <motion.form
+                key="register-verify"
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                onSubmit={handleVerifySignUp}
+                style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <h2 style={{ color: '#fff', marginBottom: '8px' }}>Validar Correo</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Introduce el código que enviamos a {email}.</p>
+                </div>
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="text"
+                    placeholder="Código de 6 dígitos"
+                    value={verificationCode}
+                    onChange={e => setVerificationCode(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }}
+                  />
+                </div>
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
+                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem' }}>✅ {success}</p>}
+                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>
+                  {loading ? 'Verificando...' : 'Activar Cuenta'}
+                </button>
               </motion.form>
             ) : view === 'forgot-password' ? (
               <motion.form
@@ -284,4 +421,5 @@ export default function Login() {
       </motion.div>
     </div>
   );
+
 }
