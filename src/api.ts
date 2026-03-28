@@ -525,6 +525,17 @@ export async function updatePassword(password: string) {
   return await supabase.auth.updateUser({ password });
 }
 
+export async function verifyRecoveryCode(email: string, token: string) {
+  if (!IS_SUPABASE_CONNECTED) {
+    return { data: {}, error: null };
+  }
+  return await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'recovery',
+  });
+}
+
 export async function loginUser(email: string, password: string): Promise<Usuario> {
   const isTargetDemo = IS_DEMO_EMAILS.includes(email);
 

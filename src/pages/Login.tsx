@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import * as api from '../api';
+import { updatePassword } from '../api';
 import { IS_DEMO_MODE, logAuditoria } from '../api';
 import { ROL_HOME } from '../permissions';
 
@@ -12,6 +14,8 @@ export default function Login() {
   const [view, setView] = useState<'login' | 'forgot-password'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,12 +50,27 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (!recoveryCode || !newPassword) {
+      setError('Por favor completa todos los campos');
+      return;
+    }
+
     setLoading(true);
     try {
-      await resetPassword(email);
-      setSuccess('Se ha enviado un enlace de recuperación a tu correo');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al enviar correo de recuperación');
+      // 1. Verificamos el código OTP
+      const { error: verifyError } = await api.verifyRecoveryCode(email, recoveryCode);
+      if (verifyError) throw verifyError;
+
+      // 2. Si es válido, actualizamos la contraseña
+      await updatePassword(newPassword);
+      
+      setSuccess('Contraseña actualizada con éxito. Ya puedes iniciar sesión.');
+      setTimeout(() => {
+        setView('login');
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || 'Error al restablecer la contraseña');
     } finally {
       setLoading(false);
     }
@@ -189,9 +208,9 @@ export default function Login() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{ textAlign: 'center' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>Recuperar Contraseña</h2>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>Restablecer Contraseña</h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                  Ingresa tu correo, el código de 8 dígitos que recibiste y tu nueva contraseña.
                 </p>
               </div>
 
@@ -204,6 +223,31 @@ export default function Login() {
                     placeholder="correo@ergodental.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Código de Verificación (8 dígitos)</label>
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="12345678"
+                    value={recoveryCode}
+                    onChange={e => setRecoveryCode(e.target.value)}
+                    maxLength={8}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Nueva Contraseña</label>
+                  <input
+                    className="input"
+                    type="password"
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
                     required
                   />
                 </div>
@@ -235,7 +279,7 @@ export default function Login() {
                 )}
 
                 <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center', padding: '13px' }}>
-                  {loading ? 'Enviando...' : 'Enviar Enlace'}
+                  {loading ? 'Procesando...' : 'Cambiar Contraseña'}
                 </button>
 
                 <button 
