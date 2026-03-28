@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    if (IS_DEMO_MODE) {
+    if (IS_DEMO_MODE || !supabase) {
       setLoading(false);
       return;
     }
