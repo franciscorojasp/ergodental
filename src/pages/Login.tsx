@@ -15,6 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -60,6 +61,12 @@ export default function Login() {
   const handleVerifyAndUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
     setLoading(true);
     try {
       const { error: verifyError } = await api.verifyRecoveryCode(email, recoveryCode);
@@ -213,35 +220,56 @@ export default function Login() {
                 key="verify"
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                 onSubmit={handleVerifyAndUpdate}
-                style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
               >
-                <div style={{ textAlign: 'center' }}>
-                  <h2 style={{ color: '#fff', marginBottom: '8px' }}>Verificar</h2>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Escribe el código y tu nueva contraseña.</p>
+                <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                  <h2 style={{ color: '#fff', marginBottom: '4px' }}>Verificar</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>Escribe el código y tu nueva contraseña.</p>
                 </div>
-                <input
-                  className="premium-input"
-                  type="text"
-                  placeholder="Código de 8 dígitos"
-                  value={recoveryCode}
-                  onChange={e => setRecoveryCode(e.target.value)}
-                  required
-                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }}
-                />
-                <input
-                  className="premium-input"
-                  type="password"
-                  placeholder="Nueva Contraseña"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  required
-                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }}
-                />
-                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
-                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem' }}>✅ {success}</p>}
-                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: '#3490dc', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>
+                
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="text"
+                    placeholder="Código de 8 dígitos"
+                    value={recoveryCode}
+                    onChange={e => setRecoveryCode(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="password"
+                    placeholder="Nueva Contraseña"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <input
+                    className="premium-input"
+                    type="password"
+                    placeholder="Confirmar Contraseña"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }}
+                  />
+                </div>
+
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255,77,77,0.1)', padding: '8px', borderRadius: '10px' }}>⚠️ {error}</p>}
+                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(77,255,77,0.1)', padding: '8px', borderRadius: '10px' }}>✅ {success}</p>}
+                
+                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>
                   {loading ? 'Verificando...' : 'Cambiar y Entrar'}
                 </button>
+                <button type="button" onClick={() => setView('login')} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center' }}>¿Recordaste tu clave? Inicia sesión</button>
               </motion.form>
             )}
           </AnimatePresence>
