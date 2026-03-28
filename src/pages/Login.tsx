@@ -317,7 +317,7 @@ export default function Login() {
                   <input
                     className="premium-input"
                     type="text"
-                    placeholder="Código de 6 dígitos"
+                    placeholder="Código de 8 dígitos"
                     value={verificationCode}
                     onChange={e => setVerificationCode(e.target.value)}
                     required
