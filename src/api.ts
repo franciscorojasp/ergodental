@@ -1036,3 +1036,14 @@ export async function verifyRegistrationOtp(email: string, token: string) {
   });
 }
 
+export async function resendRegistrationCode(email: string) {
+  if (!IS_SUPABASE_CONNECTED) {
+    return { data: {}, error: null };
+  }
+  return await supabase.auth.resend({
+    type: 'signup',
+    email,
+  });
+}
+
+
