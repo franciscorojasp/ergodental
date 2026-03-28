@@ -26,7 +26,11 @@ export default function Login() {
     setLoading(true);
     try {
       const u = await login(email, password);
-      await logAuditoria(u.id, u.nombre, 'AUTENTICACIÓN', 'Inicio de sesión exitoso');
+      await logAuditoria({
+        usuario: u.nombre,
+        accion: 'AUTENTICACIÓN',
+        detalle: 'Inicio de sesión exitoso'
+      });
       navigate(ROL_HOME[u.rol] || '/');
     } catch (err: any) {
       setError(err.message || 'Credenciales incorrectas o sistema fuera de línea');
@@ -138,19 +142,31 @@ export default function Login() {
                     <label style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600 }}>CONTRASEÑA</label>
                     <button type="button" onClick={() => setView('forgot-password')} style={{ color: '#3490dc', fontSize: '0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600 }}>¿Olvidaste tu contraseña?</button>
                   </div>
-                  <input
-                    className="premium-input"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    style={{
-                      width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '16px', padding: '16px 20px', color: '#fff', fontSize: '0.95rem',
-                      outline: 'none', transition: 'all 0.3s ease'
-                    }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      className="premium-input"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      style={{
+                        width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '16px', padding: '16px 20px', color: '#fff', fontSize: '0.95rem',
+                        outline: 'none', transition: 'all 0.3s ease'
+                      }}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer'
+                      }}
+                    >
+                      {showPassword ? '👁️' : '🔒'}
+                    </button>
+                  </div>
                 </div>
 
                 {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255,77,77,0.1)', padding: '10px', borderRadius: '12px' }}>⚠️ {error}</p>}
