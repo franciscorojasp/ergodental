@@ -515,6 +515,13 @@ export async function updatePassword(password: string) {
   if (isDemoSession()) {
     return { data: {}, error: null };
   }
+  
+  // Verificamos si hay una sesión activa antes de intentar actualizar
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('No hay una sesión activa para cambiar la contraseña. Por favor, usa el enlace de tu correo nuevamente.');
+  }
+
   return await supabase.auth.updateUser({ password });
 }
 
