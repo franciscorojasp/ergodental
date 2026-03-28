@@ -14,7 +14,7 @@ export const supabase = IS_SUPABASE_CONNECTED
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false,
+        detectSessionInUrl: true,
       },
     })
   : (null as any);

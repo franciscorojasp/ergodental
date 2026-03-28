@@ -2,16 +2,16 @@
 // Capa de acceso a datos.
 import { supabase, IS_SUPABASE_CONNECTED } from './lib/supabase';
 
-// Helper para detectar si estamos en modo Demo (por falta de conexión o por usuario Demo)
+export const IS_DEMO_EMAILS = ['admin@ergodental.com', 'doctor@ergodental.com', 'asistente@ergodental.com', 'recepcion@ergodental.com', 'pro@ergodental.com'];
+
+// Helper para detectar si estamos en modo Demo (por falta de conexión o por usuario Demo actualmente guardado)
 export const isDemoSession = () => {
   if (!IS_SUPABASE_CONNECTED) return true;
   const saved = localStorage.getItem('ergo_user');
   if (saved) {
     try {
       const u = JSON.parse(saved);
-      // Si el email es uno de los de prueba, forzamos modo demo
-      const demoEmails = ['admin@ergodental.com', 'doctor@ergodental.com', 'asistente@ergodental.com', 'recepcion@ergodental.com', 'pro@ergodental.com'];
-      return demoEmails.includes(u.email);
+      return IS_DEMO_EMAILS.includes(u.email);
     } catch { return false; }
   }
   return false;
@@ -501,7 +501,8 @@ export async function deleteLaboratorio(id: string) {
 
 // Auth
 export async function resetPasswordForEmail(email: string) {
-  if (isDemoSession()) {
+  const isTargetDemo = IS_DEMO_EMAILS.includes(email);
+  if (!IS_SUPABASE_CONNECTED || isTargetDemo) {
     // En modo demo simulamos éxito
     return { data: {}, error: null };
   }
@@ -518,6 +519,8 @@ export async function updatePassword(password: string) {
 }
 
 export async function loginUser(email: string, password: string): Promise<Usuario> {
+  const isTargetDemo = IS_DEMO_EMAILS.includes(email);
+
   // Siempre permitir credenciales Demo primero para pruebas locales
   const DEMO_CREDS: Record<string, string> = {
     'admin@ergodental.com':     'Ergodental2024!',
@@ -532,8 +535,14 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     if (user) return user;
   }
 
-  if (isDemoSession()) {
-    throw new Error('Credenciales incorrectas');
+  // Si no hay conexión a Supabase y no es una de las credenciales demo correctas arriba
+  if (!IS_SUPABASE_CONNECTED) {
+    throw new Error('Credenciales incorrectas o sistema fuera de línea');
+  }
+
+  // Si es una cuenta demo pero la contraseña fue incorrecta (no entró en el if de arriba)
+  if (isTargetDemo) {
+    throw new Error('Credenciales incorrectas (Cuenta Demo)');
   }
 
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
