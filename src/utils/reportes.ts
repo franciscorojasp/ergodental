@@ -2,7 +2,7 @@
 // Generador de reportes PDF usando jsPDF + jspdf-autotable
 // Estándares: portada institucional, encabezado/pie, tabla de datos, resumen de totales
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { autoTable } from 'jspdf-autotable';
 import { getGlobalCorrelativo, logAuditoria } from '../api';
 
 export interface ConfigReporte {
@@ -129,11 +129,18 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
 
     // Bloque de totales
     if (config.totales?.length) {
-      const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+      const lastTable = (doc as any).lastAutoTable;
+      const finalY = (lastTable ? lastTable.finalY : tblStartY + 20) + 6;
       const W = doc.internal.pageSize.getWidth();
 
       doc.setFillColor(...BRAND_COLOR);
-      doc.roundedRect(W - 90, finalY, 76, config.totales.length * 7 + 8, 2, 2, 'F');
+      
+      // Safety check for roundedRect as some older jsPDF versions might not have it
+      if (typeof (doc as any).roundedRect === 'function') {
+        (doc as any).roundedRect(W - 90, finalY, 76, config.totales.length * 7 + 8, 2, 2, 'F');
+      } else {
+        doc.rect(W - 90, finalY, 76, config.totales.length * 7 + 8, 'F');
+      }
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
@@ -141,14 +148,15 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
         doc.setFont('helvetica', 'normal');
         doc.text(t.label, W - 87, finalY + 8 + i * 7);
         doc.setFont('helvetica', 'bold');
-        doc.text(t.valor, W - 17, finalY + 8 + i * 7, { align: 'right' });
+        doc.text(String(t.valor), W - 17, finalY + 8 + i * 7, { align: 'right' });
       });
     }
 
     // Notas al pie del contenido
     if (config.notas?.length) {
-      const noteY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY +
-        (config.totales ? config.totales.length * 7 + 18 : 10);
+      const lastTable = (doc as any).lastAutoTable;
+      const finalY = lastTable ? lastTable.finalY : tblStartY + 20;
+      const noteY = finalY + (config.totales ? config.totales.length * 7 + 18 : 10);
       doc.setFontSize(7.5);
       doc.setTextColor(120, 120, 120);
       doc.setFont('helvetica', 'italic');

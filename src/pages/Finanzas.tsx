@@ -11,7 +11,7 @@ import {
 import { useMoneda } from '../contexts/MonedaContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinica } from '../contexts/ClinicaContext';
-import { generarReportePDF } from '../utils/reportes';
+import { generarReportePDF, fmtUSD, fmtBS } from '../utils/reportes';
 
 type PeriodoReporte = 'Semanal' | 'Quincenal' | 'Mensual' | 'Trimestral' | 'Semestral' | 'Anual';
 type Tab = 'resumen' | 'ingresos' | 'egresos' | 'creditos' | 'doctores' | 'comisiones';
@@ -258,18 +258,18 @@ export default function Finanzas(){
         ? ['Doctor','Servicios','Total Generado','Honorario']
         : ['Paciente','Concepto','Monto','Plazo','Estado'],
       filas: tab==='ingresos'||tab==='resumen'
-        ? cobrados.map(p=>[p.fecha,p.pacienteNombre,p.doctorNombre||'—',p.concepto,fmt(p.monto),
-            fmt(p.monto, 0),p.estado,
+        ? cobrados.map(p=>[p.fecha,p.pacienteNombre,p.doctorNombre||'—',p.concepto,fmtUSD(p.monto),
+            fmtBS(p.monto, tasaBCV),p.estado,
             TABLA_REFERENCIAS.find(r=>r.tipo===p.tipoReferencia)?.label||'—'])
         : tab==='egresos'
-        ? egresosFiltrados.map(e=>[e.fecha,e.concepto,e.categoria,fmt(e.monto),e.metodoPago,e.proveedorNombre||'—'])
+        ? egresosFiltrados.map(e=>[e.fecha,e.concepto,e.categoria,fmtUSD(e.monto),e.metodoPago,e.proveedorNombre||'—'])
         : tab==='doctores'
-        ? doctoresData.map(d=>[d.nombre,String(d.pagos.length),fmt(d.totalGenerado),fmt(d.honorarios)])
-        : pagos.filter(p=>p.tipoPago==='Crédito').map(p=>[p.pacienteNombre,p.concepto,fmt(p.monto),`${p.diasCredito??'—'} días`,p.estado]),
+        ? doctoresData.map(d=>[d.nombre,String(d.pagos.length),fmtUSD(d.totalGenerado),fmtUSD(d.honorarios)])
+        : pagos.filter(p=>p.tipoPago==='Crédito').map(p=>[p.pacienteNombre,p.concepto,fmtUSD(p.monto),`${p.diasCredito??'—'} días`,p.estado]),
       totales: [
-        {label:`Ingresos (${periodo}):`, valor: fmt(totalIngresos)},
-        {label:`Egresos (${periodo}):`,  valor: fmt(totalEgresos)},
-        {label:'Balance neto:',           valor: fmt(balance)},
+        {label:`Ingresos (${periodo}):`, valor: fmtUSD(totalIngresos)},
+        {label:`Egresos (${periodo}):`,  valor: fmtUSD(totalEgresos)},
+        {label:'Balance neto:',           valor: fmtUSD(balance)},
       ],
       notas: ['Los honorarios se calculan según la tabla de referencias vigente.',
         `Tasa BCV aplicada: Bs ${tasaBCV.toLocaleString('es-VE',{maximumFractionDigits:0})} / $1 USD`],

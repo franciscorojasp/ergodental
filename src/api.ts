@@ -1002,9 +1002,15 @@ export async function getGlobalCorrelativo(): Promise<string> {
     localStorage.setItem('ERGO_DEMO_CORR', next.toString());
     return `DOC-${next.toString().padStart(6, '0')}`;
   }
-  const { data, error } = await supabase.rpc('next_correlativo');
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase.rpc('next_correlativo');
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.warn("RPC next_correlativo no encontrado o falló. Usando serial de emergencia.");
+    const fallback = `ERR-${Math.floor(Date.now()/1000)}`;
+    return fallback;
+  }
 }
 
 // ─── REGISTRO DE NUEVOS USUARIOS ─────────────────────────────────────────────
