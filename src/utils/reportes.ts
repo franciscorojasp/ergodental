@@ -2,7 +2,7 @@
 // Generador de reportes PDF usando jsPDF + jspdf-autotable
 // Estándares: portada institucional, encabezado/pie, tabla de datos, resumen de totales
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { getGlobalCorrelativo, logAuditoria } from '../api';
 
 export interface ConfigReporte {
@@ -128,7 +128,7 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
     );
 
     // 4. Generación de tabla con jsPDF-AutoTable
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: tblStartY,
       head: [config.columnas],
       body: safeRows,

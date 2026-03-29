@@ -88,22 +88,30 @@ export async function withOfflineSync<T>(
   payload: any,
   optimisticData: T
 ): Promise<T> {
-  const isTargetOffline = typeof window !== 'undefined' && !window.navigator.onLine;
-  if (isTargetOffline) {
-    saveToSyncQueue({ table, action, payload });
+  const isTargetOffline = typeof window === 'undefined' || !navigator.onLine;
+  
+  if (isTargetOffline || !IS_SUPABASE_CONNECTED) {
+    if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
     return optimisticData;
   }
+
   try {
-    const { data, error } = await operation();
+    // Timeout defensivo de 10 segundos para la operación Supabase
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('SYNC_TIMEOUT')), 10000)
+    );
+    
+    const { data, error } = await Promise.race([operation(), timeoutPromise]) as any;
+    
     if (error) throw error;
     if (data) return mapKeys(data, toCamel) as T;
     return optimisticData;
   } catch (err: any) {
-    if (err.message === 'Failed to fetch' || (typeof window !== 'undefined' && !window.navigator.onLine)) {
-       saveToSyncQueue({ table, action, payload });
-       return optimisticData;
-    }
-    throw err;
+    console.warn(`⚠️ Fallo en operación Supabase (${table}):`, err.message || err);
+    // En caso de CUALQUIER error (timeout, 403, 500), guardamos en cola y devolvemos datos optimistas
+    // para que la experiencia del usuario no se bloquee.
+    if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
+    return optimisticData;
   }
 }
 // ─── Tipos ────────────────────────────────────────────────────────────────────

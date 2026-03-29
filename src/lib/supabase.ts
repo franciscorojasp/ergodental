@@ -8,9 +8,14 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 console.debug('Supabase URL:', supabaseUrl ? 'detectada' : 'VACÍA');
-console.debug('Supabase Key:', supabaseAnonKey ? 'detectada' : 'VACÍA');
+console.debug('Supabase Key:', supabaseAnonKey ? (supabaseAnonKey.startsWith('sb_publishable') ? 'ERR_STRIPE_KEY' : 'detectada') : 'VACÍA');
 
-export const IS_SUPABASE_CONNECTED = !!(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'));
+export const IS_SUPABASE_CONNECTED = !!(
+  supabaseUrl && 
+  supabaseAnonKey && 
+  supabaseUrl.startsWith('http') && 
+  !supabaseAnonKey.startsWith('sb_publishable') // Evitar confusión con llaves de Stripe
+);
 
 // Helper para procesar tokens en la URL si el detectSessionInUrl falla por el HashRouter
 const processHashTokens = () => {
