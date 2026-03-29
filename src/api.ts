@@ -20,6 +20,17 @@ export const isDemoSession = () => {
 // Mantenemos la constante para compatibilidad, pero ahora es dinámica
 export const IS_DEMO_MODE = !IS_SUPABASE_CONNECTED;
 
+// --- PERSISTENCIA LOCAL PARA DATOS DEMO (SITIOS SIN SUPABASE CONFIGURADO) ---
+const getDemoStore = <T>(key: string, initial: T[]): T[] => {
+  if (typeof window === 'undefined') return initial;
+  const saved = localStorage.getItem(`ergo_v1_${key}`);
+  return saved ? JSON.parse(saved) : initial;
+};
+
+const saveDemoStore = (key: string, data: any[]) => {
+  if (typeof window !== 'undefined') localStorage.setItem(`ergo_v1_${key}`, JSON.stringify(data));
+};
+
 // ─── MOTOR DE SINCRONIZACIÓN OFFLINE (SYNC QUEUE) ─────────────────────────
 
 export interface SyncAction {
@@ -473,61 +484,61 @@ export const DEMO_USUARIOS: Usuario[] = [
   { id: 'u5', nombre: 'Asistente Pro',       email: 'pro@ergodental.com',       rol: 'ASISTENTE', activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
 ];
 
-export const DEMO_PERSONAL: Personal[] = [
+export const DEMO_PERSONAL = getDemoStore<Personal>('personal', [
   { id: 'p1', clinicaId: 'la-vina', nombre: 'Dra. María', apellido: 'González', tipo: 'Odontólogo', especialidad: 'Ortodoncia', matricula: 'ORT-1042', turno: 'Mañana (8am-12pm)', telefono: '0412-1234567', email: 'maria@ergodental.com', activo: true },
   { id: 'p2', clinicaId: 'la-vina', nombre: 'Dr. Carlos', apellido: 'Pérez', tipo: 'Odontólogo', especialidad: 'Endodoncia', matricula: 'END-2301', turno: 'Tarde (1pm-5pm)', telefono: '0414-7654321', email: 'carlos@ergodental.com', activo: true },
-  { id: 'p3', clinicaId: 'la-vina', nombre: 'Ana', apellido: 'Martínez', tipo: 'Asistente', especialidad: undefined, matricula: undefined, turno: 'Completo (8am-5pm)', telefono: '0416-5551234', email: 'ana@ergodental.com', activo: true },
-  { id: 'p4', clinicaId: 'la-vina', nombre: 'Laura', apellido: 'Sánchez', tipo: 'Recepcionista', especialidad: undefined, matricula: undefined, turno: 'Mañana (8am-1pm)', telefono: '0424-9876543', email: 'laura@ergodental.com', activo: true },
-  { id: 'p5', clinicaId: 'la-vina', nombre: 'Pedro', apellido: 'Vargas', tipo: 'Administrativo', especialidad: undefined, matricula: undefined, turno: 'Tarde (1pm-6pm)', telefono: '0412-3334444', email: 'pedro@ergodental.com', activo: false },
-];
+  { id: 'p3', clinicaId: 'la-vina', nombre: 'Ana', apellido: 'Martínez', tipo: 'Asistente', especialidad: '', matricula: '', turno: 'Completo (8am-5pm)', telefono: '0416-5551234', email: 'ana@ergodental.com', activo: true },
+  { id: 'p4', clinicaId: 'la-vina', nombre: 'Laura', apellido: 'Sánchez', tipo: 'Recepcionista', especialidad: '', matricula: '', turno: 'Mañana (8am-1pm)', telefono: '0424-9876543', email: 'laura@ergodental.com', activo: true },
+  { id: 'p5', clinicaId: 'la-vina', nombre: 'Pedro', apellido: 'Vargas', tipo: 'Administrativo', especialidad: '', matricula: '', turno: 'Tarde (1pm-6pm)', telefono: '0412-3334444', email: 'pedro@ergodental.com', activo: false },
+] as Personal[]);
 
-export const DEMO_PACIENTES: Paciente[] = [
+export const DEMO_PACIENTES = getDemoStore<Paciente>('pacientes', [
   { id: 'pac1', clinicaId: 'la-vina', nombre: 'José',      apellido: 'Hernández', cedula: 'V-12345678', fechaNacimiento: '1985-03-15', telefono: '0412-1112222', email: 'jose@gmail.com',       direccion: 'Av. Principal, Casa 5',    fechaRegistro: '2024-01-10', tipoReferencia: 'Profesional-Especialista', referidorNombre: 'Dr. Lugo (Cardiología)', referidorContacto: '0412-9990000', alergias: false, alergiasDetalle: '' },
   { id: 'pac2', clinicaId: 'la-vina', nombre: 'Carmen',    apellido: 'López',     cedula: 'V-23456789', fechaNacimiento: '1992-07-22', telefono: '0414-2223333', email: 'carmen@gmail.com',     direccion: 'Calle 2, Apto 3B',         fechaRegistro: '2024-01-15', tipoReferencia: 'Paciente-Clinica',          referidorNombre: 'Clínica Ergodental', alergias: true, alergiasDetalle: 'Penicilina' },
   { id: 'pac3', clinicaId: 'la-vina', nombre: 'Roberto',   apellido: 'Díaz',      cedula: 'V-34567890', fechaNacimiento: '1978-11-08', telefono: '0416-3334444', email: 'roberto@gmail.com',    direccion: 'Urb. Las Flores, Casa 12', fechaRegistro: '2024-02-03', tipoReferencia: 'Foraneo-30',                referidorNombre: 'Clínica Dental Valencia',  referidorContacto: '0241-1234567', alergias: false, alergiasDetalle: '' },
   { id: 'pac4', clinicaId: 'la-vina', nombre: 'Valentina', apellido: 'Torres',    cedula: 'V-45678901', fechaNacimiento: '2001-05-30', telefono: '0424-4445555', email: 'valentina@gmail.com', direccion: 'Res. El Parque, Piso 4',   fechaRegistro: '2024-02-20', tipoReferencia: 'Foraneo-10',                referidorNombre: 'Casa Médica Caracas',       referidorContacto: '0212-5552222', alergias: false, alergiasDetalle: '' },
   { id: 'pac5', clinicaId: 'la-vina', nombre: 'Miguel',    apellido: 'Ramírez',   cedula: 'V-56789012', fechaNacimiento: '1969-09-14', telefono: '0426-5556666', email: 'miguel@gmail.com',     direccion: 'Sector Norte, Mz 3 Casa 8', fechaRegistro: '2024-03-05', tipoReferencia: 'Paciente-Clinica',         referidorNombre: 'Clínica Ergodental', alergias: false, alergiasDetalle: '' },
-];
+] as Paciente[]);
 
-export const DEMO_CITAS: Cita[] = [
+export const DEMO_CITAS = getDemoStore<Cita>('citas', [
   { id:'c1', clinicaId: 'la-vina', pacienteId:'pac1', pacienteNombre:'José Hernández',    doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-18', hora:'09:00', motivo:'Limpieza dental',      estado:'Confirmada', tipoAtencion:'Tratamiento', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Profesional-Especialista', referidorNombre:'Dr. Lugo (Cardiología)',  referidorContacto:'0412-9990000' },
   { id:'c2', clinicaId: 'la-vina', pacienteId:'pac2', pacienteNombre:'Carmen López',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    fecha:'2026-03-18', hora:'10:30', motivo:'Caries molar',          estado:'Pendiente',  tipoAtencion:'Tratamiento', condicion:'Evaluación', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental' },
   { id:'c3', clinicaId: 'la-vina', pacienteId:'pac3', pacienteNombre:'Roberto Díaz',       doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-18', hora:'11:00', motivo:'Revisión ortodoncia',   estado:'Completada', tipoAtencion:'Revisión', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Foraneo-30',               referidorNombre:'Clínica Dental Valencia', referidorContacto:'0241-1234567' },
   { id:'c4', clinicaId: 'la-vina', pacienteId:'pac4', pacienteNombre:'Valentina Torres',    doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    fecha:'2026-03-19', hora:'14:00', motivo:'Endodoncia pieza 36',   estado:'Pendiente',  tipoAtencion:'Tratamiento', condicion:'Evaluación', estadoFinanciero:'Paga Después', tipoReferencia:'Foraneo-10',               referidorNombre:'Casa Médica Caracas',      referidorContacto:'0212-5552222' },
   { id:'c5', clinicaId: 'la-vina', pacienteId:'pac5', pacienteNombre:'Miguel Ramírez',     doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-19', hora:'15:30', motivo:'Extracción',            estado:'Confirmada', tipoAtencion:'Tratamiento', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental' },
-];
+] as Cita[]);
 
-export const DEMO_INVENTARIO: ItemInventario[] = [
+export const DEMO_INVENTARIO = getDemoStore<ItemInventario>('inventario', [
   { id: 'i1', clinicaId: 'la-vina', nombre: 'Guantes de látex (caja)', categoria: 'Protección', stock: 8, stockMinimo: 5, unidad: 'Caja', precio: 12.50 },
   { id: 'i2', clinicaId: 'la-vina', nombre: 'Mascarillas quirúrgicas', categoria: 'Protección', stock: 3, stockMinimo: 10, unidad: 'Caja', precio: 8.00 },
   { id: 'i3', clinicaId: 'la-vina', nombre: 'Composite dental A2', categoria: 'Materiales', stock: 15, stockMinimo: 5, unidad: 'Jeringa', precio: 35.00 },
   { id: 'i4', clinicaId: 'la-vina', nombre: 'Anestesia Lidocaína', categoria: 'Medicamentos', stock: 24, stockMinimo: 20, unidad: 'Carpule', precio: 2.50 },
   { id: 'i5', clinicaId: 'la-vina', nombre: 'Hilo de sutura 3-0', categoria: 'Materiales', stock: 2, stockMinimo: 5, unidad: 'Rollo', precio: 18.00 },
   { id: 'i6', clinicaId: 'la-vina', nombre: 'Revelador de placas', categoria: 'Higiene', stock: 6, stockMinimo: 3, unidad: 'Botella', precio: 14.00 },
-];
+] as ItemInventario[]);
 
-export const DEMO_PAGOS: Pago[] = [
+export const DEMO_PAGOS = getDemoStore<Pago>('pagos', [
   { id:'pg1', clinicaId: 'la-vina', pacienteId:'pac1', pacienteNombre:'José Hernández',  citaId:'c1', concepto:'Limpieza dental',           monto: 40, montoBs:1460000, tasaCambio:36500, metodoPago:'Pago Móvil',      tipoPago:'Contado', fecha:'2026-03-18', estado:'Pagado',   tipoReferencia:'Profesional-Especialista', referidorNombre:'Dr. Lugo (Cardiología)', doctorId:'p1', doctorNombre:'Dra. María González', bancoEmisor: 'Banesco', numeroReferencia: '123456789012' },
   { id:'pg2', clinicaId: 'la-vina', pacienteId:'pac2', pacienteNombre:'Carmen López',      citaId:'c2', concepto:'Caries molar – abono 1',    monto: 25, montoBs: 912500, tasaCambio:36500, metodoPago:'Zelle',            tipoPago:'Abono',   fecha:'2026-03-18', estado:'Parcial',  tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    notas:'Saldo pendiente: $35' },
   { id:'pg3', clinicaId: 'la-vina', pacienteId:'pac3', pacienteNombre:'Roberto Díaz',      citaId:'c3', concepto:'Ortodoncia mensualidad',    monto: 80, montoBs:2920000, tasaCambio:36500, metodoPago:'Efectivo USD',    tipoPago:'Crédito', diasCredito:15, fechaVencimiento:'2026-04-02', fecha:'2026-03-18', estado:'Pendiente', tipoReferencia:'Foraneo-30', referidorNombre:'Clínica Dental Valencia', doctorId:'p1', doctorNombre:'Dra. María González' },
-  { id:'pg4', clinicaId: 'la-vina', pacienteId:'pac4', pacienteNombre:'Valentina Torres',  concepto:'Endodoncia pieza 36',             monto:120, montoBs:      0, tasaCambio:36500, metodoPago:'Binance',           tipoPago:'Crédito', diasCredito:30, fechaVencimiento:'2026-04-17', fecha:'2026-03-15', estado:'Pendiente', tipoReferencia:'Foraneo-10', referidorNombre:'Casa Médica Caracas',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez' },
+  { id:'pg4', clinicaId: 'la-vina', pacienteId:'pac4', pacienteNombre:'Valentina Torres',    concepto:'Endodoncia pieza 36',             monto:120, montoBs:      0, tasaCambio:36500, metodoPago:'Binance',           tipoPago:'Crédito', diasCredito:30, fechaVencimiento:'2026-04-17', fecha:'2026-03-15', estado:'Pendiente', tipoReferencia:'Foraneo-10', referidorNombre:'Casa Médica Caracas',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez' },
   { id:'pg5', clinicaId: 'la-vina', pacienteId:'pac5', pacienteNombre:'Miguel Ramírez',    concepto:'Extracción',                    monto: 35, montoBs:1277500, tasaCambio:36500, metodoPago:'Efectivo BS',      tipoPago:'Contado', fecha:'2026-03-10', estado:'Pagado',   tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental',       doctorId:'p1', doctorNombre:'Dra. María González' },
-];
+] as Pago[]);
 
-export const DEMO_EGRESOS: Egreso[] = [
+export const DEMO_EGRESOS = getDemoStore<Egreso>('egresos', [
   { id: 'eg1', clinicaId: 'la-vina', concepto: 'Compra guantes y mascarillas', categoria: 'Suministros', monto: 45, montoBs: 1642500, tasaCambio: 36500, metodoPago: 'Transferencia BS', proveedorId: 'pv1', proveedorNombre: 'Farmacia San Juan', fecha: '2026-03-15' },
   { id: 'eg2', clinicaId: 'la-vina', concepto: 'Pago nómina asistentes', categoria: 'Nómina', monto: 200, montoBs: 7300000, tasaCambio: 36500, metodoPago: 'Pago Móvil', fecha: '2026-03-15' },
   { id: 'eg3', clinicaId: 'la-vina', concepto: 'Alquiler consultorio #2', categoria: 'Alquiler', monto: 150, montoBs: 5475000, tasaCambio: 36500, metodoPago: 'Transferencia BS', fecha: '2026-03-01' },
-];
+] as Egreso[]);
 
-export const DEMO_PRESUPUESTOS: Presupuesto[] = [];
-export const DEMO_RECIBOS: Recibo[] = [];
-export const DEMO_ODONTOGRAMAS: Odontograma[] = [];
+export const DEMO_PRESUPUESTOS: Presupuesto[] = getDemoStore<Presupuesto>('presupuestos', []);
+export const DEMO_RECIBOS: Recibo[] = getDemoStore<Recibo>('recibos', []);
+export const DEMO_ODONTOGRAMAS: Odontograma[] = getDemoStore<Odontograma>('odontogramas', []);
 
-export const DEMO_PROVEEDORES: Proveedor[] = [
+export const DEMO_PROVEEDORES: Proveedor[] = getDemoStore<Proveedor>('proveedores', [
   { id: 'pv1', clinicaId: 'la-vina', nombre: 'Farmacia San Juan', tipo: 'Farmacia', rif: 'J-30123456-0', telefono: '0212-5551111', email: 'ventas@sanjuan.com', contacto: 'Sr. Gómez', direccion: 'Av. Urdaneta, LC 4', activo: true },
   { id: 'pv2', clinicaId: 'la-vina', nombre: 'Casa Médica Caracas', tipo: 'Casa Médica', rif: 'J-40234567-1', telefono: '0212-5552222', email: 'pedidos@cmcaracas.com', contacto: 'Dra. Colmenares', direccion: 'Av. Libertador, Ed. Medical', activo: true },
-];
+] as Proveedor[]);
 
 // ─── Cliente Supabase (con fallback demo) ────────────────────────────────────
 
@@ -789,6 +800,7 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
   if (isDemoSession()) {
     const nuevo: Paciente = { ...p, id: `pac${Date.now()}`, fechaRegistro: new Date().toISOString().split('T')[0] };
     DEMO_PACIENTES.unshift(nuevo);
+    saveDemoStore('pacientes', DEMO_PACIENTES);
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
@@ -804,7 +816,10 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
 export async function updatePaciente(p: Partial<Paciente> & { id: string }): Promise<Paciente> {
   if (isDemoSession()) {
     const idx = DEMO_PACIENTES.findIndex(x => x.id === p.id);
-    if (idx !== -1) DEMO_PACIENTES[idx] = { ...DEMO_PACIENTES[idx], ...p };
+    if (idx !== -1) {
+      DEMO_PACIENTES[idx] = { ...DEMO_PACIENTES[idx], ...p };
+      saveDemoStore('pacientes', DEMO_PACIENTES);
+    }
     return DEMO_PACIENTES[idx];
   }
   const { id, ...rest } = p;
@@ -821,7 +836,10 @@ export async function updatePaciente(p: Partial<Paciente> & { id: string }): Pro
 export async function deletePaciente(id: string): Promise<void> {
   if (isDemoSession()) {
     const idx = DEMO_PACIENTES.findIndex(x => x.id === id);
-    if (idx !== -1) DEMO_PACIENTES.splice(idx, 1);
+    if (idx !== -1) {
+      DEMO_PACIENTES.splice(idx, 1);
+      saveDemoStore('pacientes', DEMO_PACIENTES);
+    }
     return;
   }
   await withOfflineSync<void>(
@@ -845,6 +863,7 @@ export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal>
   if (isDemoSession()) {
     const nuevo: Personal = { ...p, id: `per${Date.now()}` };
     DEMO_PERSONAL.unshift(nuevo);
+    saveDemoStore('personal', DEMO_PERSONAL);
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
@@ -860,7 +879,10 @@ export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal>
 export async function updatePersonal(p: Partial<Personal> & { id: string }): Promise<Personal> {
   if (isDemoSession()) {
     const idx = DEMO_PERSONAL.findIndex(x => x.id === p.id);
-    if (idx !== -1) DEMO_PERSONAL[idx] = { ...DEMO_PERSONAL[idx], ...p };
+    if (idx !== -1) {
+      DEMO_PERSONAL[idx] = { ...DEMO_PERSONAL[idx], ...p };
+      saveDemoStore('personal', DEMO_PERSONAL);
+    }
     return DEMO_PERSONAL[idx];
   }
   const { id, ...rest } = p;
@@ -877,7 +899,10 @@ export async function updatePersonal(p: Partial<Personal> & { id: string }): Pro
 export async function deletePersonal(id: string): Promise<void> {
   if (isDemoSession()) {
     const idx = DEMO_PERSONAL.findIndex(x => x.id === id);
-    if (idx !== -1) DEMO_PERSONAL.splice(idx, 1);
+    if (idx !== -1) {
+      DEMO_PERSONAL.splice(idx, 1);
+      saveDemoStore('personal', DEMO_PERSONAL);
+    }
     return;
   }
   await withOfflineSync<void>(
@@ -901,6 +926,7 @@ export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
   if (isDemoSession()) {
     const nueva: Cita = { ...c, id: `cit${Date.now()}` };
     DEMO_CITAS.unshift(nueva);
+    saveDemoStore('citas', DEMO_CITAS);
     return nueva;
   }
   const dbData = mapKeys(c, toSnake);
@@ -916,7 +942,10 @@ export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
 export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cita> {
   if (isDemoSession()) {
     const idx = DEMO_CITAS.findIndex(x => x.id === c.id);
-    if (idx !== -1) DEMO_CITAS[idx] = { ...DEMO_CITAS[idx], ...c };
+    if (idx !== -1) {
+      DEMO_CITAS[idx] = { ...DEMO_CITAS[idx], ...c };
+      saveDemoStore('citas', DEMO_CITAS);
+    }
     return DEMO_CITAS[idx];
   }
   const { id, ...rest } = c;
@@ -933,7 +962,10 @@ export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cit
 export async function deleteCita(id: string): Promise<void> {
   if (isDemoSession()) {
     const idx = DEMO_CITAS.findIndex(x => x.id === id);
-    if (idx !== -1) DEMO_CITAS.splice(idx, 1);
+    if (idx !== -1) {
+      DEMO_CITAS.splice(idx, 1);
+      saveDemoStore('citas', DEMO_CITAS);
+    }
     return;
   }
   await withOfflineSync<void>(
@@ -957,6 +989,7 @@ export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Pr
   if (isDemoSession()) {
     const nuevo: ItemInventario = { ...item, id: `inv${Date.now()}` };
     DEMO_INVENTARIO.push(nuevo);
+    saveDemoStore('inventario', DEMO_INVENTARIO);
     return nuevo;
   }
   const dbData = mapKeys(item, toSnake);
@@ -981,6 +1014,7 @@ export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
   if (isDemoSession()) {
     const nuevo: Pago = { ...p, id: `pg${Date.now()}` };
     DEMO_PAGOS.push(nuevo);
+    saveDemoStore('pagos', DEMO_PAGOS);
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
@@ -1004,6 +1038,7 @@ export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
   if (isDemoSession()) {
     const nuevo: Egreso = { ...e, id: `eg${Date.now()}` };
     DEMO_EGRESOS.push(nuevo);
+    saveDemoStore('egresos', DEMO_EGRESOS);
     return nuevo;
   }
   const dbData = mapKeys(e, toSnake);
@@ -1027,6 +1062,7 @@ export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveed
   if (isDemoSession()) {
     const nuevo: Proveedor = { ...p, id: `pv${Date.now()}` };
     DEMO_PROVEEDORES.push(nuevo);
+    saveDemoStore('proveedores', DEMO_PROVEEDORES);
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
@@ -1134,6 +1170,7 @@ export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Pre
   if (isDemoSession()) {
     const nuevo: Presupuesto = { ...p, id: `pres${Date.now()}` };
     DEMO_PRESUPUESTOS.push(nuevo);
+    saveDemoStore('presupuestos', DEMO_PRESUPUESTOS);
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
@@ -1149,7 +1186,10 @@ export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Pre
 export async function updatePresupuesto(data: Partial<Presupuesto> & { id: string }): Promise<void> {
   if (isDemoSession()) {
     const idx = DEMO_PRESUPUESTOS.findIndex(p => p.id === data.id);
-    if (idx !== -1) DEMO_PRESUPUESTOS[idx] = { ...DEMO_PRESUPUESTOS[idx], ...data };
+    if (idx !== -1) {
+      DEMO_PRESUPUESTOS[idx] = { ...DEMO_PRESUPUESTOS[idx], ...data };
+      saveDemoStore('presupuestos', DEMO_PRESUPUESTOS);
+    }
     return;
   }
   const { id, ...rest } = data;
@@ -1161,7 +1201,10 @@ export async function updatePresupuesto(data: Partial<Presupuesto> & { id: strin
 export async function deletePresupuesto(id: string): Promise<void> {
   if (isDemoSession()) {
     const idx = DEMO_PRESUPUESTOS.findIndex(p => p.id === id);
-    if (idx !== -1) DEMO_PRESUPUESTOS.splice(idx, 1);
+    if (idx !== -1) {
+      DEMO_PRESUPUESTOS.splice(idx, 1);
+      saveDemoStore('presupuestos', DEMO_PRESUPUESTOS);
+    }
     return;
   }
   await withOfflineSync<void>(
@@ -1185,6 +1228,7 @@ export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
   if (isDemoSession()) {
     const nuevo: Recibo = { ...r, id: `rec${Date.now()}` };
     DEMO_RECIBOS.push(nuevo);
+    saveDemoStore('recibos', DEMO_RECIBOS);
     return nuevo;
   }
   const dbData = mapKeys(r, toSnake);
@@ -1200,7 +1244,10 @@ export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
 export async function deleteRecibo(id: string): Promise<void> {
   if (isDemoSession()) {
     const idx = DEMO_RECIBOS.findIndex(r => r.id === id);
-    if (idx !== -1) DEMO_RECIBOS.splice(idx, 1);
+    if (idx !== -1) {
+      DEMO_RECIBOS.splice(idx, 1);
+      saveDemoStore('recibos', DEMO_RECIBOS);
+    }
     return;
   }
   await withOfflineSync<void>(
@@ -1228,6 +1275,7 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
     const nuevo: Odontograma = { ...o, id: `odont${Date.now()}`, fecha: new Date().toISOString().split('T')[0] };
     if (idx !== -1) DEMO_ODONTOGRAMAS[idx] = nuevo;
     else DEMO_ODONTOGRAMAS.push(nuevo);
+    saveDemoStore('odontogramas', DEMO_ODONTOGRAMAS);
     return nuevo;
   }
   const dbData = mapKeys(o, toSnake);
