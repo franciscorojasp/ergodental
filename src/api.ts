@@ -79,26 +79,41 @@ export async function processSyncQueue() {
   
   for (const item of queue) {
     try {
+      // Timeout de 10 segundos por cada item para evitar bloqueos infinitos
+      const timeoutPromise = new Promise<{error: any}>((_, reject) => 
+        setTimeout(() => reject(new Error('SUPABASE_TIMEOUT_FALLO_RED')), 10000)
+      );
+
+      let operation;
       if (item.action === 'INSERT') {
-        const { error } = await supabase.from(item.table).insert(item.payload);
-        if (error) throw error;
+        operation = supabase.from(item.table).insert(item.payload);
       } else if (item.action === 'UPDATE') {
         const { id, ...rest } = item.payload;
         if (!id) throw new Error('Missing ID for update');
-        const { error } = await supabase.from(item.table).update(rest).eq('id', id);
-        if (error) throw error;
+        operation = supabase.from(item.table).update(rest).eq('id', id);
       } else if (item.action === 'DELETE') {
-        const { error } = await supabase.from(item.table).delete().eq('id', item.payload.id);
-        if (error) throw error;
+        operation = supabase.from(item.table).delete().eq('id', item.payload.id);
+      } else {
+        throw new Error('Action not supported');
       }
+
+      const { error } = await Promise.race([operation, timeoutPromise]);
+      
+      if (error) throw error;
+      
       console.log(`✅ Sincronizado correcto: ${item.table} (${item.action})`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`❌ Error sincronizando item en ${item.table}:`, err);
+      // Guardar el último error para mostrarlo en la interfaz
+      localStorage.setItem('ergo_last_sync_error', err?.message || JSON.stringify(err));
       remainingQueue.push(item);
     }
   }
   
   localStorage.setItem('ergo_sync_queue', JSON.stringify(remainingQueue));
+  
+  // Despachar evento para que SyncIndicator se actualice inmediatamente
+  window.dispatchEvent(new Event('ergo_sync_completed'));
 }
 
 // Escuchar cuando vuelva el internet para disparar la sincronización

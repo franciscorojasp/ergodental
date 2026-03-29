@@ -7,33 +7,43 @@ export default function SyncIndicator({ isPinned }: { isPinned: boolean }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
 
+  const [lastError, setLastError] = useState<string | null>(localStorage.getItem('ergo_last_sync_error'));
+
   useEffect(() => {
-    const interval = setInterval(() => {
+    const updateState = () => {
       setCount(getSyncQueueCount());
       setOnline(navigator.onLine);
-    }, 3000);
+      setLastError(localStorage.getItem('ergo_last_sync_error'));
+    };
+
+    const interval = setInterval(updateState, 3000);
 
     const handleOnline = () => setOnline(true);
     const handleOffline = () => setOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('ergo_sync_completed', updateState);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('ergo_sync_completed', updateState);
     };
   }, []);
 
   const handleManualSync = async () => {
     if (!online || IS_DEMO_MODE) return;
     setIsSyncing(true);
+    localStorage.removeItem('ergo_last_sync_error');
+    setLastError(null);
     try {
       await forceSync();
-      setCount(getSyncQueueCount());
     } finally {
       setIsSyncing(false);
+      setCount(getSyncQueueCount());
+      setLastError(localStorage.getItem('ergo_last_sync_error'));
     }
   };
 
@@ -85,9 +95,14 @@ export default function SyncIndicator({ isPinned }: { isPinned: boolean }) {
               marginTop: '4px'
             }}
           >
-            <div style={{ color: '#ff9800', fontWeight: 700, marginBottom: '4px' }}>
+            <div style={{ color: lastError ? '#f44336' : '#ff9800', fontWeight: 700, marginBottom: '4px' }}>
               ⚠️ {count} cambios pendientes
             </div>
+            {lastError && (
+              <div style={{ color: '#f44336', fontSize: '0.65rem', marginBottom: '8px', wordBreak: 'break-all' }}>
+                Error: {lastError}
+              </div>
+            )}
             <button 
               onClick={handleManualSync}
               disabled={isSyncing || !online}
