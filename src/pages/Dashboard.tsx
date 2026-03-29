@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useMoneda } from '../contexts/MonedaContext';
-import { getCitas, getPacientes, getPersonal, getPagos, type Cita, type Pago } from '../api';
+import { getCitas, getPacientes, getPersonal, getPagos, type Cita, type Pago, IS_DEMO_MODE } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 import { generarReportePDF } from '../utils/reportes';
 
@@ -80,7 +80,7 @@ export default function Dashboard() {
       totales: [
         { label:`Ingresos ${periodo}:`, valor: fmt(ingresosPeriodo) },
       ],
-      notas: [`Fuente de datos: Ergodental Demo · Periodo seleccionado: ${periodo}`],
+      notas: [`Fuente de datos: ${IS_DEMO_MODE ? 'Ergodental Local (Demo)' : 'Ergodental Cloud (Producción)'} · Periodo seleccionado: ${periodo}`],
     });
   };
 

@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { canAccess, ROL_LABEL, ROL_BADGE_CLASS, type Modulo } from '../permissions';
 import CurrencyToggle from './CurrencyToggle';
 import ClinicaBadge from './ClinicaBadge';
+import SyncIndicator from './SyncIndicator';
 
 const NAV: { to: string; icon: string; label: string; modulo: Modulo }[] = [
   { to: '/dashboard',   icon: '📊', label: 'Dashboard',   modulo: 'dashboard'   },
@@ -133,6 +134,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             <span style={{ fontSize:'1.2rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
             {isPinned && <span style={{ fontSize:'0.85rem', fontWeight:600 }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>}
           </button>
+
+          <SyncIndicator isPinned={isPinned} />
 
           {isPinned && user && (
             <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{ marginBottom:'10px', paddingLeft:'4px' }}>

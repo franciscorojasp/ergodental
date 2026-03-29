@@ -108,6 +108,13 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
 
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     
+    // Fix: Asegurar compatibilidad de autoTable con jsPDF en producción
+    const finalAutoTable = autoTable || (doc as any).autoTable;
+    if (!finalAutoTable) {
+       console.error("Librería jspdf-autotable no se cargó correctamente.");
+       throw new Error("Error interno: No se pudo cargar el generador de tablas PDF.");
+    }
+
     // 2. Obtención segura del correlativo
     let correlativo = 'SN-000000';
     try {
@@ -119,16 +126,16 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
 
     const tblStartY = addHeader(doc, config, correlativo);
 
-    // 3. Normalización defensiva de datos (evita errores si hay valores nulos o indefinidos)
+    // 3. Normalización defensiva de datos
     const safeRows = (config.filas || []).map(row => 
       (row || []).map(cell => {
-        if (cell === null || cell === undefined) return '';
+        if (cell === null || cell === undefined) return '-';
         return String(cell);
       })
     );
 
-    // 4. Generación de tabla con jsPDF-AutoTable
-    autoTable(doc, {
+    // 4. Generación de tabla
+    finalAutoTable(doc, {
       startY: tblStartY,
       head: [config.columnas],
       body: safeRows,

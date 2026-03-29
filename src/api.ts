@@ -11,6 +11,9 @@ export const isDemoSession = () => {
   if (saved) {
     try {
       const u = JSON.parse(saved);
+      // Francisco y Admins SUPER_ADMINS nunca son demo si hay conexión
+      const SUPER_ADMINS = ['francisco.rojasp@gmail.com', 'blascojennifer47@gmail.com', 'vera.hugo712@gmail.com', 'carlosalejandroverablasco183@gmail.com'];
+      if (SUPER_ADMINS.includes(u.email?.toLowerCase())) return false;
       return u.email === 'demo@ergodental.com';
     } catch { return false; }
   }
@@ -19,6 +22,18 @@ export const isDemoSession = () => {
 
 // Mantenemos la constante para compatibilidad, pero ahora es dinámica
 export const IS_DEMO_MODE = !IS_SUPABASE_CONNECTED;
+
+export function getSyncQueueCount(): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const q = JSON.parse(localStorage.getItem('ergo_sync_queue') || '[]');
+    return q.length;
+  } catch { return 0; }
+}
+
+export function forceSync(): Promise<void> {
+  return processSyncQueue();
+}
 
 // --- PERSISTENCIA LOCAL PARA DATOS DEMO (SITIOS SIN SUPABASE CONFIGURADO) ---
 const getDemoStore = <T>(key: string, initial: T[]): T[] => {
@@ -69,6 +84,7 @@ export async function processSyncQueue() {
         if (error) throw error;
       } else if (item.action === 'UPDATE') {
         const { id, ...rest } = item.payload;
+        if (!id) throw new Error('Missing ID for update');
         const { error } = await supabase.from(item.table).update(rest).eq('id', id);
         if (error) throw error;
       } else if (item.action === 'DELETE') {
@@ -107,9 +123,9 @@ export async function withOfflineSync<T>(
   }
 
   try {
-    // Timeout defensivo de 10 segundos para la operación Supabase
+    // Elevado a 30 segundos para soportar redes de Venezuela (CANTV/Digitel) latencia extrema
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('SYNC_TIMEOUT')), 10000)
+      setTimeout(() => reject(new Error('SYNC_TIMEOUT')), 30000)
     );
     
     const { data, error } = await Promise.race([operation(), timeoutPromise]) as any;
@@ -120,7 +136,6 @@ export async function withOfflineSync<T>(
   } catch (err: any) {
     console.warn(`⚠️ Fallo en operación Supabase (${table}):`, err.message || err);
     // En caso de CUALQUIER error (timeout, 403, 500), guardamos en cola y devolvemos datos optimistas
-    // para que la experiencia del usuario no se bloquee.
     if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
     return optimisticData;
   }
