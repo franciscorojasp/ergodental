@@ -19,89 +19,119 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Intentar cargar usuario desde localStorage primero (si es modo Demo o si forzamos sesión Demo)
-    const saved = localStorage.getItem('ergo_user');
-    if (saved) {
-      try { 
-        const u = JSON.parse(saved);
-        setUser(u); 
-      } catch { /* ignore */ }
-      if (IS_DEMO_MODE) {
+    // Failsafe: Si después de 6 segundos sigue cargando, forzar el fin del loading
+    // para evitar la pantalla blanca permanente.
+    const failsafe = setTimeout(() => {
+      if (loading) {
+        console.warn('⚠️ Auth Timeout: Forzando fin de carga...');
         setLoading(false);
+      }
+    }, 6000);
+
+    const initAuth = async () => {
+      // 1. Carga desde localStorage (Demo o sesión previa)
+      const saved = localStorage.getItem('ergo_user');
+      if (saved) {
+        try { 
+          const u = JSON.parse(saved);
+          setUser(u); 
+        } catch { /* ignore */ }
+        if (IS_DEMO_MODE) {
+          setLoading(false);
+          clearTimeout(failsafe);
+          return;
+        }
+      }
+
+      if (IS_DEMO_MODE || !supabase) {
+        setLoading(false);
+        clearTimeout(failsafe);
         return;
       }
-    }
 
-    if (IS_DEMO_MODE || !supabase) {
-      setLoading(false);
-      return;
-    }
+      // 2. Obtener sesión inicial explícitamente (más confiable que solo el listener)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await handleSession(session);
+        }
+      } catch (err) {
+        console.error('Error getting initial session:', err);
+      } finally {
+        setLoading(false);
+        clearTimeout(failsafe);
+      }
+    };
 
-    // Supabase Auth Listener
+    // Helper para procesar la sesión y el perfil
+    const handleSession = async (session: any) => {
+      if (!session?.user) {
+        const saved = localStorage.getItem('ergo_user');
+        if (!saved) setUser(null);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (!error && profile) {
+          const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+          const mapKeys = (obj: any): any => {
+            if (!obj) return obj;
+            return Object.keys(obj).reduce((acc, k) => {
+              acc[toCamel(k)] = obj[k];
+              return acc;
+            }, {} as any);
+          };
+
+          const u = mapKeys(profile) as Usuario;
+          
+          const SUPER_ADMINS = [
+            'francisco.rojasp@gmail.com', 
+            'blascojennifer47@gmail.com', 
+            'vera.hugo712@gmail.com', 
+            'carlosalejandroverablasco183@gmail.com'
+          ];
+
+          if (session.user.email && SUPER_ADMINS.includes(session.user.email.toLowerCase())) {
+            u.rol = 'ADMIN';
+          }
+
+          setUser(u);
+          localStorage.removeItem('ergo_user');
+        } else if (error) {
+          console.error("Error fetching profile inside handleSession:", error);
+        }
+      } catch (e) {
+        console.error("Critical error in handleSession:", e);
+      }
+    };
+
+    initAuth();
+
+    // 3. Supabase Auth Listener (para cambios posteriores)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       console.debug('🚀 Auth Event detected:', event);
 
       if (event === 'PASSWORD_RECOVERY') {
-        console.debug('🔑 Recuperación de contraseña activada, redirigiendo...');
         window.location.hash = '#/reset-password';
         setLoading(false);
         return;
       }
 
-      if (session?.user) {
-        try {
-          // Si ya tenemos el usuario en estado y el ID coincide, no hace falta re-consultar
-          if (user?.id === session.user.id) return;
-
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (!error && profile) {
-            // Helper local para camelCase (mismo que en api.ts)
-            const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
-            const mapKeys = (obj: any): any => {
-              return Object.keys(obj).reduce((acc, k) => {
-                acc[toCamel(k)] = obj[k];
-                return acc;
-              }, {} as any);
-            };
-
-            const u = mapKeys(profile) as Usuario;
-            
-            // SUPER ADMIN BYPASS: Francisco y equipo siempre son ADMIN tras refrescar la página
-            const SUPER_ADMINS = [
-              'francisco.rojasp@gmail.com', 
-              'blascojennifer47@gmail.com', 
-              'vera.hugo712@gmail.com', 
-              'carlosalejandroverablasco183@gmail.com'
-            ];
-
-            if (session.user.email && SUPER_ADMINS.includes(session.user.email.toLowerCase())) {
-              u.rol = 'ADMIN';
-            }
-
-            setUser(u);
-            localStorage.removeItem('ergo_user');
-          }
-        } catch (e) {
-          console.error("Error fetching profile:", e);
-        }
-      } else {
-        // IMPORTANTE: Si NO hay sesión de Supabase pero hay un usuario Demo guardado, 
-        // NO lo borramos.
-        const saved = localStorage.getItem('ergo_user');
-        if (!saved) {
-          setUser(null);
-        }
-      }
+      await handleSession(session);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [user?.id]);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(failsafe);
+    };
+  }, []); // Solo al montar
 
   const login = async (email: string, password: string): Promise<Usuario> => {
     const u = await loginUser(email, password);
