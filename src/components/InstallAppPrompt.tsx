@@ -128,7 +128,7 @@ export default function InstallAppPrompt() {
           <motion.div className="modal" style={{ maxWidth: '400px' }}>
             <div className="modal-header">
               <h3>¿Por qué instalar la App?</h3>
-              <button className="btn-close" onClick={() => setShowAdvantages(false)}>✕</button>
+              <button className="btn-close" onClick={handleDismiss}>✕</button>
             </div>
             <div className="modal-body" style={{ gap: '15px' }}>
               {[
@@ -164,21 +164,21 @@ export default function InstallAppPrompt() {
                   >
                     🚀 Instalar Automáticamente
                   </button>
-                  <button className="btn btn-ghost" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'8px' }}>Cerrar</button>
+                  <button className="btn btn-ghost" onClick={handleDismiss} style={{ width:'100%', marginTop:'8px' }}>Cerrar</button>
                 </div>
               ) : isIOS() ? (
                 <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '12px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🍎</div>
                   <strong>Instalación manual requerida en iPhone/iPad:</strong><br/><br/>
                   Por restricciones de Apple, toca el ícono de "Compartir" (el cuadradito con la flecha hacia arriba) en la barra de Safari y luego selecciona <strong>"Agregar a inicio" ➕</strong>.
-                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
                 </div>
               ) : (
                 <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '12px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🤖 💻</div>
                   <strong>Instalación manual en Android o PC:</strong><br/><br/>
                   Abre el menú de opciones de tu navegador (los tres puntos verticales ⋮) y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla principal"</strong>.
-                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
                 </div>
               )}
             </div>
