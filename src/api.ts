@@ -79,11 +79,6 @@ export async function processSyncQueue() {
   
   for (const item of queue) {
     try {
-      // Timeout de 10 segundos por cada item para evitar bloqueos infinitos
-      const timeoutPromise = new Promise<{error: any}>((_, reject) => 
-        setTimeout(() => reject(new Error('SUPABASE_TIMEOUT_FALLO_RED')), 10000)
-      );
-
       let operation;
       if (item.action === 'INSERT') {
         operation = supabase.from(item.table).insert(item.payload);
@@ -97,8 +92,7 @@ export async function processSyncQueue() {
         throw new Error('Action not supported');
       }
 
-      const { error } = await Promise.race([operation, timeoutPromise]);
-      
+      const { error } = await operation;
       if (error) throw error;
       
       console.log(`✅ Sincronizado correcto: ${item.table} (${item.action})`);
@@ -138,19 +132,12 @@ export async function withOfflineSync<T>(
   }
 
   try {
-    // Elevado a 30 segundos para soportar redes de Venezuela (CANTV/Digitel) latencia extrema
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('SYNC_TIMEOUT')), 30000)
-    );
-    
-    const { data, error } = await Promise.race([operation(), timeoutPromise]) as any;
-    
-    if (error) throw error;
-    if (data) return mapKeys(data, toCamel) as T;
+    const res = await operation();
+    if (res.error) throw res.error;
+    if (res.data) return mapKeys(res.data, toCamel) as T;
     return optimisticData;
   } catch (err: any) {
     console.warn(`⚠️ Fallo en operación Supabase (${table}):`, err.message || err);
-    // En caso de CUALQUIER error (timeout, 403, 500), guardamos en cola y devolvemos datos optimistas
     if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
     return optimisticData;
   }
