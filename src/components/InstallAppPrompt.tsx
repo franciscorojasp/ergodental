@@ -19,47 +19,56 @@ export default function InstallAppPrompt() {
     // Solo mostrar las recomendaciones si el usuario ya inició sesión
     if (!user) return;
 
-    // Detectar si ya está instalada (Android PWA o iOS Home Screen)
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
-      return; // Ya está instalada empíricamente
-    }
-
-    // Si tenemos la marca de que fue instalada orgánicamente, no mostrar
-    if (localStorage.getItem('ergo_pwa_installed') === 'true') return;
-
-    const dismissed = localStorage.getItem('pwa_prompt_dismissed');
-    if (dismissed) return;
-
-    let nativeFired = false;
-
-    const handler = (e: any) => {
-      e.preventDefault();
-      nativeFired = true;
-      setDeferredPrompt(e);
-      setShowPrompt(true);
-    };
-
-    const installSuccessHandler = () => {
-      localStorage.setItem('ergo_pwa_installed', 'true');
-      setShowPrompt(false);
-      setShowAdvantages(false);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', installSuccessHandler);
-
-    // Si pasados 4 segundos no ha brincado el evento nativo (ej. iOS o navegadores de PC),
-    // mostramos directamente las ventajas y las instrucciones manuales.
-    const fallbackTimer = setTimeout(() => {
-      if (!nativeFired) {
-        setShowAdvantages(true);
+    const checkInstallation = async () => {
+      // 1. Detectar si ya está instalada empíricamente (PWA Standalone o Safari Home)
+      if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
+        return; 
       }
-    }, 4000);
 
+      // 2. Detectar instalación activa usando Chrome Native API para PWAs (Si está en manifest.json)
+      if ('getInstalledRelatedApps' in navigator) {
+        try {
+          const relatedApps = await (navigator as any).getInstalledRelatedApps();
+          if (relatedApps && relatedApps.length > 0) {
+            localStorage.setItem('ergo_pwa_installed', 'true');
+            return;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      // 3. Marca orgánica interna 
+      if (localStorage.getItem('ergo_pwa_installed') === 'true') return;
+
+      // 4. Marca de rechazo del usuario
+      const dismissed = localStorage.getItem('pwa_prompt_dismissed');
+      if (dismissed) return;
+
+      const handler = (e: any) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setShowPrompt(true); // Solo mostrar el prompt "Instalar Ahora" si Chrome nos invita activamente a hacerlo
+      };
+
+      const installSuccessHandler = () => {
+        localStorage.setItem('ergo_pwa_installed', 'true');
+        setShowPrompt(false);
+        setShowAdvantages(false);
+      };
+
+      window.addEventListener('beforeinstallprompt', handler);
+      window.addEventListener('appinstalled', installSuccessHandler);
+
+      // Limpieza
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+        window.removeEventListener('appinstalled', installSuccessHandler);
+      };
+    };
+
+    const cleanupPromise = checkInstallation();
+    
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', installSuccessHandler);
-      clearTimeout(fallbackTimer);
+      cleanupPromise.then(cleanup => cleanup && cleanup());
     };
   }, []);
 
@@ -70,9 +79,9 @@ export default function InstallAppPrompt() {
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
         setShowPrompt(false);
+        localStorage.setItem('ergo_pwa_installed', 'true');
       }
     } else {
-      // Si no hay native prompt, significa que estamos usando el fallback Modal.
       setShowPrompt(false); 
       setShowAdvantages(true);
     }

@@ -13,5 +13,11 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://ergodental.vercel.app/manifest.json"
+    }
   ]
 }
