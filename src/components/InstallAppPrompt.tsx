@@ -136,17 +136,38 @@ export default function InstallAppPrompt() {
               ))}
             </div>
             <div className="modal-footer" style={{ flexDirection: 'column' }}>
-              {isIOS() ? (
-                <div style={{ padding: '10px', background: 'var(--primary-dim)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center' }}>
-                  <strong>🍎 En iPhone/iPad:</strong> Toca el ícono de "Compartir" (cuadradito con flecha) y selecciona <strong>"Agregar a inicio"</strong>.
-                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'10px' }}>Entendido</button>
+              {deferredPrompt ? (
+                <div style={{ textAlign: 'center', width: '100%' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '10px' }}>Tu dispositivo <strong>Android / PC</strong> es compatible con instalación rápida.</p>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={async () => {
+                      deferredPrompt.prompt();
+                      const { outcome } = await deferredPrompt.userChoice;
+                      if (outcome === 'accepted') {
+                        setDeferredPrompt(null);
+                        setShowAdvantages(false);
+                      }
+                    }} 
+                    style={{ width:'100%', fontSize: '1.1rem', padding: '12px' }}
+                  >
+                    🚀 Instalar Automáticamente
+                  </button>
+                  <button className="btn btn-ghost" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'8px' }}>Cerrar</button>
                 </div>
-              ) : deferredPrompt ? (
-                <button className="btn btn-primary" onClick={() => { setShowAdvantages(false); setShowPrompt(true); }} style={{ width:'100%' }}>Entendido, mostrar instalador</button>
+              ) : isIOS() ? (
+                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '12px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🍎</div>
+                  <strong>Instalación manual requerida en iPhone/iPad:</strong><br/><br/>
+                  Por restricciones de Apple, toca el ícono de "Compartir" (el cuadradito con la flecha hacia arriba) en la barra de Safari y luego selecciona <strong>"Agregar a inicio" ➕</strong>.
+                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
+                </div>
               ) : (
-                <div style={{ padding: '10px', background: 'var(--primary-dim)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center' }}>
-                  <strong>🖥️ En tu navegador:</strong> Ve al menú opciones (tres puntos) y haz clic en <strong>"Instalar aplicación"</strong> o en el ícono ➕ de la barra de direcciones.
-                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'10px' }}>Entendido</button>
+                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '12px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🤖 💻</div>
+                  <strong>Instalación manual en Android o PC:</strong><br/><br/>
+                  Abre el menú de opciones de tu navegador (los tres puntos verticales ⋮) y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla principal"</strong>.
+                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
                 </div>
               )}
             </div>
