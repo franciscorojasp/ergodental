@@ -63,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Helper para procesar la sesión y el perfil
     const handleSession = async (session: any) => {
       if (!session?.user) {
         const saved = localStorage.getItem('ergo_user');
@@ -103,11 +102,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           setUser(u);
           localStorage.removeItem('ergo_user');
-        } else if (error) {
-          console.error("Error fetching profile inside handleSession:", error);
+        } else {
+          console.error("No profile found or error fetching profile inside handleSession:", error || 'User lacks profile record');
+          setUser(null); // Evitar quedarse pegado sin profile
         }
       } catch (e) {
         console.error("Critical error in handleSession:", e);
+        setUser(null);
+      } finally {
+        setLoading(false); // Siempre garantizamos quitar loading tras el fetch
       }
     };
 
