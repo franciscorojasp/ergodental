@@ -21,8 +21,11 @@ export default function InstallAppPrompt() {
 
     // Detectar si ya está instalada (Android PWA o iOS Home Screen)
     if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
-      return; // Ya está instalada, no hacer nada
+      return; // Ya está instalada empíricamente
     }
+
+    // Si tenemos la marca de que fue instalada orgánicamente, no mostrar
+    if (localStorage.getItem('ergo_pwa_installed') === 'true') return;
 
     const dismissed = localStorage.getItem('pwa_prompt_dismissed');
     if (dismissed) return;
@@ -36,7 +39,14 @@ export default function InstallAppPrompt() {
       setShowPrompt(true);
     };
 
+    const installSuccessHandler = () => {
+      localStorage.setItem('ergo_pwa_installed', 'true');
+      setShowPrompt(false);
+      setShowAdvantages(false);
+    };
+
     window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', installSuccessHandler);
 
     // Si pasados 4 segundos no ha brincado el evento nativo (ej. iOS o navegadores de PC),
     // mostramos directamente las ventajas y las instrucciones manuales.
@@ -48,6 +58,7 @@ export default function InstallAppPrompt() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', installSuccessHandler);
       clearTimeout(fallbackTimer);
     };
   }, []);
