@@ -2,7 +2,7 @@
 // Capa de acceso a datos.
 import { supabase, IS_SUPABASE_CONNECTED } from './lib/supabase';
 
-export const IS_DEMO_EMAILS = ['admin@ergodental.com', 'doctor@ergodental.com', 'asistente@ergodental.com', 'recepcion@ergodental.com', 'pro@ergodental.com'];
+export const IS_DEMO_EMAILS = ['demo@ergodental.com']; // Only use a specific non-production email for demo
 
 // Helper para detectar si estamos en modo Demo (por falta de conexión o por usuario Demo actualmente guardado)
 export const isDemoSession = () => {
@@ -11,7 +11,7 @@ export const isDemoSession = () => {
   if (saved) {
     try {
       const u = JSON.parse(saved);
-      return IS_DEMO_EMAILS.includes(u.email);
+      return u.email === 'demo@ergodental.com';
     } catch { return false; }
   }
   return false;
