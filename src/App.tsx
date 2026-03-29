@@ -33,6 +33,29 @@ import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
 
+function AppLoader({ subtitle = "Cargando..." }: { subtitle?: string }) {
+  return (
+    <div style={{ 
+      position: 'fixed', inset: 0, zIndex: 99999, 
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+      background: 'var(--bg-primary)', color: 'var(--text-primary)'
+    }}>
+      <div style={{
+        width: 100, height: 100, borderRadius: 24, 
+        background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+        boxShadow: '0 20px 50px rgba(0,198,255,0.4)',
+        animation: 'pulse 2.5s infinite',
+        overflow: 'hidden',
+        padding: '2px' // para dar un pequeño borde al gradiente
+      }}>
+        <img src="/logo.png" alt="Logo Ergodental" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '22px' }} />
+      </div>
+      <h2 style={{ marginTop: '28px', fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.5px', textTransform: 'uppercase' }}>ErgodentalVE</h2>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '10px', letterSpacing: '0.5px' }}>{subtitle}</p>
+    </div>
+  );
+}
+
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
@@ -58,23 +81,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
-  if (loading) return (
-    <div style={{ 
-      position: 'fixed', inset: 0, zIndex: 99999, 
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-      background: 'var(--bg-primary)', color: 'var(--text-primary)'
-    }}>
-      <div style={{
-        width: 80, height: 80, borderRadius: 20, 
-        background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '2.5rem', boxShadow: '0 20px 40px rgba(0,198,255,0.4)',
-        animation: 'pulse 2s infinite'
-      }}>🦷</div>
-      <h2 style={{ marginTop: '24px', fontWeight: 800, letterSpacing: '-0.5px' }}>Ergodental</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>Restaurando sesión segura...</p>
-    </div>
-  );
+  if (loading) return <AppLoader subtitle="Restaurando sesión segura..." />;
   if (!user) return <Navigate to="/login" replace />;
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -133,14 +140,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
-  if (loading) return (
-    <div style={{ 
-      position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', 
-      background: 'var(--bg-primary)'
-    }}>
-      <div style={{ width: 60, height: 60, borderRadius: 16, background: 'var(--primary)', animation: 'pulse 1.5s infinite' }} />
-    </div>
-  );
+  if (loading) return <AppLoader subtitle="Iniciando aplicación..." />;
   if (!user) return <Navigate to="/login" replace />;
   const home = user.rol ? ROL_HOME[user.rol] : '/login';
   return <Navigate to={home || '/login'} replace />;
