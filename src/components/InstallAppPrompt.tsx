@@ -1,50 +1,80 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function InstallAppPrompt() {
+  const { user } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [showAdvantages, setShowAdvantages] = useState(false);
 
+  // Helper para detectar si estamos en iOS
+  const isIOS = () => {
+    if (typeof window === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
   useEffect(() => {
+    // Solo mostrar las recomendaciones si el usuario ya inició sesión
+    if (!user) return;
+
+    // Detectar si ya está instalada (Android PWA o iOS Home Screen)
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
+      return; // Ya está instalada, no hacer nada
+    }
+
+    const dismissed = localStorage.getItem('pwa_prompt_dismissed');
+    if (dismissed) return;
+
+    let nativeFired = false;
+
     const handler = (e: any) => {
       e.preventDefault();
+      nativeFired = true;
       setDeferredPrompt(e);
-      
-      // Mostrar solo si no se ha descartado antes en esta sesión
-      const dismissed = localStorage.getItem('pwa_prompt_dismissed');
-      if (!dismissed) {
-         setShowPrompt(true);
-      }
+      setShowPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // Detectar si ya está instalada
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowPrompt(false);
-    }
+    // Si pasados 4 segundos no ha brincado el evento nativo (ej. iOS o navegadores de PC),
+    // mostramos directamente las ventajas y las instrucciones manuales.
+    const fallbackTimer = setTimeout(() => {
+      if (!nativeFired) {
+        setShowAdvantages(true);
+      }
+    }, 4000);
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setShowPrompt(false);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowPrompt(false);
+      }
+    } else {
+      // Si no hay native prompt, significa que estamos usando el fallback Modal.
+      setShowPrompt(false); 
+      setShowAdvantages(true);
     }
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    setShowAdvantages(true);
+    setShowAdvantages(false);
     localStorage.setItem('pwa_prompt_dismissed', 'true');
   };
 
   if (!showPrompt && !showAdvantages) return null;
+
 
   return (
     <AnimatePresence>
@@ -105,8 +135,20 @@ export default function InstallAppPrompt() {
                 </div>
               ))}
             </div>
-            <div className="modal-footer">
-              <button className="btn btn-primary" onClick={() => { setShowAdvantages(false); setShowPrompt(true); }} style={{ width:'100%' }}>Entendido, mostrar instalador</button>
+            <div className="modal-footer" style={{ flexDirection: 'column' }}>
+              {isIOS() ? (
+                <div style={{ padding: '10px', background: 'var(--primary-dim)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center' }}>
+                  <strong>🍎 En iPhone/iPad:</strong> Toca el ícono de "Compartir" (cuadradito con flecha) y selecciona <strong>"Agregar a inicio"</strong>.
+                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'10px' }}>Entendido</button>
+                </div>
+              ) : deferredPrompt ? (
+                <button className="btn btn-primary" onClick={() => { setShowAdvantages(false); setShowPrompt(true); }} style={{ width:'100%' }}>Entendido, mostrar instalador</button>
+              ) : (
+                <div style={{ padding: '10px', background: 'var(--primary-dim)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center' }}>
+                  <strong>🖥️ En tu navegador:</strong> Ve al menú opciones (tres puntos) y haz clic en <strong>"Instalar aplicación"</strong> o en el ícono ➕ de la barra de direcciones.
+                  <button className="btn btn-primary" onClick={() => setShowAdvantages(false)} style={{ width:'100%', marginTop:'10px' }}>Entendido</button>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
