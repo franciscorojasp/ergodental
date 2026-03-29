@@ -79,6 +79,33 @@ if (typeof window !== 'undefined') {
   window.addEventListener('online', processSyncQueue);
 }
 
+
+// Wrapper genérico para soporte Offline-First
+export async function withOfflineSync<T>(
+  operation: () => Promise<{ data: any, error: any }>,
+  table: string,
+  action: 'INSERT' | 'UPDATE' | 'DELETE',
+  payload: any,
+  optimisticData: T
+): Promise<T> {
+  const isTargetOffline = typeof window !== 'undefined' && !window.navigator.onLine;
+  if (isTargetOffline) {
+    saveToSyncQueue({ table, action, payload });
+    return optimisticData;
+  }
+  try {
+    const { data, error } = await operation();
+    if (error) throw error;
+    if (data) return mapKeys(data, toCamel) as T;
+    return optimisticData;
+  } catch (err: any) {
+    if (err.message === 'Failed to fetch' || (typeof window !== 'undefined' && !window.navigator.onLine)) {
+       saveToSyncQueue({ table, action, payload });
+       return optimisticData;
+    }
+    throw err;
+  }
+}
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type Rol = 'ADMIN' | 'DOCTOR' | 'ASISTENTE' | 'RECEPCION';
@@ -554,8 +581,13 @@ export async function updateLaboratorio(data: Partial<Laboratorio>) {
 
 export async function deleteLaboratorio(id: string) { 
   if (isDemoSession()) return;
-  const { error } = await supabase.from('laboratorios').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('laboratorios').delete().eq('id', id) as any,
+    'laboratorios',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
 
 // Auth
@@ -719,9 +751,13 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
-  const { data, error } = await supabase.from('pacientes').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Paciente;
+  return await withOfflineSync<Paciente>(
+    () => supabase.from('pacientes').insert(dbData).select().single(),
+    'pacientes',
+    'INSERT',
+    dbData,
+    { ...p, id: `pac${Date.now()}` } as unknown as Paciente
+  );
 }
 
 export async function updatePaciente(p: Partial<Paciente> & { id: string }): Promise<Paciente> {
@@ -732,9 +768,13 @@ export async function updatePaciente(p: Partial<Paciente> & { id: string }): Pro
   }
   const { id, ...rest } = p;
   const dbData = mapKeys(rest, toSnake);
-  const { data, error } = await supabase.from('pacientes').update(dbData).eq('id', id).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Paciente;
+  return await withOfflineSync<Paciente>(
+    () => supabase.from('pacientes').update(dbData).eq('id', id).select().single(),
+    'pacientes',
+    'UPDATE',
+    { ...dbData, id },
+    p as unknown as Paciente
+  );
 }
 
 export async function deletePaciente(id: string): Promise<void> {
@@ -743,8 +783,13 @@ export async function deletePaciente(id: string): Promise<void> {
     if (idx !== -1) DEMO_PACIENTES.splice(idx, 1);
     return;
   }
-  const { error } = await supabase.from('pacientes').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('pacientes').delete().eq('id', id) as any,
+    'pacientes',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
 
 // Personal
@@ -762,9 +807,13 @@ export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal>
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
-  const { data, error } = await supabase.from('personal').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Personal;
+  return await withOfflineSync<Personal>(
+    () => supabase.from('personal').insert(dbData).select().single(),
+    'personal',
+    'INSERT',
+    dbData,
+    { ...p, id: `per${Date.now()}` } as unknown as Personal
+  );
 }
 
 export async function updatePersonal(p: Partial<Personal> & { id: string }): Promise<Personal> {
@@ -775,9 +824,13 @@ export async function updatePersonal(p: Partial<Personal> & { id: string }): Pro
   }
   const { id, ...rest } = p;
   const dbData = mapKeys(rest, toSnake);
-  const { data, error } = await supabase.from('personal').update(dbData).eq('id', id).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Personal;
+  return await withOfflineSync<Personal>(
+    () => supabase.from('personal').update(dbData).eq('id', id).select().single(),
+    'personal',
+    'UPDATE',
+    { ...dbData, id },
+    p as unknown as Personal
+  );
 }
 
 export async function deletePersonal(id: string): Promise<void> {
@@ -786,8 +839,13 @@ export async function deletePersonal(id: string): Promise<void> {
     if (idx !== -1) DEMO_PERSONAL.splice(idx, 1);
     return;
   }
-  const { error } = await supabase.from('personal').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('personal').delete().eq('id', id) as any,
+    'personal',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
 
 // Citas
@@ -805,9 +863,13 @@ export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
     return nueva;
   }
   const dbData = mapKeys(c, toSnake);
-  const { data, error } = await supabase.from('citas').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Cita;
+  return await withOfflineSync<Cita>(
+    () => supabase.from('citas').insert(dbData).select().single(),
+    'citas',
+    'INSERT',
+    dbData,
+    { ...c, id: `cit${Date.now()}` } as unknown as Cita
+  );
 }
 
 export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cita> {
@@ -818,9 +880,13 @@ export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cit
   }
   const { id, ...rest } = c;
   const dbData = mapKeys(rest, toSnake);
-  const { data, error } = await supabase.from('citas').update(dbData).eq('id', id).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Cita;
+  return await withOfflineSync<Cita>(
+    () => supabase.from('citas').update(dbData).eq('id', id).select().single(),
+    'citas',
+    'UPDATE',
+    { ...dbData, id },
+    c as unknown as Cita
+  );
 }
 
 export async function deleteCita(id: string): Promise<void> {
@@ -829,8 +895,13 @@ export async function deleteCita(id: string): Promise<void> {
     if (idx !== -1) DEMO_CITAS.splice(idx, 1);
     return;
   }
-  const { error } = await supabase.from('citas').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('citas').delete().eq('id', id) as any,
+    'citas',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
 
 // Inventario
@@ -848,9 +919,13 @@ export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Pr
     return nuevo;
   }
   const dbData = mapKeys(item, toSnake);
-  const { data, error } = await supabase.from('inventario').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as ItemInventario;
+  return await withOfflineSync<ItemInventario>(
+    () => supabase.from('inventario').insert(dbData).select().single(),
+    'inventario',
+    'INSERT',
+    dbData,
+    { ...item, id: `inv${Date.now()}` } as unknown as ItemInventario
+  );
 }
 
 // Finanzas
@@ -868,9 +943,13 @@ export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
-  const { data, error } = await supabase.from('pagos').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Pago;
+  return await withOfflineSync<Pago>(
+    () => supabase.from('pagos').insert(dbData).select().single(),
+    'pagos',
+    'INSERT',
+    dbData,
+    { ...p, id: `pag${Date.now()}` } as unknown as Pago
+  );
 }
 
 export async function getEgresos(): Promise<Egreso[]> {
@@ -887,9 +966,13 @@ export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
     return nuevo;
   }
   const dbData = mapKeys(e, toSnake);
-  const { data, error } = await supabase.from('egresos').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Egreso;
+  return await withOfflineSync<Egreso>(
+    () => supabase.from('egresos').insert(dbData).select().single(),
+    'egresos',
+    'INSERT',
+    dbData,
+    { ...e, id: `egr${Date.now()}` } as unknown as Egreso
+  );
 }
 
 export async function getProveedores(): Promise<Proveedor[]> {
@@ -906,9 +989,13 @@ export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveed
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
-  const { data, error } = await supabase.from('proveedores').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Proveedor;
+  return await withOfflineSync<Proveedor>(
+    () => supabase.from('proveedores').insert(dbData).select().single(),
+    'proveedores',
+    'INSERT',
+    dbData,
+    { ...p, id: `pro${Date.now()}` } as unknown as Proveedor
+  );
 }
 
 export async function updateClinica(c: Clinica): Promise<Clinica> {
@@ -919,9 +1006,13 @@ export async function updateClinica(c: Clinica): Promise<Clinica> {
   }
   const { id, ...rest } = c;
   const dbData = mapKeys(rest, toSnake);
-  const { data, error } = await supabase.from('clinicas').update(dbData).eq('id', id).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Clinica;
+  return await withOfflineSync<Clinica>(
+    () => supabase.from('clinicas').update(dbData).eq('id', id).select().single(),
+    'clinicas',
+    'UPDATE',
+    { ...dbData, id },
+    c as unknown as Clinica
+  );
 }
 
 // Tasa del Día
@@ -1005,9 +1096,13 @@ export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Pre
     return nuevo;
   }
   const dbData = mapKeys(p, toSnake);
-  const { data, error } = await supabase.from('presupuestos').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Presupuesto;
+  return await withOfflineSync<Presupuesto>(
+    () => supabase.from('presupuestos').insert(dbData).select().single(),
+    'presupuestos',
+    'INSERT',
+    dbData,
+    { ...p, id: `pre${Date.now()}` } as unknown as Presupuesto
+  );
 }
 
 export async function updatePresupuesto(data: Partial<Presupuesto> & { id: string }): Promise<void> {
@@ -1028,8 +1123,13 @@ export async function deletePresupuesto(id: string): Promise<void> {
     if (idx !== -1) DEMO_PRESUPUESTOS.splice(idx, 1);
     return;
   }
-  const { error } = await supabase.from('presupuestos').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('presupuestos').delete().eq('id', id) as any,
+    'presupuestos',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
 
 // Recibos
@@ -1047,9 +1147,13 @@ export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
     return nuevo;
   }
   const dbData = mapKeys(r, toSnake);
-  const { data, error } = await supabase.from('recibos').insert(dbData).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Recibo;
+  return await withOfflineSync<Recibo>(
+    () => supabase.from('recibos').insert(dbData).select().single(),
+    'recibos',
+    'INSERT',
+    dbData,
+    { ...r, id: `rec${Date.now()}` } as unknown as Recibo
+  );
 }
 
 export async function deleteRecibo(id: string): Promise<void> {
@@ -1058,8 +1162,13 @@ export async function deleteRecibo(id: string): Promise<void> {
     if (idx !== -1) DEMO_RECIBOS.splice(idx, 1);
     return;
   }
-  const { error } = await supabase.from('recibos').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('recibos').delete().eq('id', id) as any,
+    'recibos',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
 
 // Odontogramas
@@ -1159,13 +1268,22 @@ export async function updateProfile(p: Partial<Usuario> & { id: string }): Promi
   }
   const { id, ...rest } = p;
   const dbData = mapKeys(rest, toSnake);
-  const { data, error } = await supabase.from('profiles').update(dbData).eq('id', id).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Usuario;
+  return await withOfflineSync<Usuario>(
+    () => supabase.from('profiles').update(dbData).eq('id', id).select().single(),
+    'profiles',
+    'UPDATE',
+    { ...dbData, id },
+    p as unknown as Usuario
+  );
 }
 
 export async function deleteProfile(id: string): Promise<void> {
   if (isDemoSession()) return;
-  const { error } = await supabase.from('profiles').delete().eq('id', id);
-  if (error) throw error;
+  await withOfflineSync<void>(
+    () => supabase.from('profiles').delete().eq('id', id) as any,
+    'profiles',
+    'DELETE',
+    { id: id },
+    undefined as void
+  );
 }
