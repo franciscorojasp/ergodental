@@ -644,6 +644,10 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     if (user) return user;
   }
 
+  if (typeof window !== 'undefined' && !window.navigator.onLine) {
+    throw new Error('No tienes conexión a internet activa para iniciar sesión. Revisa tu red.');
+  }
+
   // Si no hay conexión a Supabase y no es una de las credenciales demo correctas arriba
   if (!IS_SUPABASE_CONNECTED) {
     throw new Error('Credenciales incorrectas o sistema fuera de línea');
@@ -654,9 +658,11 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     throw new Error('Credenciales incorrectas (Cuenta Demo)');
   }
 
-  // Agregamos un timeout a la autenticación para evitar que se cuelgue infinitamente
+  // Agregamos un timeout a la autenticación (15 segundos para conexiones inestables)
   const loginPromise = supabase.auth.signInWithPassword({ email, password });
-  const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Tiempo de espera agotado (Supabase)')), 8000));
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Conexión inestable o lenta. Revisa tu internet e intenta de nuevo.')), 15000)
+  );
   
   const { data: authData, error: authError } = await Promise.race([loginPromise, timeoutPromise]) as any;
   
