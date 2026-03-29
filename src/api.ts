@@ -20,6 +20,65 @@ export const isDemoSession = () => {
 // Mantenemos la constante para compatibilidad, pero ahora es dinámica
 export const IS_DEMO_MODE = !IS_SUPABASE_CONNECTED;
 
+// ─── MOTOR DE SINCRONIZACIÓN OFFLINE (SYNC QUEUE) ─────────────────────────
+
+export interface SyncAction {
+  id: string;
+  table: string;
+  action: 'INSERT' | 'UPDATE' | 'DELETE';
+  payload: any;
+  timestamp: number;
+}
+
+export function saveToSyncQueue(action: Omit<SyncAction, 'id' | 'timestamp'>) {
+  if (typeof window === 'undefined') return;
+  const queue: SyncAction[] = JSON.parse(localStorage.getItem('ergo_sync_queue') || '[]');
+  queue.push({
+    ...action,
+    id: `sync_${Date.now()}_${Math.random().toString(36).substring(2,9)}`,
+    timestamp: Date.now()
+  });
+  localStorage.setItem('ergo_sync_queue', JSON.stringify(queue));
+  console.log('📦 Guardado en Cola Offline:', action.table);
+}
+
+export async function processSyncQueue() {
+  if (!IS_SUPABASE_CONNECTED || typeof window === 'undefined' || !navigator.onLine) return;
+  
+  const queue: SyncAction[] = JSON.parse(localStorage.getItem('ergo_sync_queue') || '[]');
+  if (queue.length === 0) return;
+
+  console.log(`🔄 Procesando ${queue.length} elementos de la cola de sincronización...`);
+  const remainingQueue: SyncAction[] = [];
+  
+  for (const item of queue) {
+    try {
+      if (item.action === 'INSERT') {
+        const { error } = await supabase.from(item.table).insert(item.payload);
+        if (error) throw error;
+      } else if (item.action === 'UPDATE') {
+        const { id, ...rest } = item.payload;
+        const { error } = await supabase.from(item.table).update(rest).eq('id', id);
+        if (error) throw error;
+      } else if (item.action === 'DELETE') {
+        const { error } = await supabase.from(item.table).delete().eq('id', item.payload.id);
+        if (error) throw error;
+      }
+      console.log(`✅ Sincronizado correcto: ${item.table} (${item.action})`);
+    } catch (err) {
+      console.error(`❌ Error sincronizando item en ${item.table}:`, err);
+      remainingQueue.push(item);
+    }
+  }
+  
+  localStorage.setItem('ergo_sync_queue', JSON.stringify(remainingQueue));
+}
+
+// Escuchar cuando vuelva el internet para disparar la sincronización
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', processSyncQueue);
+}
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type Rol = 'ADMIN' | 'DOCTOR' | 'ASISTENTE' | 'RECEPCION';
@@ -873,6 +932,20 @@ export async function getTasaHoy(): Promise<number | null> {
   return data ? data.monto : null;
 }
 
+export async function getHistorialTasasDB(): Promise<any[]> {
+  if (isDemoSession()) return [];
+  const { data, error } = await supabase.from('tasa_bcv')
+    .select('monto, fecha, usuario')
+    .order('fecha', { ascending: false })
+    .limit(90);
+  
+  if (error) {
+    console.error("Error obteniendo historial de tasas desde DB:", error);
+    return [];
+  }
+  return data;
+}
+
 export interface AuditoriaLog {
   usuario: string;
   accion: string;
@@ -883,13 +956,31 @@ export interface AuditoriaLog {
 export async function logAuditoria(log: AuditoriaLog): Promise<void> {
   if (isDemoSession()) return;
   const dbData = mapKeys(log, toSnake);
-  await supabase.from('auditoria_logs').insert(dbData);
+  try {
+    if (!navigator.onLine) throw new Error('Offline');
+    await supabase.from('auditoria_logs').insert(dbData);
+  } catch(err) {
+    saveToSyncQueue({ table: 'auditoria_logs', action: 'INSERT', payload: dbData });
+  }
 }
 
 export async function saveTasaHoy(monto: number, usuario?: string): Promise<void> {
   if (isDemoSession()) return;
-  const { error } = await supabase.from('tasa_bcv').insert({ monto, usuario });
-  if (error) throw error;
+  
+  const payload = { monto, usuario };
+  try {
+    if (!navigator.onLine) throw new Error('Offline');
+    const { error } = await supabase.from('tasa_bcv').insert(payload);
+    if (error) throw error;
+  } catch (err) {
+    console.warn("Fallo al guardar tasa en DB (quizás sin internet), guardando en cola offline...");
+    saveToSyncQueue({
+      table: 'tasa_bcv',
+      action: 'INSERT',
+      payload
+    });
+  }
+
   if (usuario) {
     await logAuditoria({
       usuario,

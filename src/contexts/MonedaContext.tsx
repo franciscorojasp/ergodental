@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getTasaHoy, saveTasaHoy } from '../api';
+import { getTasaHoy, saveTasaHoy, getHistorialTasasDB, processSyncQueue } from '../api';
 import { useAuth } from './AuthContext';
 
 export type Moneda = 'USD' | 'BS';
@@ -7,8 +7,9 @@ export type Moneda = 'USD' | 'BS';
 export interface TasaDia {
   fecha: string;   // 'YYYY-MM-DD'
   tasa: number;    // Bs por 1 USD
-  fuente: 'Manual' | 'Caché';
+  fuente: 'Manual' | 'Caché' | 'Servidor';
 }
+
 
 interface MonedaCtx {
   moneda: Moneda;
@@ -100,16 +101,50 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setLoading(true);
-    getTasaHoy().then(tasaGlobal => {
-      if (tasaGlobal && tasaGlobal > 0) {
-        setTasaBCV(tasaGlobal);
-        localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: tasaGlobal, fecha: hoy }));
+
+    const syncTasaData = async () => {
+      // 1. Intentar subir cualquier tasa local pendiente al recuperar conexión
+      if (navigator.onLine) {
+         await processSyncQueue();
       }
-    }).catch(err => {
-      console.error("Error al obtener tasa global:", err);
-    }).finally(() => {
-      setLoading(false);
-    });
+
+      // 2. Traer el historial completo centralizado desde Supabase
+      try {
+        const historialDB = await getHistorialTasasDB();
+        if (historialDB && historialDB.length > 0) {
+          // Transformar formato DB al formato que espera la app de Frontend
+          const parsedHistory: TasaDia[] = historialDB.map((t: any) => ({
+             fecha: new Date(t.fecha).toISOString().split('T')[0],
+             tasa: t.monto,
+             fuente: 'Servidor'
+          }));
+          
+          setHistorial(parsedHistory);
+          localStorage.setItem(STORAGE_HIST, JSON.stringify(parsedHistory));
+
+          // Si la primera tasa del historial es de HOY, la aplicamos directamente
+          // para no obligar al usuario a ingresarla nuevamente
+          const histHoy = parsedHistory[0];
+          if (histHoy.fecha === hoy && histHoy.tasa > 0) {
+            setTasaBCV(histHoy.tasa);
+            localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: histHoy.tasa, fecha: hoy }));
+          }
+        } else {
+          // Fallback legacy (si getHistorialTasas falla o hay error)
+          const tasaGlobal = await getTasaHoy();
+          if (tasaGlobal && tasaGlobal > 0) {
+            setTasaBCV(tasaGlobal);
+            localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: tasaGlobal, fecha: hoy }));
+          }
+        }
+      } catch (err) {
+        console.error("Error sincronizando tasas BCV:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    syncTasaData();
   }, [user, hoy]);
 
   /** Formatea un monto en USD → moneda activa */
