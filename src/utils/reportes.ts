@@ -114,7 +114,7 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
       correlativo = await getGlobalCorrelativo();
     } catch (e) {
       console.warn('Error obteniendo correlativo real, se usará identificador temporal:', e);
-      correlativo = `ERR-${Math.floor(Date.now() / 1000)}`;
+      correlativo = `TMP-${Math.floor(Date.now() / 1000)}`;
     }
 
     const tblStartY = addHeader(doc, config, correlativo);
