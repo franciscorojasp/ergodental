@@ -13,6 +13,7 @@ const NAV: { to: string; icon: string; label: string; modulo: Modulo }[] = [
   { to: '/pacientes',   icon: '🦷', label: 'Pacientes',   modulo: 'pacientes'   },
   { to: '/citas',       icon: '📅', label: 'Citas',       modulo: 'citas'       },
   { to: '/personal',    icon: '👨‍⚕️', label: 'Personal',    modulo: 'personal'    },
+  { to: '/usuarios',    icon: '🔐', label: 'Gestión Cuentas',modulo: 'usuarios'    },
   { to: '/odontograma', icon: '🗺️', label: 'Odontograma', modulo: 'odontograma' },
   { to: '/finanzas',    icon: '💰', label: 'Finanzas',    modulo: 'finanzas'    },
   { to: '/presupuestos', icon: '🛠️', label: 'Presupuestos',modulo: 'presupuestos' },

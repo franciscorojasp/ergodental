@@ -26,6 +26,8 @@ import Agenda from './pages/Agenda';
 import Presupuestos from './pages/Presupuestos';
 import Recibos from './pages/Recibos';
 import Laboratorios from './pages/Laboratorios';
+import Usuarios from './pages/Usuarios';
+import ResetPassword from './pages/ResetPassword';
 import Desarrolladores from './pages/Desarrolladores';
 import { ROL_HOME } from './permissions';
 
@@ -181,6 +183,10 @@ export default function App() {
                 <Route path="/configuracion" element={
                   <ProtectedLayout><RoleGuard modulo="configuracion" redirigir><ConfiguracionClinica /></RoleGuard></ProtectedLayout>
                 } />
+                <Route path="/usuarios" element={
+                  <ProtectedLayout><RoleGuard modulo="usuarios" redirigir><Usuarios /></RoleGuard></ProtectedLayout>
+                } />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/soporte" element={
                   <ProtectedLayout><Desarrolladores /></ProtectedLayout>
                 } />

@@ -1052,4 +1052,29 @@ export async function resendRegistrationCode(email: string) {
   });
 }
 
+// --- Gestión de Usuarios (Aprobación y Roles) ---
+export async function getProfiles(): Promise<Usuario[]> {
+  if (isDemoSession()) return DEMO_USUARIOS;
+  const { data, error } = await supabase.from('profiles').select('*').order('email');
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Usuario[];
+}
 
+export async function updateProfile(p: Partial<Usuario> & { id: string }): Promise<Usuario> {
+  if (isDemoSession()) {
+    const idx = DEMO_USUARIOS.findIndex(u => u.id === p.id);
+    if (idx !== -1) DEMO_USUARIOS[idx] = { ...DEMO_USUARIOS[idx], ...p };
+    return DEMO_USUARIOS[idx];
+  }
+  const { id, ...rest } = p;
+  const dbData = mapKeys(rest, toSnake);
+  const { data, error } = await supabase.from('profiles').update(dbData).eq('id', id).select().single();
+  if (error) throw error;
+  return mapKeys(data, toCamel) as Usuario;
+}
+
+export async function deleteProfile(id: string): Promise<void> {
+  if (isDemoSession()) return;
+  const { error } = await supabase.from('profiles').delete().eq('id', id);
+  if (error) throw error;
+}

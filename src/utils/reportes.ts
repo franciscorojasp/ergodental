@@ -101,16 +101,37 @@ function addFooter(doc: jsPDF) {
 
 export async function generarReportePDF(config: ConfigReporte): Promise<void> {
   try {
+    // 1. Verificación defensiva de la configuración
+    if (!config || !config.titulo || !config.columnas) {
+      throw new Error('Configuración de reporte incompleto o inválida.');
+    }
+
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-    const correlativo = await getGlobalCorrelativo();
+    
+    // 2. Obtención segura del correlativo
+    let correlativo = 'SN-000000';
+    try {
+      correlativo = await getGlobalCorrelativo();
+    } catch (e) {
+      console.warn('Error obteniendo correlativo real, se usará identificador temporal:', e);
+      correlativo = `ERR-${Math.floor(Date.now() / 1000)}`;
+    }
 
     const tblStartY = addHeader(doc, config, correlativo);
 
-    // Tabla principal de datos
+    // 3. Normalización defensiva de datos (evita errores si hay valores nulos o indefinidos)
+    const safeRows = (config.filas || []).map(row => 
+      (row || []).map(cell => {
+        if (cell === null || cell === undefined) return '';
+        return String(cell);
+      })
+    );
+
+    // 4. Generación de tabla con jsPDF-AutoTable
     autoTable(doc, {
       startY: tblStartY,
       head: [config.columnas],
-      body: config.filas.map(f => f.map(String)),
+      body: safeRows,
       theme: 'grid',
       headStyles: {
         fillColor: BRAND_COLOR,
@@ -125,62 +146,85 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
       margin: { left: 14, right: 14 },
       tableLineColor: [210, 220, 235],
       tableLineWidth: 0.2,
+      didDrawPage: () => {
+        // En cada página nueva, el footer se agrega al final
+      }
     });
 
-    // Bloque de totales
-    if (config.totales?.length) {
+    // 5. Bloque de totales con comprobación de existencia
+    if (config.totales && config.totales.length > 0) {
       const lastTable = (doc as any).lastAutoTable;
       const finalY = (lastTable ? lastTable.finalY : tblStartY + 20) + 6;
       const W = doc.internal.pageSize.getWidth();
 
       doc.setFillColor(...BRAND_COLOR);
       
-      // Safety check for roundedRect as some older jsPDF versions might not have it
+      const boxWidth = 76;
+      const boxHeight = config.totales.length * 7 + 8;
+      
+      // Comprobación de método roundedRect
       if (typeof (doc as any).roundedRect === 'function') {
-        (doc as any).roundedRect(W - 90, finalY, 76, config.totales.length * 7 + 8, 2, 2, 'F');
+        (doc as any).roundedRect(W - 90, finalY, boxWidth, boxHeight, 2, 2, 'F');
       } else {
-        doc.rect(W - 90, finalY, 76, config.totales.length * 7 + 8, 'F');
+        doc.rect(W - 90, finalY, boxWidth, boxHeight, 'F');
       }
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
       config.totales.forEach((t, i) => {
         doc.setFont('helvetica', 'normal');
-        doc.text(t.label, W - 87, finalY + 8 + i * 7);
+        doc.text(t.label || '', W - 87, finalY + 8 + i * 7);
         doc.setFont('helvetica', 'bold');
-        doc.text(String(t.valor), W - 17, finalY + 8 + i * 7, { align: 'right' });
+        doc.text(String(t.valor || '0.00'), W - 17, finalY + 8 + i * 7, { align: 'right' });
       });
     }
 
-    // Notas al pie del contenido
-    if (config.notas?.length) {
+    // 6. Notas al pie del contenido
+    if (config.notas && config.notas.length > 0) {
       const lastTable = (doc as any).lastAutoTable;
-      const finalY = lastTable ? lastTable.finalY : tblStartY + 20;
+      const finalY = (lastTable ? lastTable.finalY : tblStartY + 20);
       const noteY = finalY + (config.totales ? config.totales.length * 7 + 18 : 10);
-      doc.setFontSize(7.5);
-      doc.setTextColor(120, 120, 120);
-      doc.setFont('helvetica', 'italic');
-      config.notas.forEach((n, i) => doc.text(`* ${n}`, 14, noteY + i * 5));
+      
+      // No escribir fuera de la página
+      if (noteY < 260) {
+        doc.setFontSize(7.5);
+        doc.setTextColor(120, 120, 120);
+        doc.setFont('helvetica', 'italic');
+        config.notas.forEach((n, i) => {
+          if (n) doc.text(`* ${n}`, 14, noteY + i * 5);
+        });
+      }
     }
 
     addFooter(doc);
 
+    // 7. Guardado y Manejo de Errores de descarga
     const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}_${new Date().toISOString().slice(0,10)}.pdf`;
-    doc.save(filename);
     
-    // Registrar auditoría de seguridad
     try {
-      await logAuditoria({
-        usuario: config.usuario || 'Sistema',
-        accion: 'GENERACIÓN DOCUMENTO PDF',
-        detalle: `Documento de tipo: ${config.titulo}`,
-        documentoId: correlativo
-      });
-    } catch (e) {}
+      doc.save(filename);
+    } catch (saveError) {
+      console.warn('Error en doc.save(), intentando método alternativo vía Blob:', saveError);
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+    }
+    
+    // 8. Registro de auditoría (SILENCIOSO - no debe romper la experiencia si falla la red)
+    logAuditoria({
+      usuario: config.usuario || 'Sistema',
+      accion: 'GENERACIÓN DOCUMENTO PDF',
+      detalle: `Documento de tipo: ${config.titulo}`,
+      documentoId: correlativo
+    }).catch(err => console.debug('Auditoría omitida (posible modo offline):', err));
     
   } catch (error) {
-    console.error('Error generando reporte PDF:', error);
-    alert('Ocurrió un error al generar el PDF. Por favor verifique los datos o intente nuevamente.');
+    console.error('Error durante la generación del reporte PDF:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Error desconocido de sistema';
+    alert(`No se pudo completar el reporte: ${errorMsg}\nRecomendación: Verifique sus filtros e intente nuevamente.`);
   }
 }
 
