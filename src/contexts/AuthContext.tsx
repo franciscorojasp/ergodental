@@ -77,6 +77,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .maybeSingle();
 
+        // BYPASS: Si es Super Admin, garantizamos el acceso incluso si no hay perfil creado
+        const SUPER_ADMINS = [
+          'francisco.rojasp@gmail.com', 
+          'blascojennifer47@gmail.com', 
+          'vera.hugo712@gmail.com', 
+          'carlosalejandroverablasco183@gmail.com'
+        ];
+        
+        const isSuperAdmin = session.user.email && SUPER_ADMINS.includes(session.user.email.toLowerCase());
+
         if (!error && profile) {
           const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
           const mapKeys = (obj: any): any => {
@@ -88,20 +98,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
 
           const u = mapKeys(profile) as Usuario;
-          
-          const SUPER_ADMINS = [
-            'francisco.rojasp@gmail.com', 
-            'blascojennifer47@gmail.com', 
-            'vera.hugo712@gmail.com', 
-            'carlosalejandroverablasco183@gmail.com'
-          ];
-
-          if (session.user.email && SUPER_ADMINS.includes(session.user.email.toLowerCase())) {
-            u.rol = 'ADMIN';
-          }
+          if (isSuperAdmin) u.rol = 'ADMIN';
 
           setUser(u);
           localStorage.removeItem('ergo_user');
+        } else if (isSuperAdmin) {
+          // Fallback seguro en recargas (F5) para admins sin perfil real en tabla
+          setUser({
+            id: session.user.id,
+            nombre: session.user.email.split('@')[0],
+            email: session.user.email,
+            rol: 'ADMIN',
+            activo: true
+          });
         } else {
           console.error("No profile found or error fetching profile inside handleSession:", error || 'User lacks profile record');
           setUser(null); // Evitar quedarse pegado sin profile
