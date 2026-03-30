@@ -103,6 +103,16 @@ export async function processSyncQueue() {
   
   for (const item of queue) {
     try {
+      // ─── REPARADOR DE DATOS (MIGRACIÓN v1.3 DE EMERGENCIA) ─────────
+      // Si hay datos atrapados con el nombre de columna viejo 'data', 
+      // los migramos a 'piezas' antes de intentar subir.
+      if (item.table === 'odontogramas' && item.payload.data && !item.payload.piezas) {
+        console.log('🩹 Reparando datos del odontograma atrapados en la cola...');
+        item.payload.piezas = item.payload.data;
+        delete item.payload.data;
+      }
+      // ─────────────────────────────────────────────────────────────
+
       let operation;
       if (item.action === 'INSERT') {
         operation = supabase.from(item.table).insert(item.payload);
@@ -111,7 +121,6 @@ export async function processSyncQueue() {
         if (!id) throw new Error('Missing ID for update');
         operation = supabase.from(item.table).update(rest).eq('id', id);
       } else if (item.action === 'UPSERT') {
-        // Para UPSERT, usamos onConflict basado en lo que venga en el payload (generalmente paciente_id)
         const onConflict = item.table === 'odontogramas' ? 'paciente_id' : 'id';
         operation = supabase.from(item.table).upsert(item.payload, { onConflict });
       } else if (item.action === 'DELETE') {
@@ -126,12 +135,9 @@ export async function processSyncQueue() {
       console.log(`✅ Sincronizado correcto: ${item.table} (${item.action})`);
     } catch (err: any) {
       console.error(`❌ Error sincronizando item en ${item.table}:`, err);
-      // Guardar el último error para mostrarlo en la interfaz
       localStorage.setItem('ergo_last_sync_error', err?.message || JSON.stringify(err));
       remainingQueue.push(item);
-    } finally {
-      isSyncing = false;
-    }
+    } 
   }
   
   localStorage.setItem('ergo_sync_queue', JSON.stringify(remainingQueue));
