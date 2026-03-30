@@ -1208,7 +1208,16 @@ export async function getOdontograma(pacienteId: string): Promise<Odontograma | 
   }
   const { data, error } = await supabase.from('odontogramas').select('*').eq('paciente_id', pacienteId).maybeSingle();
   if (error) throw error;
-  return data ? mapKeys(data, toCamel) as Odontograma : null;
+  
+  if (data) {
+    const raw = mapKeys(data, toCamel) as any;
+    // Soporte para ambos nombres de columna (retrocompatibilidad o error de esquema)
+    return {
+      ...raw,
+      piezas: raw.piezasDentales || raw.piezas || []
+    } as Odontograma;
+  }
+  return null;
 }
 
 export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Promise<Odontograma> {
@@ -1220,10 +1229,23 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
     saveDemoStore('odontogramas', DEMO_ODONTOGRAMAS);
     return nuevo;
   }
-  const dbData = mapKeys(o, toSnake);
-  const { data, error } = await supabase.from('odontogramas').upsert(dbData, { onConflict: 'paciente_id' }).select().single();
-  if (error) throw error;
-  return mapKeys(data, toCamel) as Odontograma;
+
+  // Mapeo forzado para Supabase (piezas -> piezas_dentales)
+  const dbData = {
+    paciente_id: o.pacienteId,
+    piezas_dentales: o.piezas // Nombre real de la columna en BD
+  };
+
+  return await withOfflineSync<Odontograma>(
+    async () => {
+      const { data, error } = await supabase.from('odontogramas').upsert(dbData, { onConflict: 'paciente_id' }).select().single();
+      return { data, error };
+    },
+    'odontogramas',
+    'UPDATE',
+    dbData,
+    { ...o, id: `tmp_${Date.now()}`, fecha: new Date().toISOString() } as unknown as Odontograma
+  );
 }
 
 // ─── REPORTES Y CORRELATIVO ─────────────────────────────────────────────────
