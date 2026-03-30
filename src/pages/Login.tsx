@@ -171,7 +171,7 @@ export default function Login() {
             <img src="/logo.png" alt="Logo" style={{ width: '60%', height: '60%', filter: 'drop-shadow(0 0 10px rgba(52, 144, 220, 0.5))' }} />
           </div>
           <h1 style={{ fontSize: '2.4rem', fontWeight: 900, color: '#fff', letterSpacing: '-1.5px', marginBottom: '4px' }}>ERGODENTALVE</h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 500 }}>SISTEMA DE GESTIÓN CLÍNICA · <span style={{ color: '#3490dc' }}>1.0.4</span></p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 500 }}>SISTEMA DE GESTIÓN CLÍNICA · <span style={{ color: '#3490dc' }}>1.0.5</span></p>
         </div>
 
         <div className="glass-card" style={{
