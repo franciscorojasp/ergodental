@@ -48,6 +48,7 @@ export const supabase = (supabaseUrl && finalAnonKey)
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        storageKey: 'ergodental-auth-session', // Llave única para evitar conflictos
       },
     })
   : (null as any);

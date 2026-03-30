@@ -68,12 +68,15 @@ export function saveToSyncQueue(action: Omit<SyncAction, 'id' | 'timestamp'>) {
   console.log('📦 Guardado en Cola Offline:', action.table);
 }
 
+let isSyncing = false;
+
 export async function processSyncQueue() {
-  if (!IS_SUPABASE_CONNECTED || typeof window === 'undefined' || !navigator.onLine) return;
+  if (isSyncing || !IS_SUPABASE_CONNECTED || typeof window === 'undefined' || !navigator.onLine) return;
   
   const queue: SyncAction[] = JSON.parse(localStorage.getItem('ergo_sync_queue') || '[]');
   if (queue.length === 0) return;
 
+  isSyncing = true;
   console.log(`🔄 Procesando ${queue.length} elementos de la cola de sincronización...`);
   const remainingQueue: SyncAction[] = [];
   
@@ -101,10 +104,13 @@ export async function processSyncQueue() {
       // Guardar el último error para mostrarlo en la interfaz
       localStorage.setItem('ergo_last_sync_error', err?.message || JSON.stringify(err));
       remainingQueue.push(item);
+    } finally {
+      isSyncing = false;
     }
   }
   
   localStorage.setItem('ergo_sync_queue', JSON.stringify(remainingQueue));
+  isSyncing = false;
   
   // Despachar evento para que SyncIndicator se actualice inmediatamente
   window.dispatchEvent(new Event('ergo_sync_completed'));
