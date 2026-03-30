@@ -113,6 +113,10 @@ export async function processSyncQueue() {
 // Escuchar cuando vuelva el internet para disparar la sincronización
 if (typeof window !== 'undefined') {
   window.addEventListener('online', processSyncQueue);
+  // Latido cada 30 segundos para asegurar sincronización en segundo plano (Primer Mundo)
+  setInterval(() => {
+    if (navigator.onLine) processSyncQueue();
+  }, 30000);
 }
 
 
