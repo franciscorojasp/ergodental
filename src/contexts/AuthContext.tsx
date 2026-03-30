@@ -19,6 +19,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // SEGURO DE VIDA SILENCIOSO: Si en 10s no hay respuesta de red, 
+    // permitimos entrar con lo que tengamos en caché para evitar pantalla infinita.
+    const silentFailsafe = setTimeout(() => {
+      setLoading(false);
+    }, 10000);
+
     const initAuth = async () => {
       // 1. Carga desde localStorage (Demo o sesión previa)
       const saved = localStorage.getItem('ergo_user');
@@ -29,16 +35,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch { /* ignore */ }
         if (IS_DEMO_MODE) {
           setLoading(false);
+          clearTimeout(silentFailsafe);
           return;
         }
       }
 
       if (IS_DEMO_MODE || !supabase) {
         setLoading(false);
+        clearTimeout(silentFailsafe);
         return;
       }
 
-      // 2. Obtener sesión inicial directamente (Sin límites de tiempo artificiales)
+      // 2. Obtener sesión inicial directamente
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -48,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('Falla en inicio de sesión de Supabase:', err);
       } finally {
         setLoading(false);
+        clearTimeout(silentFailsafe);
       }
     };
 
