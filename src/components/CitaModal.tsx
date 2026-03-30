@@ -219,32 +219,47 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="modal-overlay"
           onClick={e => e.target === e.currentTarget && onClose()}
         >
-          <motion.div className="modal" initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} style={{ maxWidth: 640 }}>
-            <div className="modal-header">
-              <h3>{editingCita ? '✏️ Editar Cita' : '📅 Nueva Cita'}</h3>
-              <button className="btn-close" onClick={onClose}>✕</button>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="modal"
+            style={{ maxWidth: '700px' }}
+          >
+            {/* Header Quirúrgico */}
+            <div className="modal-header" style={{ background: 'linear-gradient(to right, var(--primary-dim), transparent)' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '1.6rem' }}>📅</span>
+                <span>{editingCita ? 'Editar Cita Médica' : 'Nueva Cita Médica'}</span>
+              </h3>
+              <button className="btn-close" onClick={onClose} style={{ fontSize: '1.5rem' }}>✕</button>
             </div>
-            
+
             <form onSubmit={handleSave}>
               <div className="modal-body">
                 {error && (
-                  <div style={{ background: 'var(--danger-dim)', color: 'var(--danger)', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--danger)' }}>
+                  <div style={{ background: 'var(--danger-dim)', color: 'var(--danger)', padding: '16px', borderRadius: '16px', marginBottom: '24px', fontSize: '0.9rem', border: '1px solid var(--danger)', fontWeight: 600 }}>
                     ⚠️ {error}
                   </div>
                 )}
 
-                <div className="grid-responsive" style={{ marginBottom: '24px' }}>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
+                <div className="grid-2">
+                  <div className="input-group">
                     <label>Paciente *</label>
                     <select id="cita-paciente" name="pacienteId" className="input" required value={form.pacienteId} onChange={e => onPacienteChange(e.target.value)}>
                       <option value="">Seleccione...</option>
                       {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>)}
                     </select>
                   </div>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
+                  <div className="input-group">
                     <label>Doctor *</label>
                     <select id="cita-doctor" name="doctorId" className="input" required value={form.doctorId} onChange={e => setForm(f => ({ ...f, doctorId: e.target.value }))}>
                       <option value="">Seleccione...</option>
@@ -253,33 +268,33 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                   </div>
                 </div>
 
-                <div className="grid-responsive" style={{ marginBottom: '24px' }}>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
+                <div className="grid-2">
+                  <div className="input-group">
                     <label>Fecha *</label>
                     <input id="cita-fecha" name="fecha" type="date" className="input" required value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
                   </div>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
+                  <div className="input-group">
                     <label>Hora *</label>
                     <input id="cita-hora" name="hora" type="time" className="input" required value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} />
                   </div>
                 </div>
 
                 <div className="input-group">
-                  <label>Motivo</label>
-                  <input id="cita-motivo" name="motivo" className="input" placeholder="Ej: Control de ortodoncia" value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} />
+                  <label>Motivo de Consulta</label>
+                  <input id="cita-motivo" name="motivo" className="input" placeholder="Ej: Control de ortodoncia, Limpieza, etc." value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} />
                 </div>
                 
-                <div className="grid-responsive" style={{ marginBottom: '24px' }}>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label>Estado</label>
+                <div className="grid-2">
+                  <div className="input-group">
+                    <label>Estado de Cita</label>
                     <select id="cita-estado" name="estado" className="input" value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value as Cita['estado'] }))}>
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="Confirmada">Confirmada</option>
-                      <option value="Completada">Completada</option>
-                      <option value="Cancelada">Cancelada</option>
+                      <option value="Pendiente">⏳ Pendiente</option>
+                      <option value="Confirmada">✅ Confirmada</option>
+                      <option value="Completada">🏁 Completada</option>
+                      <option value="Cancelada">❌ Cancelada</option>
                     </select>
                   </div>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
+                  <div className="input-group">
                     <label>Tipo de Atención</label>
                     <select id="cita-tipo-atencion" name="tipoAtencion" className="input" value={form.tipoAtencion} onChange={e => setForm(f => ({ ...f, tipoAtencion: e.target.value as TipoAtencion }))}>
                       <option value="Consulta">Consulta</option>
@@ -290,36 +305,18 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                   </div>
                 </div>
 
-                <div className="grid-responsive" style={{ marginBottom: '24px' }}>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label>Condición</label>
-                    <select className="input" value={form.condicion} onChange={e => setForm(f => ({ ...f, condicion: e.target.value as CondicionPaciente }))}>
-                      <option value="Control">Control</option>
-                      <option value="Evaluación">Evaluación</option>
-                      <option value="Emergencia">Emergencia</option>
-                    </select>
-                  </div>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label>Estado Financiero</label>
-                    <select className="input" value={form.estadoFinanciero} onChange={e => setForm(f => ({ ...f, estadoFinanciero: e.target.value as EstadoFinanciero }))}>
-                      <option value="Abono">Abono</option>
-                      <option value="Exonerado">Exonerado</option>
-                      <option value="Garantía">Garantía</option>
-                      <option value="Paciente No Atendido">Paciente No Atendido</option>
-                      <option value="Paga Después">Paga Después</option>
-                      <option value="Pago Anticipado">Pago Anticipado</option>
-                      <option value="Pago Inmediato">Pago Inmediato</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="modal-whatsapp-section">
-                  <p className="modal-whatsapp-header">
+                {/* SECCIÓN WHATSAPP PREMIUM */}
+                <div className="modal-whatsapp-section" style={{ background: 'rgba(37, 211, 102, 0.05)', border: '1px solid rgba(37, 211, 102, 0.2)', padding: '24px', borderRadius: '20px', marginTop: '12px' }}>
+                  <div className="modal-whatsapp-header" style={{ color: '#25D366', fontWeight: 900, fontSize: '0.8rem', letterSpacing: '1px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    Notificaciones por WhatsApp
-                  </p>
-                  <div className="modal-whatsapp-grid">
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.95rem', cursor: 'pointer', color: '#f8faff', fontWeight: 600 }}>
+                    NOTIFICACIONES WHATSAPP
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                    <label style={{ 
+                      display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
+                      padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px',
+                      border: '1px solid var(--border)', color: '#fff', fontWeight: 700
+                    }}>
                       <input 
                         type="checkbox" 
                         checked={form.notificarPaciente} 
@@ -328,7 +325,11 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                       />
                       Notificar al Paciente
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.95rem', cursor: 'pointer', color: '#f8faff', fontWeight: 600 }}>
+                    <label style={{ 
+                      display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
+                      padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px',
+                      border: '1px solid var(--border)', color: '#fff', fontWeight: 700
+                    }}>
                       <input 
                         type="checkbox" 
                         checked={form.notificarDoctor} 
@@ -343,8 +344,8 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-                <button type="submit" className={`btn ${isFormValid ? 'btn-primary' : 'btn-disabled'}`} disabled={saving || !isFormValid}>
-                  {saving ? 'Guardando...' : (editingCita ? 'Actualizar Cita' : 'Guardar Cita')}
+                <button type="submit" className={`btn ${isFormValid ? 'btn-primary' : 'btn-disabled'}`} disabled={saving || !isFormValid} style={{ minWidth: '180px' }}>
+                  {saving ? '⏳ Procesando...' : (editingCita ? '💾 Actualizar Cita' : '💾 Guardar Cita')}
                 </button>
               </div>
             </form>

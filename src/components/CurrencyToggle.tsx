@@ -1,7 +1,6 @@
 // src/components/CurrencyToggle.tsx
-// Widget compacto: muestra tasa BCV del día + botón toggle USD/BS
-// + enlace rápido para actualizar la tasa
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useMoneda } from '../contexts/MonedaContext';
 
 export default function CurrencyToggle() {
@@ -19,78 +18,88 @@ export default function CurrencyToggle() {
   };
 
   return (
-    <div style={{
-      display:'flex', flexDirection:'column', gap:'5px',
-      padding:'10px 12px', margin:'8px 0',
-      background:'var(--primary-dim)',
-      border:'1px solid var(--primary-dim)',
-      borderRadius:'10px',
+    <div className="glass" style={{
+      display:'flex', flexDirection:'column', gap:'8px',
+      padding:'14px', margin:'12px 0',
+      background:'rgba(0, 212, 255, 0.03)',
+      border:'1px solid rgba(0, 212, 255, 0.1)',
+      borderRadius:'18px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
     }}>
-      {/* Tasa BCV */}
+      {/* Tasa BCV Header */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <span style={{ fontSize:'0.7rem', color:'var(--text-muted)', fontWeight:600, textTransform:'uppercase' }}>
-          Tasa BCV
+        <span style={{ fontSize:'0.65rem', color:'var(--text-secondary)', fontWeight:900, textTransform:'uppercase', letterSpacing: '1px' }}>
+          Tasa BCV Ofic.
         </span>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1, color: 'var(--primary)' }}
           onClick={()=>setEditando(!editando)}
-          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'0.74rem', color:'var(--primary)', padding:'0' }}
-          title="Actualizar tasa manualmente"
+          style={{ background:'none', border:'none', cursor:'pointer', fontSize:'0.8rem', color:'var(--text-muted)', padding:'0' }}
+          title="Actualizar tasa"
         >
-          ✏️
-        </button>
+          {editando ? '✕' : '✎'}
+        </motion.button>
       </div>
 
-      {/* Valor actual */}
-      {!editando && (
-        <div style={{ fontWeight:800, fontSize:'0.88rem', color: necesitaTasa ? 'var(--warning)' : 'var(--primary)', letterSpacing:'-0.3px' }}>
-          {necesitaTasa
-            ? '⚠️ Sin tasa hoy'
-            : `Bs ${tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / $1`
-          }
-        </div>
-      )}
-
-      {/* Edición inline */}
-      {editando && (
-        <div style={{ display:'flex', gap:'4px', marginTop:'2px' }}>
-          <input
-            autoFocus
-            type="number"
-            step="0.01"
-            min="10"
-            placeholder="Ej: 65890"
-            value={valor}
-            onChange={e=>setValor(e.target.value)}
-            onKeyDown={e=>{ if(e.key==='Enter') handleActualizar(); if(e.key==='Escape') setEditando(false); }}
-            style={{
-              flex:1, background:'var(--bg-card)', border:'1px solid var(--primary)',
-              borderRadius:'6px', color:'var(--text-primary)', padding:'4px 8px', fontSize:'0.82rem',
-              outline:'none', minWidth:0,
+      {/* Valor Display */}
+      <AnimatePresence mode="wait">
+        {!editando ? (
+          <motion.div 
+            key="display"
+            initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
+            style={{ 
+              fontWeight: 900, fontSize: '1.1rem', 
+              color: necesitaTasa ? 'var(--warning)' : '#fff', 
+              letterSpacing: '-0.5px',
+              display: 'flex', alignItems: 'center', gap: '6px'
             }}
-          />
-          <button onClick={handleActualizar} style={{
-            background:'var(--primary)', border:'none', borderRadius:'6px', color:'#fff',
-            padding:'4px 8px', cursor:'pointer', fontSize:'0.8rem', fontWeight:700,
-          }}>✓</button>
-          <button onClick={()=>setEditando(false)} style={{
-            background:'var(--bg-card)', border:'none', borderRadius:'6px', color:'var(--text-muted)',
-            padding:'4px 6px', cursor:'pointer', fontSize:'0.8rem',
-          }}>✕</button>
-        </div>
-      )}
+          >
+            <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Bs.</span>
+            {necesitaTasa ? 'Sin Tasa' : tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+            {!necesitaTasa && <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800 }}>/ $1</span>}
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="edit"
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            style={{ display:'flex', gap:'6px' }}
+          >
+            <input
+              autoFocus
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={valor}
+              onChange={e=>setValor(e.target.value)}
+              onKeyDown={e=>{ if(e.key==='Enter') handleActualizar(); if(e.key==='Escape') setEditando(false); }}
+              style={{
+                flex:1, background: 'rgba(0,0,0,0.3)', border: '1px solid var(--primary)',
+                borderRadius:'10px', color: '#fff', padding: '6px 10px', fontSize: '0.9rem',
+                outline:'none', minWidth:0, fontWeight: 700
+              }}
+            />
+            <button onClick={handleActualizar} style={{
+              background:'var(--primary)', border:'none', borderRadius:'10px', color:'#000',
+              padding:'6px 10px', cursor:'pointer', fontSize:'0.9rem', fontWeight:900,
+            }}>✓</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Toggle USD / BS */}
+      {/* Modern Toggle Switch */}
       <div style={{
-        display:'flex', background:'var(--bg-dark)', borderRadius:'7px', padding:'2px', marginTop:'4px', opacity: 0.8
+        display:'flex', background:'rgba(0,0,0,0.4)', borderRadius:'12px', padding:'3px', marginTop:'4px'
       }}>
         {(['USD','BS'] as const).map(m => (
           <button key={m} onClick={() => setMoneda(m)} style={{
-            flex:1, padding:'4px 0', border:'none', cursor:'pointer', borderRadius:'5px',
-            fontSize:'0.78rem', fontWeight:700, transition:'all 0.2s',
-            background: moneda === m ? 'var(--primary)' : 'transparent',
-            color: moneda === m ? '#fff' : 'var(--text-muted)',
+            flex:1, padding:'6px 0', border:'none', cursor:'pointer', borderRadius:'10px',
+            fontSize:'0.75rem', fontWeight:800, transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            background: moneda === m ? 'linear-gradient(135deg, var(--primary), var(--accent))' : 'transparent',
+            color: moneda === m ? '#000' : 'var(--text-secondary)',
+            boxShadow: moneda === m ? '0 4px 10px rgba(0,0,0,0.3)' : 'none',
+            letterSpacing: '0.5px'
           }}>
-            {m === 'USD' ? '💲 USD' : '🇻🇪 Bs'}
+            {m === 'USD' ? '💲 USD' : '🇻🇪 VES'}
           </button>
         ))}
       </div>

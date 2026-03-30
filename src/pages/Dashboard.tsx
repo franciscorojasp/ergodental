@@ -33,8 +33,6 @@ export default function Dashboard() {
     getPagos().then(data => setPagos(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
   }, [clinica.id]);
 
-  // Filtrar por periodo
-  // Limpiador robusto de fechas para evitar "1899-12-30" e "Invalid Date"
   const parseDateSafe = (f: string) => {
     if (!f) return new Date();
     const clean = String(f).split('T')[0];
@@ -56,12 +54,10 @@ export default function Dashboard() {
   const ingresosPeriodo = pagosPeriodo.reduce((s,p) => s+p.monto, 0);
   const pendientesPeriodo = citasPeriodo.filter(c => c.estado==='Pendiente').length;
 
-  // Estado colors
   const estadoColor: Record<string,string> = {
     Pendiente:'var(--warning)', Confirmada:'var(--primary)', Completada:'var(--success)', Cancelada:'var(--danger)',
   };
 
-  // PDF
   const generarPDF = async () => {
     await generarReportePDF({
       titulo: `Resumen Ejecutivo`,
@@ -85,72 +81,101 @@ export default function Dashboard() {
   };
 
   return (
-    <div>
-      {/* Header con selector de periodo como dropdown */}
+    <div className="animate-fade-in">
+      {/* Header Level World-Class */}
       <div className="page-header">
         <div>
-          <h1>Dashboard</h1>
-          <p>Bienvenido, {user?.nombre} · {new Date().toLocaleDateString('es-VE', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+          <h1 style={{ marginBottom: '8px' }}>Executive Dashboard</h1>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--primary)' }}>●</span>
+            Sistema en Línea · <span style={{ fontWeight: 700 }}>{new Date().toLocaleDateString('es-VE', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</span>
+          </p>
         </div>
         <div className="action-grid">
-          <select
-            className="input"
-            value={periodo}
-            onChange={e => setPeriodo(e.target.value as Periodo)}
-            style={{ padding:'8px 14px', fontSize:'0.88rem', minWidth:'130px' }}
-          >
-            {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <button className="btn btn-primary btn-sm" onClick={generarPDF} title="Exportar PDF">
-            📄 PDF
+          <div style={{ position: 'relative' }}>
+             <select
+              className="input"
+              value={periodo}
+              onChange={e => setPeriodo(e.target.value as Periodo)}
+              style={{ padding:'10px 40px 10px 16px', fontSize:'0.88rem', minWidth:'160px', appearance: 'none', background: 'rgba(255,255,255,0.05)' }}
+            >
+              {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5 }}>▼</div>
+          </div>
+          
+          <button className="btn btn-primary" onClick={generarPDF}>
+            <span style={{ fontSize: '1.2rem' }}>📄</span>
+            <span>Reporte PDF</span>
           </button>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* High-End Stats Grid */}
       <div className="grid-responsive">
         {[
-          { label:'Pacientes',             value: totalPac,                        icon:'🦷', color:'var(--primary)' },
+          { label:'Total Pacientes',        value: totalPac,                        icon:'🦷', color:'var(--primary)' },
           { label:`Citas (${periodo})`,    value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
-          { label:`Pendientes (${periodo})`,value:pendientesPeriodo,               icon:'⏳', color:'var(--warning)' },
-          { label:'Personal activo',        value: totalPers,                        icon:'👨‍⚕️', color:'var(--success)' },
+          { label:`Pendientes`,             value: pendientesPeriodo,               icon:'⏳', color:'var(--warning)' },
+          { label:'Personal Activo',       value: totalPers,                        icon:'👨‍⚕️', color:'var(--success)' },
           { label:`Ingresos (${periodo})`, value: fmt(ingresosPeriodo, 0),         icon:'💰', color:'var(--success)' },
         ].map((s,i) => (
-          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}} style={{ margin:0, width:'100%' }}>
-            <div className="stat-icon" style={{background:`color-mix(in srgb,${s.color} 15%,transparent)`, color:s.color}}>{s.icon}</div>
+          <motion.div 
+            key={s.label} 
+            className="stat-card" 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: i * 0.1, type: 'spring' }}
+            style={{ color: s.color }}
+          >
+            <div className="stat-icon">{s.icon}</div>
             <div className="stat-value">{s.value}</div>
             <div className="stat-label">{s.label}</div>
           </motion.div>
         ))}
       </div>
 
-      <div className="grid-responsive" style={{ marginTop:'24px' }}>
+      {/* Detailed Insights Section */}
+      <div className="grid-responsive" style={{ marginTop:'48px' }}>
         {/* Citas de hoy */}
-        <motion.div className="glass" style={{padding:'24px'}} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4}}>
-          <h3 style={{fontWeight:700,marginBottom:'16px',display:'flex',alignItems:'center',gap:'8px'}}>
-            📅 <span>Citas de Hoy</span>
-            <span style={{marginLeft:'auto',fontSize:'0.78rem',color:'var(--text-muted)'}}>{citasHoy.length} citas</span>
+        <motion.div 
+          className="glass" 
+          style={{ padding: '32px', position: 'relative', overflow: 'hidden' }} 
+          initial={{ opacity: 0, x: -20 }} 
+          animate={{ opacity: 1, x: 0 }} 
+          transition={{ delay: 0.4 }}
+        >
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--primary)' }} />
+          <h3 style={{ fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.4rem', letterSpacing: '-0.5px' }}>
+             Agenda del Día
+            <span className="badge" style={{ marginLeft: 'auto', background: 'var(--primary-dim)', color: 'var(--primary)' }}>
+              {citasHoy.length} Citas
+            </span>
           </h3>
+
           {citasHoy.length === 0 ? (
-            <p style={{color:'var(--text-muted)',fontSize:'0.88rem',padding:'20px 0',textAlign:'center'}}>No hay citas programadas para hoy</p>
+            <div style={{ padding: '40px 0', textAlign: 'center', opacity: 0.5 }}>
+              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>☕</div>
+              <p style={{ fontWeight: 600 }}>Sin citas programadas para hoy</p>
+            </div>
           ) : (
-            <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {citasHoy.map(c => (
                 <div key={c.id} style={{
-                  display:'flex',alignItems:'center',gap:'12px',
-                  padding:'12px',borderRadius:'var(--radius-sm)',
-                  background:'rgba(255,255,255,0.04)',border:'1px solid var(--border)',
+                  display: 'flex', alignItems: 'center', gap: '16px',
+                  padding: '16px', borderRadius: '18px',
+                  background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)',
+                  transition: '0.3s'
                 }}>
-                  <div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--primary)',minWidth:'42px'}}>{c.hora}</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:600,fontSize:'0.88rem'}}>{c.pacienteNombre}</div>
-                    <div style={{fontSize:'0.78rem',color:'var(--text-secondary)'}}>{c.motivo}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary)', minWidth: '55px' }}>{c.hora}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>{c.pacienteNombre}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{c.motivo}</div>
                   </div>
                   <span className="badge" style={{
-                    background:`color-mix(in srgb,${estadoColor[c.estado]} 15%,transparent)`,
-                    color:estadoColor[c.estado],
-                    border:`1px solid ${estadoColor[c.estado]}`,
-                    fontSize:'0.68rem',
+                    background: `color-mix(in srgb, ${estadoColor[c.estado]} 10%, transparent)`,
+                    color: estadoColor[c.estado],
+                    border: `1px solid color-mix(in srgb, ${estadoColor[c.estado]} 25%, transparent)`,
                   }}>{c.estado}</span>
                 </div>
               ))}
@@ -159,32 +184,44 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Próximas citas */}
-        <motion.div className="glass" style={{padding:'24px'}} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.5}}>
-          <h3 style={{fontWeight:700,marginBottom:'16px'}}>📋 Próximas Citas</h3>
-          <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-            {citas.filter(c => String(c.fecha).split('T')[0] > hoy).slice(0,5).map(c => (
+        <motion.div 
+          className="glass" 
+          style={{ padding: '32px', position: 'relative', overflow: 'hidden' }} 
+          initial={{ opacity: 0, x: 20 }} 
+          animate={{ opacity: 1, x: 0 }} 
+          transition={{ delay: 0.5 }}
+        >
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--accent)' }} />
+          <h3 style={{ fontWeight: 900, marginBottom: '24px', fontSize: '1.4rem', letterSpacing: '-0.5px' }}>
+            Próximos Pacientes
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {citas.filter(c => String(c.fecha).split('T')[0] > hoy).slice(0, 5).map(c => (
               <div key={c.id} style={{
-                display:'flex',alignItems:'center',gap:'12px',
-                padding:'12px',borderRadius:'var(--radius-sm)',
-                background:'rgba(255,255,255,0.04)',border:'1px solid var(--border)',
+                display: 'flex', alignItems: 'center', gap: '16px',
+                padding: '16px', borderRadius: '18px',
+                background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)',
               }}>
-                <div style={{textAlign:'center',minWidth:'44px'}}>
-                  <div style={{fontSize:'0.68rem',color:'var(--text-muted)',textTransform:'uppercase'}}>
-                    {parseDateSafe(c.fecha).toLocaleDateString('es-VE',{month:'short'})}
+                <div style={{ 
+                  textAlign: 'center', minWidth: '50px', padding: '8px', 
+                  background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-light)' 
+                }}>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>
+                    {parseDateSafe(c.fecha).toLocaleDateString('es-VE', { month: 'short' })}
                   </div>
-                  <div style={{fontSize:'1.1rem',fontWeight:800,color:'var(--primary)',lineHeight:1}}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>
                     {parseDateSafe(c.fecha).getDate()}
                   </div>
                 </div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:600,fontSize:'0.88rem'}}>{c.pacienteNombre}</div>
-                  <div style={{fontSize:'0.78rem',color:'var(--text-secondary)'}}>{c.hora} · {c.doctorNombre}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>{c.pacienteNombre}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{c.hora} · {c.doctorNombre}</div>
                 </div>
                 {c.tipoReferencia && (
-                  <div style={{fontSize:'0.72rem',color:'var(--accent)',whiteSpace:'nowrap'}}>
-                    {c.tipoReferencia==='Foraneo-30'||c.tipoReferencia==='Foraneo-10'?'🌍':''}
-                    {c.tipoReferencia==='Profesional-Especialista'?'👨‍⚕️':''}
-                    {c.tipoReferencia==='Paciente-Clinica'?'🏥':''}
+                  <div style={{ fontSize: '1.2rem', opacity: 0.7 }}>
+                     {c.tipoReferencia==='Foraneo-30'||c.tipoReferencia==='Foraneo-10'?'🌍':''}
+                     {c.tipoReferencia==='Profesional-Especialista'?'👨‍⚕️':''}
+                     {c.tipoReferencia==='Paciente-Clinica'?'🏥':''}
                   </div>
                 )}
               </div>

@@ -47,41 +47,50 @@ export default function ConfirmDialog({
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           exit={{ opacity: 0 }}
-          style={{ zIndex: 11000 }}
+          style={{ zIndex: 11000, backdropFilter: 'blur(12px)', background: 'rgba(0,0,0,0.8)' }}
           onClick={onCancel}
         >
           <motion.div 
             className="modal" 
-            initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+            initial={{ scale: 0.9, opacity: 0, y: 40 }} 
             animate={{ scale: 1, opacity: 1, y: 0 }} 
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            style={{ maxWidth: '420px', textAlign: 'center' }}
+            exit={{ scale: 0.9, opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{ maxWidth: '440px', padding: 0, overflow: 'hidden', textAlign: 'center', background: 'rgba(10, 15, 30, 0.95)', border: `1px solid ${colors[type]}44` }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="modal-body" style={{ padding: '40px 32px' }}>
-              <div style={{ 
-                fontSize: '3.5rem', marginBottom: '20px', 
-                filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' 
-              }}>
+            <div className="modal-body" style={{ padding: '48px 40px' }}>
+              <motion.div 
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1.1, opacity: 1 }}
+                style={{ 
+                  fontSize: '4.5rem', marginBottom: '24px', 
+                  filter: `drop-shadow(0 15px 30px ${colors[type]}44)` 
+                }}
+              >
                 {icons[type]}
-              </div>
+              </motion.div>
               
-              <h3 style={{ marginBottom: '12px', fontSize: '1.5rem', fontWeight: 800 }}>{title}</h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', lineHeight: 1.6, fontSize: '1rem', fontWeight: 500 }}>
+              <h3 style={{ marginBottom: '16px', fontSize: '1.7rem', fontWeight: 900, letterSpacing: '-0.5px', color: '#fff' }}>{title}</h3>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '40px', lineHeight: 1.7, fontSize: '1.05rem', fontWeight: 500 }}>
                 {message}
               </p>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <button className="btn btn-ghost" onClick={onCancel} style={{ flex: 1 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <button 
+                  className="btn btn-ghost" 
+                  onClick={onCancel} 
+                  style={{ height: '54px', borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem' }}
+                >
                   {cancelText}
                 </button>
                 <button 
                   className="btn" 
                   style={{ 
                     background: colors[type], 
-                    color: '#fff',
-                    boxShadow: `0 8px 25px ${colors[type]}44`,
-                    flex: 1
+                    color: type === 'warning' ? '#000' : '#fff',
+                    boxShadow: `0 12px 30px ${colors[type]}66`,
+                    height: '54px', borderRadius: '16px', fontWeight: 900, fontSize: '0.95rem'
                   }} 
                   onClick={onConfirm}
                 >

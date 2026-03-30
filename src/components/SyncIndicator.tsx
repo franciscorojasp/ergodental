@@ -46,40 +46,61 @@ export default function SyncIndicator({ isPinned }: { isPinned: boolean }) {
   }
 
   return (
-    <div style={{ padding: '8px 12px', marginBottom: '8px' }}>
+    <div style={{ padding: isPinned ? '12px' : '8px 0', marginBottom: '12px' }}>
       <div style={{ 
         background: 'rgba(255,255,255,0.02)', 
-        borderRadius: '12px', 
-        padding: '10px',
+        borderRadius: isPinned ? '16px' : '10px', 
+        padding: isPinned ? '12px 14px' : '10px',
         border: '1px solid var(--border)',
-        fontSize: '0.7rem'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        alignItems: isPinned ? 'flex-start' : 'center',
+        boxShadow: online ? '0 4px 15px rgba(0,0,0,0.1)' : 'none'
       }}>
-        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-           <div style={{ 
-             width:8, height:8, borderRadius:'50%', 
-             background: IS_DEMO_MODE ? '#ff9800' : (online ? '#4caf50' : '#f44336'),
-             boxShadow: online ? '0 0 8px rgba(76,175,80,0.4)' : 'none'
-           }} />
-           <span style={{ color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.02em' }}>
-             {IS_DEMO_MODE ? 'MODO LOCAL' : (online ? 'SISTEMA EN LÍNEA' : 'MODO OFFLINE')}
-           </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div 
+            className={online ? 'pulse-dot' : ''}
+            style={{ 
+              width: 8, height: 8, borderRadius: '50%', 
+              background: IS_DEMO_MODE ? '#ff9800' : (online ? 'var(--success)' : 'var(--danger)'),
+              boxShadow: online ? '0 0 12px var(--success)' : 'none',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+            }} 
+          />
+          {isPinned && (
+            <span style={{ 
+              color: 'var(--text-secondary)', 
+              fontWeight: 900, 
+              fontSize: '0.65rem', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1.2px',
+              opacity: online ? 1 : 0.6
+            }}>
+              {IS_DEMO_MODE ? 'Local Mode' : (online ? 'Live System' : 'System Offline')}
+            </span>
+          )}
         </div>
         
-        {count > 0 && online && !IS_DEMO_MODE && (
+        {isPinned && count > 0 && online && !IS_DEMO_MODE && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, x: -5 }}
+            animate={{ opacity: 1, x: 0 }}
             style={{ 
-              marginTop: '6px', 
-              fontSize: '0.65rem', 
+              fontSize: '0.6rem', 
               color: 'var(--primary)',
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
-              gap: '4px'
+              gap: '6px',
+              padding: '6px 10px',
+              background: 'var(--primary-dim)',
+              borderRadius: '8px',
+              border: '1px solid rgba(0, 198, 255, 0.2)'
             }}
           >
-            <span className="pulse-dot" style={{ width:4, height:4, background:'var(--primary)', borderRadius:'50%' }} />
-            Actualizando datos...
+            <span style={{ fontSize: '0.8rem' }}>🔄</span>
+            Sincronizando...
           </motion.div>
         )}
       </div>
