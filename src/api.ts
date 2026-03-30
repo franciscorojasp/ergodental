@@ -668,9 +668,7 @@ export async function verifyRecoveryCode(email: string, token: string) {
 }
 
 export async function loginUser(email: string, password: string): Promise<Usuario> {
-  const isTargetDemo = IS_DEMO_EMAILS.includes(email);
-
-  // Siempre permitir credenciales Demo primero para pruebas locales
+  // 1. Credenciales Demo (Acceso local instantáneo)
   const DEMO_CREDS: Record<string, string> = {
     'admin@ergodental.com':     'Ergodental2024!',
     'doctor@ergodental.com':    'Ergodental2024!',
@@ -684,104 +682,46 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     if (user) return user;
   }
 
+  // 2. Validación de Entorno
   if (typeof window !== 'undefined' && !window.navigator.onLine) {
-    throw new Error('No tienes conexión a internet activa para iniciar sesión. Revisa tu red.');
+    throw new Error('No tienes conexión a internet activa.');
   }
 
-  // Si no hay conexión a Supabase y no es una de las credenciales demo correctas arriba
-  if (!IS_SUPABASE_CONNECTED) {
-    throw new Error('Credenciales incorrectas o sistema fuera de línea');
+  if (!IS_SUPABASE_CONNECTED || !supabase) {
+    throw new Error('Configuración de base de datos no disponible.');
   }
 
-  // Si es una cuenta demo pero la contraseña fue incorrecta (no entró en el if de arriba)
-  if (isTargetDemo) {
-    throw new Error('Credenciales incorrectas (Cuenta Demo)');
-  }
+  // 3. Autenticación Directa (Sin esperas ni parches)
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+  if (authError) throw authError;
 
-  // Elevado a 25 segundos para redes con latencia extrema o caída de paquetes (CANTV/Digitel)
-  const loginPromise = supabase.auth.signInWithPassword({ email, password });
-  const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('TIMEOUT_VENEZUELA')), 25000)
-  );
-  
-  let authData: any = null;
-  let authError: any = null;
+  // 4. Carga de Perfil de Usuario
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', authData.user.id)
+    .maybeSingle();
 
-  try {
-    const result = await Promise.race([loginPromise, timeoutPromise]) as any;
-    authData = result.data;
-    authError = result.error;
-  } catch (err: any) {
-    if (err.message === 'TIMEOUT_VENEZUELA') {
-      throw new Error('Conexión inestable con el servidor. Por favor, revisa tu conexión e intenta de nuevo.');
-    }
-    throw err;
-  }
-  
-  if (authError) {
-    throw authError; // Credenciales inválidas o email no confirmado
-  }
+  // 5. Fallback para Administradores de la Propiedad (Garantizar acceso)
+  const SUPER_ADMINS = [
+    'francisco.rojasp@gmail.com', 
+    'blascojennifer47@gmail.com', 
+    'vera.hugo712@gmail.com', 
+    'carlosalejandroverablasco183@gmail.com'
+  ];
+  if (profile) return mapKeys(profile, toCamel) as Usuario;
 
-  // Obtener perfil desde tabla profiles
-  try {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authData.user.id)
-      .maybeSingle(); 
-    
-    // BYPASS PARA EL DESARROLLADOR Y EQUIPO: Francisco y su equipo son ADMIN
-    const SUPER_ADMINS = [
-      'francisco.rojasp@gmail.com', 
-      'blascojennifer47@gmail.com', 
-      'vera.hugo712@gmail.com', 
-      'carlosalejandroverablasco183@gmail.com'
-    ];
-
-    if (SUPER_ADMINS.includes(email.toLowerCase())) {
-      return {
-        id: authData.user.id,
-        nombre: profile?.nombre || email.split('@')[0],
-        email: email,
-        rol: 'ADMIN',
-        activo: true
-      };
-    }
-
-    if (profile) return mapKeys(profile, toCamel) as Usuario;
-
-    // Si no existe, intentamos crearlo
-    const { data: newProfile, error: createError } = await supabase.from('profiles').insert({
-      id: authData.user.id,
-      nombre: authData.user.user_metadata?.nombre || authData.user.email?.split('@')[0] || 'Nuevo Usuario',
-      email: authData.user.email,
-      rol: null, // Sin rol por defecto
-      activo: false // Inactivo hasta aprobación
-    }).select().single();
-
-    if (!createError && newProfile) return mapKeys(newProfile, toCamel) as Usuario;
-
-    // EMERGENCIA: Si todo falla pero el usuario está autenticado, retornamos un usuario temporal
-    // para que no se quede colgado en la pantalla de carga.
-    console.warn("Usando perfil de emergencia temporal");
+  if (SUPER_ADMINS.includes(email.toLowerCase())) {
     return {
       id: authData.user.id,
-      nombre: authData.user.email?.split('@')[0] || 'Usuario Real',
-      email: authData.user.email || '',
-      rol: 'ADMIN',
-      activo: true
-    };
-  } catch (e) {
-    console.error("Error crítico en loginUser:", e);
-    // Retorno de emergencia para evitar bloqueo
-    return {
-      id: authData.user.id,
-      nombre: 'Usuario Real',
-      email: authData.user.email || '',
+      nombre: email.split('@')[0],
+      email: email,
       rol: 'ADMIN',
       activo: true
     };
   }
+
+  throw new Error('No se encontró un perfil activo para esta cuenta.');
 }
 
 // Pacientes
