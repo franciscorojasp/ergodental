@@ -188,9 +188,17 @@ export default function Finanzas(){
 
   const totalHonorarios=doctoresData.reduce((s,d)=>s+d.honorarios,0);
 
+  const isFormPagoValid = !!(formPago.pacienteId && formPago.doctorId && formPago.concepto && formPago.monto > 0 && formPago.fecha);
+  const isFormEgresoValid = !!(formEgreso.concepto && formEgreso.monto > 0 && formEgreso.categoria && formEgreso.fecha);
+
   // Guardar ingreso
   const handleSavePago=async(e:React.FormEvent)=>{
-    e.preventDefault();setSaving(true);
+    e.preventDefault();
+    if (!isFormPagoValid) {
+      alert("⚠️ Error: Faltan datos obligatorios para el ingreso.\nPor favor complete: Paciente, Doctor, Concepto, Monto y Fecha.");
+      return;
+    }
+    setSaving(true);
     try{
       const pac=pacientes.find(p=>p.id===formPago.pacienteId);
       const doc=personal.find(p=>p.id===formPago.doctorId);
@@ -223,7 +231,12 @@ export default function Finanzas(){
 
   // Guardar egreso
   const handleSaveEgreso=async(e:React.FormEvent)=>{
-    e.preventDefault();setSaving(true);
+    e.preventDefault();
+    if (!isFormEgresoValid) {
+      alert("⚠️ Error: Faltan datos obligatorios para el egreso.\nPor favor complete: Concepto, Monto, Categoría y Fecha.");
+      return;
+    }
+    setSaving(true);
     try{
       const prov=proveedores.find(p=>p.id===formEgreso.proveedorId);
       const nuevo=await createEgreso({
@@ -799,7 +812,7 @@ export default function Finanzas(){
 
                   <div className="grid-2">
                     <div className="input-group">
-                      <label>Fecha</label>
+                      <label>Fecha *</label>
                       <input className="input" type="date" value={formPago.fecha} onChange={e=>setFormPago(f=>({...f,fecha:e.target.value}))}/>
                     </div>
                     <div className="input-group">
@@ -810,7 +823,7 @@ export default function Finanzas(){
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-ghost" onClick={()=>setModalPago(false)}>Cancelar</button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving?'Guardando...':'Guardar Ingreso'}</button>
+                  <button type="submit" className={`btn ${isFormPagoValid ? 'btn-primary' : 'btn-disabled'}`} disabled={saving || !isFormPagoValid}>{saving?'Guardando...':'Guardar Ingreso'}</button>
                 </div>
               </form>
             </motion.div>
@@ -833,7 +846,7 @@ export default function Finanzas(){
                   <div className="input-group"><label>Concepto *</label><input className="input" required value={formEgreso.concepto} onChange={e=>setFormEgreso(f=>({...f,concepto:e.target.value}))}/></div>
                   <div className="grid-2">
                     <div className="input-group">
-                      <label>Categoría</label>
+                      <label>Categoría *</label>
                       <select className="input" value={formEgreso.categoria} onChange={e=>setFormEgreso(f=>({...f,categoria:e.target.value as Egreso['categoria']}))}>
                         <option>Suministros</option><option>Servicios</option><option>Nómina</option><option>Proveedor</option><option>Alquiler</option><option>Equipos</option><option>Otro</option>
                       </select>
@@ -857,13 +870,13 @@ export default function Finanzas(){
                     </div>
                   </div>
                   <div className="grid-2">
-                    <div className="input-group"><label>Fecha</label><input className="input" type="date" value={formEgreso.fecha} onChange={e=>setFormEgreso(f=>({...f,fecha:e.target.value}))}/></div>
+                    <div className="input-group"><label>Fecha *</label><input className="input" type="date" value={formEgreso.fecha} onChange={e=>setFormEgreso(f=>({...f,fecha:e.target.value}))}/></div>
                     <div className="input-group"><label>Notas</label><input className="input" value={formEgreso.notas} onChange={e=>setFormEgreso(f=>({...f,notas:e.target.value}))}/></div>
                   </div>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-ghost" onClick={()=>setModalEgreso(false)}>Cancelar</button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving?'Guardando...':'Guardar Egreso'}</button>
+                  <button type="submit" className={`btn ${isFormEgresoValid ? 'btn-primary' : 'btn-disabled'}`} disabled={saving || !isFormEgresoValid}>{saving?'Guardando...':'Guardar Egreso'}</button>
                 </div>
               </form>
             </motion.div>

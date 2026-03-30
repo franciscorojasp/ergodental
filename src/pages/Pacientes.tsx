@@ -101,43 +101,38 @@ export default function Pacientes() {
     getPresupuestos().then(setPresupuestos);
   }, [clinica.id]);
 
+  const isFormValid = !!(form.nombre && form.apellido && form.cedula && form.fechaNacimiento && (!form.alergias || form.alergiasDetalle));
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('DEBUG: handleSave triggered', { editingId, form });
+    if (!isFormValid) {
+      alert("⚠️ Error: Faltan campos obligatorios.\nPor favor complete: Nombre, Apellido, Cédula y Fecha de Nacimiento.");
+      return;
+    }
     
     try {
       if (!editingId) {
-        if (!form.cedula) {
-          console.warn('DEBUG: Cedula is empty');
-        } else {
-          const cedulaBuscada = String(form.cedula || '').trim().toLowerCase();
-          const existe = pacientes.find(p => String(p?.cedula || '').trim().toLowerCase() === cedulaBuscada);
-          if (existe) {
-            console.warn('DEBUG: Duplicate cedula found', form.cedula);
-            alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}. No se permiten duplicados.`);
-            return;
-          }
+        const cedulaBuscada = String(form.cedula || '').trim().toLowerCase();
+        const existe = pacientes.find(p => String(p?.cedula || '').trim().toLowerCase() === cedulaBuscada);
+        if (existe) {
+          alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}.`);
+          return;
         }
       }
 
       setSaving(true);
       if (editingId) {
-        console.log('DEBUG: Calling updatePaciente', editingId);
         const actualizado = await updatePaciente({ ...form, id: editingId });
         setPacientes(prev => prev.map(p => p.id === editingId ? actualizado : p));
       } else {
-        console.log('DEBUG: Calling createPaciente', form);
         const nuevo = await createPaciente(form);
-        console.log('DEBUG: Paciente created successfully', nuevo);
         setPacientes(prev => [nuevo, ...prev]);
       }
       closeModal();
     } catch (err: any) {
-      console.error('DEBUG: EXCEPTION in handleSave', err);
       alert(`Error al guardar: ${err.message || 'Error desconocido'}`);
     } finally { 
       setSaving(false); 
-      console.log('DEBUG: handleSave finished');
     }
   };
 
@@ -426,7 +421,7 @@ export default function Pacientes() {
                   </div>
                   <div className="grid-2">
                     <div className="input-group"><label>Cédula *</label><input className="input" required placeholder="V-12345678" value={form.cedula} onChange={e=>setForm(f=>({...f,cedula:e.target.value}))} /></div>
-                    <div className="input-group"><label>Fecha de nacimiento</label><input className="input" type="date" value={form.fechaNacimiento} onChange={e=>setForm(f=>({...f,fechaNacimiento:e.target.value}))} /></div>
+                    <div className="input-group"><label>Fecha de nacimiento *</label><input className="input" type="date" value={form.fechaNacimiento} onChange={e=>setForm(f=>({...f,fechaNacimiento:e.target.value}))} /></div>
                   </div>
                   <div className="grid-2">
                     <div className="input-group"><label>Teléfono</label><input className="input" placeholder="0412-1234567" value={form.telefono} onChange={e=>setForm(f=>({...f,telefono:e.target.value}))} /></div>
@@ -461,7 +456,7 @@ export default function Pacientes() {
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-ghost" onClick={()=>closeModal()}>Cancelar</button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving?'Guardando...': (editingId ? 'Actualizar' : 'Registrar')}</button>
+                  <button type="submit" className={`btn ${isFormValid ? 'btn-primary' : 'btn-disabled'}`} disabled={saving || !isFormValid}>{saving?'Guardando...': (editingId ? 'Actualizar' : 'Registrar')}</button>
                 </div>
               </form>
             </motion.div>

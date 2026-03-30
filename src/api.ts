@@ -20,6 +20,27 @@ export const isDemoSession = () => {
   return false;
 };
 
+// ─── HELPERS DE TRATAMIENTO DE DATOS ───────────────────────────────────────
+export function sanitizeData(payload: any): any {
+  if (Array.isArray(payload)) return payload.map(sanitizeData);
+  if (payload !== null && typeof payload === 'object') {
+    const next: any = {};
+    for (const k in payload) {
+      const v = payload[k];
+      // Convertir "" o undefined a null para campos sensibles de DB (fechas, numeros)
+      if (v === "" || v === undefined) {
+        next[k] = null;
+      } else if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+        next[k] = sanitizeData(v);
+      } else {
+        next[k] = v;
+      }
+    }
+    return next;
+  }
+  return payload;
+}
+
 // Mantenemos la constante para compatibilidad, pero ahora es dinámica
 export const IS_DEMO_MODE = !IS_SUPABASE_CONNECTED;
 
@@ -749,7 +770,7 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
     saveDemoStore('pacientes', DEMO_PACIENTES);
     return nuevo;
   }
-  const dbData = mapKeys(p, toSnake);
+  const dbData = sanitizeData(mapKeys(p, toSnake));
   return await withOfflineSync<Paciente>(
     () => supabase.from('pacientes').insert(dbData).select().single(),
     'pacientes',
@@ -963,7 +984,7 @@ export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
     saveDemoStore('pagos', DEMO_PAGOS);
     return nuevo;
   }
-  const dbData = mapKeys(p, toSnake);
+  const dbData = sanitizeData(mapKeys(p, toSnake));
   return await withOfflineSync<Pago>(
     () => supabase.from('pagos').insert(dbData).select().single(),
     'pagos',
@@ -987,7 +1008,7 @@ export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
     saveDemoStore('egresos', DEMO_EGRESOS);
     return nuevo;
   }
-  const dbData = mapKeys(e, toSnake);
+  const dbData = sanitizeData(mapKeys(e, toSnake));
   return await withOfflineSync<Egreso>(
     () => supabase.from('egresos').insert(dbData).select().single(),
     'egresos',
@@ -1234,10 +1255,10 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
     return nuevo;
   }
 
-  // Mapeo forzado para Supabase (piezas -> piezas_dentales)
+  // Mapeo del Odontograma: Probamos con 'data' (común en Supabase JSON blobs)
   const dbData = {
     paciente_id: o.pacienteId,
-    piezas_dentales: o.piezas // Nombre real de la columna en BD
+    data: sanitizeData(o.piezas) 
   };
 
   return await withOfflineSync<Odontograma>(

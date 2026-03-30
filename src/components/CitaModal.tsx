@@ -100,8 +100,14 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
     }));
   };
 
+  const isFormValid = !!(form.pacienteId && form.doctorId && form.fecha && form.hora);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) {
+      alert("⚠️ Error: Faltan datos obligatorios para la cita.\nPor favor seleccione Paciente, Doctor, Fecha y Hora.");
+      return;
+    }
     setSaving(true);
     setError(null);
 
@@ -341,7 +347,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
+                <button type="submit" className={`btn ${isFormValid ? 'btn-primary' : 'btn-disabled'}`} disabled={saving || !isFormValid}>
                   {saving ? 'Guardando...' : (editingCita ? 'Actualizar Cita' : 'Guardar Cita')}
                 </button>
               </div>
