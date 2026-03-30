@@ -144,6 +144,15 @@ export default function HelpCenter() {
     return () => window.removeEventListener('open-help', handleOpen);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    return () => document.body.classList.remove('no-scroll');
+  }, [isOpen]);
+
   const handleDownloadPDF = async () => {
     if (!activeTopic) return;
     setIsGenerating(true);

@@ -63,6 +63,7 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  scrollbar-gutter: stable;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
@@ -198,6 +199,7 @@ body::before {
   margin: 12px 0 4px;
   background: linear-gradient(to right, #fff, var(--text-secondary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -248,6 +250,248 @@ tbody tr:hover {
   background: rgba(0, 198, 255, 0.04);
 }
 
+
+/* ── Estructura Maestra (Layout) ───────────────── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-dark);
+}
+
+.page-content {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 1600px;
+  width: 100%;
+  transition: all var(--transition);
+}
+
+/* Nota: Se eliminaron los margin-left manuales ya que el Flexbox del app-layout maneja el espacio del sidebar de forma prolija */
+
+/* ── Sidebar de Élite ────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(25px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition);
+  z-index: 100;
+}
+
+.sidebar.collapsed { width: var(--sidebar-mini-w); }
+
+.sidebar-header {
+  padding: 32px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 20px var(--primary-glow);
+}
+
+.nav-group { padding: 24px 12px; flex: 1; overflow-y: auto; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover, .nav-item.active {
+  background: var(--primary-dim);
+  color: var(--primary);
+  border-color: var(--border-active);
+}
+
+.nav-item.active {
+  background: linear-gradient(to right, var(--primary-dim), transparent);
+  box-shadow: inset 4px 0 0 var(--primary);
+}
+
+
+/* ── Modales Quirúrgicos (Elite) ────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 11, 24, 0.82);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 2000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal {
+  width: 100%;
+  max-width: 600px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-active);
+  border-radius: 24px;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to right, rgba(255,255,255,0.02), transparent);
+}
+
+.modal-header h3 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+
+.btn-close {
+  background: none; border: none; color: var(--text-secondary);
+  font-size: 1.2rem; cursor: pointer; transition: color 0.3s;
+}
+
+.btn-close:hover { color: var(--danger); }
+
+.modal-body { padding: 32px; overflow-y: auto; max-height: 75vh; }
+
+.modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  background: rgba(0,0,0,0.15);
+}
+
+/* ── Sección Especial WhatsApp ─────────────────── */
+.modal-whatsapp-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(37, 211, 102, 0.08);
+  border-radius: 16px;
+  border: 1px solid rgba(37, 211, 102, 0.15);
+}
+
+.modal-whatsapp-header {
+  margin: 0 0 16px 0;
+  font-size: 0.9rem;
+  color: #25D366;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-whatsapp-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.no-scroll {
+  overflow: hidden !important;
+  padding-right: var(--scrollbar-width, 0px);
+}
+
+/* ── Utilidades de Formulario ──────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.input-group { margin-bottom: 24px; }
+
+.input-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+
+/* ── Cabecera de Página (Premium) ──────────────── */
+.page-header {
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 24px;
+}
+
+.page-header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1.5px; }
+.page-header p { color: var(--text-secondary); margin-top: 4px; font-weight: 500; }
+
+.action-grid { display: flex; gap: 12px; }
+
+/* ── Sistema de Filtrado (Glass) ───────────────── */
+.filter-glass {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  flex: 1;
+}
+
+/* ── Utilidades de Animación ───────────────────── */
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Cabecera Móvil ────────────────────────────── */
+.mobile-header {
+  display: none;
+  height: 64px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  padding: 0 20px;
+  position: sticky; top: 0; z-index: 90;
+}
+
 /* ── Responsive Class ───────────────────────────── */
 .grid-responsive {
   display: grid;
@@ -255,9 +499,14 @@ tbody tr:hover {
   gap: 28px;
 }
 
-@media (max-width: 768px) {
-  .page-content { padding: 16px; }
-  .stat-value { font-size: 1.8rem; }
+
+/* ===================================================
+   ── SECCIÓN DE ADAPTABILIDAD (MEDIA QUERIES) ──
+   =================================================== */
+
+@media (max-width: 1200px) {
+  .page-content { padding: 24px; }
+  .grid-responsive { gap: 20px; }
 }
 
 @media (max-width: 900px) {
@@ -268,19 +517,55 @@ tbody tr:hover {
 }
 
 @media (max-width: 768px) {
-  .page-content { margin-left: 0 !important; width: 100% !important; padding: 12px; padding-top: 8px; }
+  .page-content { 
+    margin-left: 0 !important; 
+    width: 100% !important; 
+    padding: 16px; 
+    padding-top: 12px; 
+  }
+  
   .mobile-header { display: flex; }
-  .page-header { margin-bottom: 12px !important; gap: 8px !important; border-bottom: none !important; padding-bottom: 0 !important; }
-  .page-header h1 { font-size: 1.7rem !important; }
-  .page-header p { font-size: 0.82rem !important; margin-top: 2px !important; }
-  .action-grid { gap: 6px !important; margin-bottom: 10px !important; width: 100% !important; justify-content: flex-start !important; }
-  .filter-glass { padding: 10px; margin-bottom: 12px; gap: 8px; }
-  .grid-responsive { gap: 12px !important; }
-  .stat-card { padding: 20px !important; }
+  
+  .page-header { 
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 16px !important; 
+    gap: 12px !important; 
+    border-bottom: none !important; 
+    padding-bottom: 0 !important; 
+  }
+  
+  .page-header h1 { font-size: 1.8rem !important; }
+  .page-header p { font-size: 0.85rem !important; }
+  
+  .action-grid { 
+    gap: 8px !important; 
+    margin-bottom: 12px !important; 
+    width: 100% !important; 
+    justify-content: flex-start !important; 
+  }
+  
+  .filter-glass { 
+    padding: 12px; 
+    margin-bottom: 16px; 
+    gap: 10px; 
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stat-card { padding: 24px !important; }
+  .stat-value { font-size: 1.8rem; }
+  
+  .grid-2 { grid-template-columns: 1fr; gap: 16px; }
 }
 
 @media (max-width: 480px) {
-  .filter-grid { grid-template-columns: repeat(2, 1fr); }
-  .action-grid { grid-template-columns: 1fr; }
+  .filter-grid { grid-template-columns: 1fr; }
+  .page-header h1 { font-size: 1.5rem !important; }
+  .modal-overlay { padding: 12px; }
+  .modal { border-radius: 20px; }
+  .modal-header { padding: 20px; }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 16px 20px; }
 }
 

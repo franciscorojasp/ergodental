@@ -129,36 +129,52 @@ export default function InstallAppPrompt() {
 
       {showAdvantages && (
         <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           className="modal-overlay"
           style={{ zIndex: 10000 }}
+          onClick={handleDismiss}
         >
-          <motion.div className="modal" style={{ maxWidth: '400px' }}>
+          <motion.div 
+            className="modal" 
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            style={{ maxWidth: '440px' }}
+            onClick={e => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h3>¿Por qué instalar la App?</h3>
+              <h3>📱 Ventajas de la App</h3>
               <button className="btn-close" onClick={handleDismiss}>✕</button>
             </div>
-            <div className="modal-body" style={{ gap: '15px' }}>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {[
                 { icon: '🚀', title: 'Mayor Velocidad', desc: 'La aplicación carga instantáneamente sin esperar al navegador.' },
                 { icon: '🔔', title: 'Recordatorios', desc: 'Recibe alertas de citas y pagos directamente en tu pantalla.' },
                 { icon: '📱', title: 'Acceso Directo', desc: 'Un icono elegante en tu pantalla de inicio como cualquier App nativa.' },
                 { icon: '🌐', title: 'Modo Offline', desc: 'Consulta información básica incluso sin conexión a internet.' }
               ].map(adv => (
-                <div key={adv.title} style={{ display:'flex', gap:'15px', alignItems:'flex-start' }}>
-                  <span style={{ fontSize:'1.5rem' }}>{adv.icon}</span>
+                <div key={adv.title} style={{ display:'flex', gap:'20px', alignItems:'flex-start' }}>
+                  <div style={{ 
+                    width: '48px', height: '48px', borderRadius: '14px', 
+                    background: 'var(--primary-dim)', display: 'flex', 
+                    alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem',
+                    flexShrink: 0
+                  }}>
+                    {adv.icon}
+                  </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize:'0.95rem' }}>{adv.title}</div>
-                    <div style={{ fontSize:'0.82rem', color:'var(--text-secondary)' }}>{adv.desc}</div>
+                    <div style={{ fontWeight: 800, fontSize:'1rem', marginBottom: '4px' }}>{adv.title}</div>
+                    <div style={{ fontSize:'0.85rem', color:'var(--text-secondary)', lineHeight: 1.5 }}>{adv.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="modal-footer" style={{ flexDirection: 'column' }}>
+            <div className="modal-footer" style={{ flexDirection: 'column', padding: '24px 32px' }}>
               {deferredPrompt ? (
                 <div style={{ textAlign: 'center', width: '100%' }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '10px' }}>Tu dispositivo <strong>Android / PC</strong> es compatible con instalación rápida.</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>Tu dispositivo <strong>Android / PC</strong> es compatible con instalación rápida.</p>
                   <button 
                     className="btn btn-primary" 
                     onClick={async () => {
@@ -169,25 +185,25 @@ export default function InstallAppPrompt() {
                         setShowAdvantages(false);
                       }
                     }} 
-                    style={{ width:'100%', fontSize: '1.1rem', padding: '12px' }}
+                    style={{ width:'100%', fontSize: '1.1rem', padding: '14px' }}
                   >
-                    🚀 Instalar Automáticamente
+                    🚀 Instalar Ahora
                   </button>
-                  <button className="btn btn-ghost" onClick={handleDismiss} style={{ width:'100%', marginTop:'8px' }}>Cerrar</button>
+                  <button className="btn btn-ghost" onClick={handleDismiss} style={{ width:'100%', marginTop:'12px' }}>Cerrar</button>
                 </div>
               ) : isIOS() ? (
-                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '12px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🍎</div>
-                  <strong>Instalación manual requerida en iPhone/iPad:</strong><br/><br/>
-                  Por restricciones de Apple, toca el ícono de "Compartir" (el cuadradito con la flecha hacia arriba) en la barra de Safari y luego selecciona <strong>"Agregar a inicio" ➕</strong>.
-                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
+                <div style={{ padding: '20px', background: 'var(--primary-dim)', borderRadius: '16px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
+                  <div style={{ fontSize: '1.8rem', marginBottom: '12px' }}>🍎</div>
+                  <strong style={{ fontSize: '1rem', display: 'block', marginBottom: '8px' }}>Instalación manual requerida:</strong>
+                  En iPhone/iPad toca el ícono de <strong style={{ color: 'var(--primary)' }}>Compartir</strong> (cuadrado con flecha ↑) y luego <strong style={{ color: 'var(--primary)' }}>"Agregar al inicio"</strong> ➕.
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'20px' }}>Entendido</button>
                 </div>
               ) : (
-                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '12px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🤖 💻</div>
-                  <strong>Instalación manual en Android o PC:</strong><br/><br/>
-                  Abre el menú de opciones de tu navegador (los tres puntos verticales ⋮) y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla principal"</strong>.
-                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'15px' }}>Entendido</button>
+                <div style={{ padding: '20px', background: 'var(--primary-dim)', borderRadius: '16px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
+                  <div style={{ fontSize: '1.8rem', marginBottom: '12px' }}>🤖 💻</div>
+                  <strong style={{ fontSize: '1rem', display: 'block', marginBottom: '8px' }}>Instalación manual requerida:</strong>
+                  Abre el menú de opciones (⋮) y selecciona <strong style={{ color: 'var(--primary)' }}>"Instalar aplicación"</strong> o <strong style={{ color: 'var(--primary)' }}>"Añadir a pantalla principal"</strong>.
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'20px' }}>Entendido</button>
                 </div>
               )}
             </div>
