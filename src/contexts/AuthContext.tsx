@@ -135,7 +135,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       if (subscription) subscription.unsubscribe();
-      clearTimeout(failsafe);
     };
   }, []); // Solo al montar
 
