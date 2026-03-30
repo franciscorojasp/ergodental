@@ -23,10 +23,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // para evitar la pantalla blanca permanente.
     const failsafe = setTimeout(() => {
       if (loading) {
-        console.warn('⚠️ Auth Timeout (25s): Forzando fin de carga...');
+        console.warn('⚠️ Auth Initial Timeout (6s): Forzando carga básica...');
         setLoading(false);
       }
-    }, 25000);
+    }, 6000);
 
     const initAuth = async () => {
       // 1. Carga desde localStorage (Demo o sesión previa)
@@ -49,14 +49,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // 2. Obtener sesión inicial explícitamente (más confiable que solo el listener)
+      // 2. Obtener sesión inicial con timeout de 5 segundos
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await handleSession(session);
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('TIMEOUT')), 5000)
+        );
+
+        const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        if (result.data?.session) {
+          await handleSession(result.data.session);
         }
       } catch (err) {
-        console.error('Error getting initial session:', err);
+        console.warn('Conexión lenta o fallida en inicio, procediendo a interfaz...');
       } finally {
         setLoading(false);
         clearTimeout(failsafe);
@@ -125,22 +130,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initAuth();
 
-    // 3. Supabase Auth Listener (para cambios posteriores)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      console.debug('🚀 Auth Event detected:', event);
+    // 3. Supabase Auth Listener (solo si existe el cliente)
+    let subscription: any = null;
+    if (supabase) {
+      const { data } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+        console.debug('🚀 Auth Event detected:', event);
 
-      if (event === 'PASSWORD_RECOVERY') {
-        window.location.hash = '#/reset-password';
+        if (event === 'PASSWORD_RECOVERY') {
+          window.location.hash = '#/reset-password';
+          setLoading(false);
+          return;
+        }
+
+        await handleSession(session);
         setLoading(false);
-        return;
-      }
-
-      await handleSession(session);
+      });
+      subscription = data.subscription;
+    } else {
       setLoading(false);
-    });
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) subscription.unsubscribe();
       clearTimeout(failsafe);
     };
   }, []); // Solo al montar

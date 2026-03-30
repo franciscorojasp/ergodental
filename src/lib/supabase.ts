@@ -4,15 +4,19 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qekotlqwollxcvcawvns.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFla290bHF3b2xseGN2Y2F3dm5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mjk5MTEsImV4cCI6MjA5MDAwNTkxMX0.ah2W38jGubpOGh4pwi-5lO74dF-LT9KqZB2CFuRKBFs';
+
+// Detectar si la clave actual es incorrecta (Stripe) y forzar la correcta
+const IS_STRIPE_KEY = supabaseAnonKey.startsWith('sb_publishable');
+const finalAnonKey = IS_STRIPE_KEY ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFla290bHF3b2xseGN2Y2F3dm5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mjk5MTEsImV4cCI6MjA5MDAwNTkxMX0.ah2W38jGubpOGh4pwi-5lO74dF-LT9KqZB2CFuRKBFs' : supabaseAnonKey;
 
 console.debug('Supabase URL:', supabaseUrl ? 'detectada' : 'VACÍA');
-console.debug('Supabase Key:', supabaseAnonKey ? (supabaseAnonKey.startsWith('sb_publishable') ? 'ERR_STRIPE_KEY' : 'detectada') : 'VACÍA');
+console.debug('Supabase Key:', finalAnonKey ? (IS_STRIPE_KEY ? 'STRIKE_FIX_APPLIED' : 'detectada') : 'VACÍA');
 
 export const IS_SUPABASE_CONNECTED = !!(
   supabaseUrl && 
-  supabaseAnonKey && 
+  finalAnonKey && 
   supabaseUrl.startsWith('http')
 );
 
@@ -38,8 +42,8 @@ const processHashTokens = () => {
   }
 };
 
-export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = (supabaseUrl && finalAnonKey)
+  ? createClient(supabaseUrl, finalAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
