@@ -23,10 +23,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // para evitar la pantalla blanca permanente.
     const failsafe = setTimeout(() => {
       if (loading) {
-        console.warn('⚠️ Auth Timeout: Forzando fin de carga...');
+        console.warn('⚠️ Auth Timeout (25s): Forzando fin de carga...');
         setLoading(false);
       }
-    }, 6000);
+    }, 25000);
 
     const initAuth = async () => {
       // 1. Carga desde localStorage (Demo o sesión previa)
