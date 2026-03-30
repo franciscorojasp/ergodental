@@ -1,6 +1,5 @@
-// src/contexts/AuthContext.tsx
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { type Usuario, loginUser, IS_DEMO_MODE, resetPasswordForEmail, updatePassword } from '../api';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { type Usuario, loginUser, resetPasswordForEmail, updatePassword } from '../api';
 import { supabase } from '../lib/supabase';
 
 interface AuthCtx {
@@ -93,12 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (supabase) {
       // Intentar obtener sesión inicial de forma asíncrona pero sin bloquear el render
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(({ data: { session } }: any) => {
         if (session) handleSession(session);
         else if (!saved) setLoading(false);
       });
 
-      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const { data } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
         console.debug(`🔑 Evento Auth: ${event}`);
 
         if (event === 'SIGNED_OUT') {
