@@ -709,38 +709,13 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     authError = result.error;
   } catch (err: any) {
     if (err.message === 'TIMEOUT_VENEZUELA') {
-      const SUPER_ADMINS = [
-        'francisco.rojasp@gmail.com', 'blascojennifer47@gmail.com',
-        'vera.hugo712@gmail.com', 'carlosalejandroverablasco183@gmail.com'
-      ];
-      // Si la red está totalmente congestionada pero es el administrador, dejarlo pasar al modo offline temporal
-      if (SUPER_ADMINS.includes(email.toLowerCase())) {
-        console.warn("Bypass de Emergencia por Timeout de Red: Entrando en modo Offline Forzado");
-        return {
-          id: 'admin-offline-bypass',
-          nombre: email.split('@')[0],
-          email: email,
-          rol: 'ADMIN',
-          activo: true
-        };
-      }
-      throw new Error('Conexión inestable o demasiada latencia. Revisa tu internet o intenta en un momento.');
+      throw new Error('Conexión inestable con el servidor. Por favor, revisa tu conexión e intenta de nuevo.');
     }
     throw err;
   }
   
   if (authError) {
-    if (authError.message.includes('Email not confirmed')) {
-      console.warn("Bypass: Email no confirmado para", email);
-      return {
-        id: 'user-temp-fix',
-        nombre: email.split('@')[0],
-        email: email,
-        rol: 'ADMIN',
-        activo: true
-      };
-    }
-    throw authError; // Credenciales inválidas
+    throw authError; // Credenciales inválidas o email no confirmado
   }
 
   // Obtener perfil desde tabla profiles
