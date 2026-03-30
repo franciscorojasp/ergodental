@@ -13,8 +13,7 @@ console.debug('Supabase Key:', supabaseAnonKey ? (supabaseAnonKey.startsWith('sb
 export const IS_SUPABASE_CONNECTED = !!(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl.startsWith('http') && 
-  !supabaseAnonKey.startsWith('sb_publishable') // Evitar confusión con llaves de Stripe
+  supabaseUrl.startsWith('http')
 );
 
 // Helper para procesar tokens en la URL si el detectSessionInUrl falla por el HashRouter
