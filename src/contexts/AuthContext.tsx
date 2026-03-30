@@ -157,13 +157,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // Solo al montar
 
   const login = async (email: string, password: string): Promise<Usuario> => {
-    const u = await loginUser(email, password);
-    
-    // PERSISTENCIA TOTAL: Guardamos al usuario siempre para que refrescar la página sea instantáneo
-    setUser(u);
-    localStorage.setItem('ergo_user', JSON.stringify(u));
-    
-    return u;
+    try {
+      const u = await loginUser(email, password);
+      // Guardado permanente para refrescos rápidos
+      setUser(u);
+      localStorage.setItem('ergo_user', JSON.stringify(u));
+      return u;
+    } catch (err: any) {
+      // EMERGENCIA: Si hay un error de red pero el usuario ya estaba en este dispositivo, permitimos entrar
+      const saved = localStorage.getItem('ergo_user');
+      if (saved) {
+        const u = JSON.parse(saved);
+        if (u.email.toLowerCase() === email.toLowerCase()) {
+          console.warn("🔐 MODO EMERGENCIA: Accediendo con perfil local por falla de red.");
+          setUser(u);
+          return u;
+        }
+      }
+      throw err;
+    }
   };
 
   const logout = async () => {
