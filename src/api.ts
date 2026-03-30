@@ -867,7 +867,10 @@ export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal>
     saveDemoStore('personal', DEMO_PERSONAL);
     return nuevo;
   }
-  const dbData = mapKeys(p, toSnake);
+  const dbData = sanitizeData(mapKeys(p, toSnake));
+  // Blindaje Estructural v1.9 (Inmunidad Total)
+  delete dbData.last_updated;
+
   return await withOfflineSync<Personal>(
     () => supabase.from('personal').insert(dbData).select().single(),
     'personal',
@@ -887,7 +890,10 @@ export async function updatePersonal(p: Partial<Personal> & { id: string }): Pro
     return DEMO_PERSONAL[idx];
   }
   const { id, ...rest } = p;
-  const dbData = mapKeys(rest, toSnake);
+  const dbData = sanitizeData(mapKeys(rest, toSnake));
+  // Blindaje Estructural v1.9 (Inmunidad Total)
+  delete dbData.last_updated;
+
   return await withOfflineSync<Personal>(
     () => supabase.from('personal').update(dbData).eq('id', id).select().single(),
     'personal',
@@ -1001,7 +1007,10 @@ export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Pr
     saveDemoStore('inventario', DEMO_INVENTARIO);
     return nuevo;
   }
-  const dbData = mapKeys(item, toSnake);
+  const dbData = sanitizeData(mapKeys(item, toSnake));
+  // Blindaje Estructural v1.9 (Inmunidad Total)
+  delete dbData.last_updated;
+
   return await withOfflineSync<ItemInventario>(
     () => supabase.from('inventario').insert(dbData).select().single(),
     'inventario',
@@ -1080,7 +1089,10 @@ export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveed
     saveDemoStore('proveedores', DEMO_PROVEEDORES);
     return nuevo;
   }
-  const dbData = mapKeys(p, toSnake);
+  const dbData = sanitizeData(mapKeys(p, toSnake));
+  // Blindaje Estructural v1.9 (Inmunidad Total)
+  delete dbData.last_updated;
+
   return await withOfflineSync<Proveedor>(
     () => supabase.from('proveedores').insert(dbData).select().single(),
     'proveedores',
@@ -1188,7 +1200,10 @@ export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Pre
     saveDemoStore('presupuestos', DEMO_PRESUPUESTOS);
     return nuevo;
   }
-  const dbData = mapKeys(p, toSnake);
+  const dbData = sanitizeData(mapKeys(p, toSnake));
+  // Blindaje Estructural v1.9 (Inmunidad Total)
+  delete dbData.last_updated;
+
   return await withOfflineSync<Presupuesto>(
     () => supabase.from('presupuestos').insert(dbData).select().single(),
     'presupuestos',
