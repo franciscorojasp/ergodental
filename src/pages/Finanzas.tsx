@@ -721,18 +721,19 @@ export default function Finanzas(){
                   <div className="input-group">
                     <label>Concepto *</label>
                     <input className="input" required value={formPago.concepto} onChange={e=>setFormPago(f=>({...f,concepto:e.target.value}))} placeholder="Ej: Limpieza dental, Ortodoncia mensualidad..."/>
+                    <input id="pago-concepto" name="concepto" className="input" required value={formPago.concepto} onChange={e=>setFormPago(f=>({...f,concepto:e.target.value}))} placeholder="Ej: Limpieza dental, Ortodoncia mensualidad..."/>
                   </div>
                   <div className="grid-2">
                     <div className="input-group">
                       <label>Tipo de pago</label>
-                      <select className="input" value={formPago.tipoPago} onChange={e=>setFormPago(f=>({...f,tipoPago:e.target.value as Pago['tipoPago']}))}>
+                      <select id="pago-tipo" name="tipoPago" className="input" value={formPago.tipoPago} onChange={e=>setFormPago(f=>({...f,tipoPago:e.target.value as Pago['tipoPago']}))}>
                         <option>Contado</option><option>Abono</option><option>Crédito</option>
                       </select>
                     </div>
                     {formPago.tipoPago==='Crédito'&&(
                       <div className="input-group">
                         <label>Plazo</label>
-                        <select className="input" value={formPago.diasCredito} onChange={e=>setFormPago(f=>({...f,diasCredito:Number(e.target.value) as typeof DIAS_CREDITO[number]}))}>
+                        <select id="pago-plazo" name="diasCredito" className="input" value={formPago.diasCredito} onChange={e=>setFormPago(f=>({...f,diasCredito:Number(e.target.value) as typeof DIAS_CREDITO[number]}))}>
                           {DIAS_CREDITO.map(d=><option key={d} value={d}>{d} días</option>)}
                         </select>
                       </div>
@@ -741,11 +742,11 @@ export default function Finanzas(){
                    <div className="grid-2">
                     <div className="input-group">
                       <label>Monto (USD) *</label>
-                      <input className="input" type="number" step="0.01" required value={formPago.monto||''} onChange={e=>setFormPago(f=>({...f,monto:Number(e.target.value)}))}/>
+                      <input id="pago-monto" name="monto" className="input" type="number" step="0.01" required value={formPago.monto||''} onChange={e=>setFormPago(f=>({...f,monto:Number(e.target.value)}))}/>
                     </div>
                     <div className="input-group">
                       <label>Método de pago</label>
-                      <select className="input" value={formPago.metodoPago} onChange={e=>setFormPago(f=>({...f,metodoPago:e.target.value as MetodoPago}))}>
+                      <select id="pago-metodo" name="metodoPago" className="input" value={formPago.metodoPago} onChange={e=>setFormPago(f=>({...f,metodoPago:e.target.value as MetodoPago}))}>
                         <optgroup label="🇻🇪 Bolívares"><option>Efectivo BS</option><option>Pago Móvil</option><option>Transferencia BS</option><option>Punto de Venta BS</option></optgroup>
                         <optgroup label="💲 Divisas"><option>Efectivo USD</option><option>USDT</option><option>PayPal</option><option>Zelle</option><option>Binance</option></optgroup>
                       </select>
@@ -759,20 +760,20 @@ export default function Finanzas(){
                       <div className="grid-2">
                         <div className="input-group">
                           <label>Banco Emisor</label>
-                          <select className="input" value={formPago.bancoEmisor} onChange={e => setFormPago(f => ({ ...f, bancoEmisor: e.target.value }))}>
+                          <select id="pago-banco" name="bancoEmisor" className="input" value={formPago.bancoEmisor} onChange={e => setFormPago(f => ({ ...f, bancoEmisor: e.target.value }))}>
                             <option value="">Seleccionar banco...</option>
                             {BANCOS_VE.map(b => <option key={b} value={b}>{b}</option>)}
                           </select>
                         </div>
                         <div className="input-group">
                           <label>Nro. Referencia</label>
-                          <input className="input" placeholder="Últimos 4-6 dígitos" value={formPago.numeroReferencia} onChange={e => setFormPago(f => ({ ...f, numeroReferencia: e.target.value }))} />
+                          <input id="pago-referencia" name="numeroReferencia" className="input" placeholder="Últimos 4-6 dígitos" value={formPago.numeroReferencia} onChange={e => setFormPago(f => ({ ...f, numeroReferencia: e.target.value }))} />
                         </div>
                       </div>
                       {formPago.metodoPago === 'Pago Móvil' && (
                         <div className="input-group" style={{ marginTop: '8px' }}>
                           <label>Teléfono Origen</label>
-                          <input className="input" placeholder="04xx..." value={formPago.telefonoOrigen} onChange={e => setFormPago(f => ({ ...f, telefonoOrigen: e.target.value }))} />
+                          <input id="pago-telefono" name="telefonoOrigen" className="input" placeholder="04xx..." value={formPago.telefonoOrigen} onChange={e => setFormPago(f => ({ ...f, telefonoOrigen: e.target.value }))} />
                         </div>
                       )}
                     </motion.div>
@@ -784,14 +785,14 @@ export default function Finanzas(){
                     <div className="grid-2">
                       <div className="input-group">
                         <label>Tipo de referencia</label>
-                        <select className="input" value={formPago.tipoReferencia} onChange={e=>setFormPago(f=>({...f,tipoReferencia:e.target.value as TipoReferencia|''}))}>
+                        <select id="pago-tipo-referencia" name="tipoReferencia" className="input" value={formPago.tipoReferencia} onChange={e=>setFormPago(f=>({...f,tipoReferencia:e.target.value as TipoReferencia|''}))}>
                           <option value="">Sin referencia</option>
                           {TABLA_REFERENCIAS.map(r=><option key={r.tipo} value={r.tipo}>{r.label}</option>)}
                         </select>
                       </div>
                       <div className="input-group">
                         <label>Referidor</label>
-                        <input className="input" placeholder="Nombre" value={formPago.referidorNombre} onChange={e=>setFormPago(f=>({...f,referidorNombre:e.target.value}))}/>
+                        <input id="pago-referidor" name="referidorNombre" className="input" placeholder="Nombre" value={formPago.referidorNombre} onChange={e=>setFormPago(f=>({...f,referidorNombre:e.target.value}))}/>
                       </div>
                     </div>
 
@@ -813,11 +814,11 @@ export default function Finanzas(){
                   <div className="grid-2">
                     <div className="input-group">
                       <label>Fecha *</label>
-                      <input className="input" type="date" value={formPago.fecha} onChange={e=>setFormPago(f=>({...f,fecha:e.target.value}))}/>
+                      <input id="pago-fecha" name="fecha" className="input" type="date" value={formPago.fecha} onChange={e=>setFormPago(f=>({...f,fecha:e.target.value}))}/>
                     </div>
                     <div className="input-group">
                       <label>Notas</label>
-                      <input className="input" value={formPago.notas} onChange={e=>setFormPago(f=>({...f,notas:e.target.value}))}/>
+                      <input id="pago-notas" name="notas" className="input" value={formPago.notas} onChange={e=>setFormPago(f=>({...f,notas:e.target.value}))}/>
                     </div>
                   </div>
                 </div>
@@ -843,35 +844,35 @@ export default function Finanzas(){
               </div>
               <form onSubmit={handleSaveEgreso}>
                 <div className="modal-body">
-                  <div className="input-group"><label>Concepto *</label><input className="input" required value={formEgreso.concepto} onChange={e=>setFormEgreso(f=>({...f,concepto:e.target.value}))}/></div>
+                  <div className="input-group"><label>Concepto *</label><input id="egreso-concepto" name="concepto" className="input" required value={formEgreso.concepto} onChange={e=>setFormEgreso(f=>({...f,concepto:e.target.value}))}/></div>
                   <div className="grid-2">
                     <div className="input-group">
                       <label>Categoría *</label>
-                      <select className="input" value={formEgreso.categoria} onChange={e=>setFormEgreso(f=>({...f,categoria:e.target.value as Egreso['categoria']}))}>
+                      <select id="egreso-categoria" name="categoria" className="input" value={formEgreso.categoria} onChange={e=>setFormEgreso(f=>({...f,categoria:e.target.value as Egreso['categoria']}))}>
                         <option>Suministros</option><option>Servicios</option><option>Nómina</option><option>Proveedor</option><option>Alquiler</option><option>Equipos</option><option>Otro</option>
                       </select>
                     </div>
                     <div className="input-group">
                       <label>Proveedor</label>
-                      <select className="input" value={formEgreso.proveedorId} onChange={e=>setFormEgreso(f=>({...f,proveedorId:e.target.value}))}>
+                      <select id="egreso-proveedor" name="proveedorId" className="input" value={formEgreso.proveedorId} onChange={e=>setFormEgreso(f=>({...f,proveedorId:e.target.value}))}>
                         <option value="">Sin proveedor</option>
                         {proveedores.map(p=><option key={p.id} value={p.id}>{p.nombre}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="grid-2">
-                    <div className="input-group"><label>Monto (USD) *</label><input className="input" type="number" step="0.01" required value={formEgreso.monto||''} onChange={e=>setFormEgreso(f=>({...f,monto:Number(e.target.value)}))}/></div>
+                    <div className="input-group"><label>Monto (USD) *</label><input id="egreso-monto" name="monto" className="input" type="number" step="0.01" required value={formEgreso.monto||''} onChange={e=>setFormEgreso(f=>({...f,monto:Number(e.target.value)}))}/></div>
                     <div className="input-group">
                       <label>Método de pago</label>
-                      <select className="input" value={formEgreso.metodoPago} onChange={e=>setFormEgreso(f=>({...f,metodoPago:e.target.value as MetodoPago}))}>
+                      <select id="egreso-metodo" name="metodoPago" className="input" value={formEgreso.metodoPago} onChange={e=>setFormEgreso(f=>({...f,metodoPago:e.target.value as MetodoPago}))}>
                         <optgroup label="🇻🇪 Bolívares"><option>Efectivo BS</option><option>Pago Móvil</option><option>Transferencia BS</option></optgroup>
                         <optgroup label="💲 Divisas"><option>Efectivo USD</option><option>USDT</option><option>PayPal</option><option>Zelle</option><option>Binance</option></optgroup>
                       </select>
                     </div>
                   </div>
                   <div className="grid-2">
-                    <div className="input-group"><label>Fecha *</label><input className="input" type="date" value={formEgreso.fecha} onChange={e=>setFormEgreso(f=>({...f,fecha:e.target.value}))}/></div>
-                    <div className="input-group"><label>Notas</label><input className="input" value={formEgreso.notas} onChange={e=>setFormEgreso(f=>({...f,notas:e.target.value}))}/></div>
+                    <div className="input-group"><label>Fecha *</label><input id="egreso-fecha" name="fecha" className="input" type="date" value={formEgreso.fecha} onChange={e=>setFormEgreso(f=>({...f,fecha:e.target.value}))}/></div>
+                    <div className="input-group"><label>Notas</label><input id="egreso-notas" name="notas" className="input" value={formEgreso.notas} onChange={e=>setFormEgreso(f=>({...f,notas:e.target.value}))}/></div>
                   </div>
                 </div>
                 <div className="modal-footer">

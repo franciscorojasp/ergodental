@@ -184,7 +184,7 @@ export default function Login() {
               <motion.form key="login" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
                 <div className="input-group">
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 600 }}>CORREO ELECTRÓNICO</label>
-                  <input className="premium-input" type="email" placeholder="ejemplo@ergodental.com" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
+                  <input id="login-email" name="email" className="premium-input" type="email" placeholder="ejemplo@ergodental.com" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
                 </div>
                 <div className="input-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -192,7 +192,7 @@ export default function Login() {
                     <button type="button" onClick={() => setView('forgot-password')} style={{ color: '#3490dc', fontSize: '0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600 }}>¿Olvidaste tu contraseña?</button>
                   </div>
                   <div style={{ position: 'relative' }}>
-                    <input className="premium-input" type={showPassword ? "text" : "password"} placeholder="••••••••••••" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
+                    <input id="login-password" name="password" className="premium-input" type={showPassword ? "text" : "password"} placeholder="••••••••••••" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)' }}>{showPassword ? '👁️' : '🔒'}</button>
                   </div>
                 </div>
@@ -210,9 +210,9 @@ export default function Login() {
                   <h2 style={{ color: '#fff' }}>Crea tu Cuenta</h2>
                   <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>Recibirás un código de 8 dígitos.</p>
                 </div>
-                <input className="premium-input" type="email" placeholder="Gmail" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
-                <input className="premium-input" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
-                <input className="premium-input" type="password" placeholder="Confirmar" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
+                <input id="reg-email" name="email" className="premium-input" type="email" placeholder="Gmail" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
+                <input id="reg-password" name="password" className="premium-input" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
+                <input id="reg-confirm" name="confirmPassword" className="premium-input" type="password" placeholder="Confirmar" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
                 {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
                 <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>{loading ? 'Procesando...' : 'Obtener Código'}</button>
                 <button type="button" onClick={() => setView('login')} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none' }}>Volver</button>
@@ -222,7 +222,7 @@ export default function Login() {
             {view === 'register-verify' && (
               <motion.form key="reg-verify" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleVerifySignUp} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
                 <h2 style={{ color: '#fff', textAlign: 'center' }}>Validar Correo</h2>
-                <input className="premium-input" type="text" placeholder="Código de 8 dígitos" value={verificationCode} onChange={e => setVerificationCode(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
+                <input id="verify-code" name="verificationCode" className="premium-input" type="text" placeholder="Código de 8 dígitos" value={verificationCode} onChange={e => setVerificationCode(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
                 {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
                 {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem' }}>✅ {success}</p>}
                 <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>{loading ? 'Verificando...' : 'Activar Cuenta'}</button>

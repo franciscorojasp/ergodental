@@ -243,14 +243,14 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                 <div className="grid-2">
                   <div className="input-group">
                     <label>Paciente *</label>
-                    <select className="input" required value={form.pacienteId} onChange={e => onPacienteChange(e.target.value)}>
+                    <select id="cita-paciente" name="pacienteId" className="input" required value={form.pacienteId} onChange={e => onPacienteChange(e.target.value)}>
                       <option value="">Seleccione...</option>
                       {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>)}
                     </select>
                   </div>
                   <div className="input-group">
                     <label>Doctor *</label>
-                    <select className="input" required value={form.doctorId} onChange={e => setForm(f => ({ ...f, doctorId: e.target.value }))}>
+                    <select id="cita-doctor" name="doctorId" className="input" required value={form.doctorId} onChange={e => setForm(f => ({ ...f, doctorId: e.target.value }))}>
                       <option value="">Seleccione...</option>
                       {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
                     </select>
@@ -260,23 +260,23 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                 <div className="grid-2">
                   <div className="input-group">
                     <label>Fecha *</label>
-                    <input type="date" className="input" required value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+                    <input id="cita-fecha" name="fecha" type="date" className="input" required value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
                   </div>
                   <div className="input-group">
                     <label>Hora *</label>
-                    <input type="time" className="input" required value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} />
+                    <input id="cita-hora" name="hora" type="time" className="input" required value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} />
                   </div>
                 </div>
 
                 <div className="input-group">
                   <label>Motivo</label>
-                  <input className="input" placeholder="Ej: Control de ortodoncia" value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} />
+                  <input id="cita-motivo" name="motivo" className="input" placeholder="Ej: Control de ortodoncia" value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} />
                 </div>
                 
                 <div className="grid-2">
                   <div className="input-group">
                     <label>Estado</label>
-                    <select className="input" value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value as Cita['estado'] }))}>
+                    <select id="cita-estado" name="estado" className="input" value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value as Cita['estado'] }))}>
                       <option value="Pendiente">Pendiente</option>
                       <option value="Confirmada">Confirmada</option>
                       <option value="Completada">Completada</option>
@@ -285,7 +285,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                   </div>
                   <div className="input-group">
                     <label>Tipo de Atención</label>
-                    <select className="input" value={form.tipoAtencion} onChange={e => setForm(f => ({ ...f, tipoAtencion: e.target.value as TipoAtencion }))}>
+                    <select id="cita-tipo-atencion" name="tipoAtencion" className="input" value={form.tipoAtencion} onChange={e => setForm(f => ({ ...f, tipoAtencion: e.target.value as TipoAtencion }))}>
                       <option value="Consulta">Consulta</option>
                       <option value="Tratamiento">Tratamiento</option>
                       <option value="Emergencia">Emergencia</option>
