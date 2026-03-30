@@ -48,12 +48,12 @@ export const supabase = (supabaseUrl && finalAnonKey)
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        storageKey: 'ergodental-auth-session', // Llave única para evitar conflictos
+        storageKey: 'ergodental-session', // Llave unificada definitiva
       },
     })
   : (null as any);
 
-// Ejecutar el procesador manual si estamos en el navegador
-if (supabase) {
+// Ejecutar el procesador manual si estamos en el navegador y hay tokens en la URL (HashRouter fix)
+if (typeof window !== 'undefined' && supabase) {
   processHashTokens();
 }

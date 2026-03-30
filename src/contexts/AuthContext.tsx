@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { type Usuario, loginUser, IS_DEMO_MODE, resetPasswordForEmail, updatePassword } from '../api';
 import { supabase } from '../lib/supabase';
 
@@ -14,128 +14,103 @@ interface AuthCtx {
 
 const AuthContext = createContext<AuthCtx | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // SEGURO DE VIDA SILENCIOSO: Si en 10s no hay respuesta de red, 
-    // permitimos entrar con lo que tengamos en caché para evitar pantalla infinita.
-    const silentFailsafe = setTimeout(() => {
+  // Mapeo de perfiles (snake_case a camelCase)
+  const mapProfileToUser = (profile: any, sessionUser: any, isSuperAdmin: boolean): Usuario => {
+    const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+    
+    if (profile) {
+      const mapped: any = {};
+      Object.keys(profile).forEach(k => mapped[toCamel(k)] = profile[k]);
+      const u = mapped as Usuario;
+      if (isSuperAdmin) u.rol = 'ADMIN';
+      return u;
+    }
+
+    // Fallback si no hay perfil en la tabla 'profiles'
+    return {
+      id: sessionUser.id,
+      nombre: sessionUser.email?.split('@')[0] || 'Usuario',
+      email: sessionUser.email || '',
+      rol: isSuperAdmin ? 'ADMIN' : 'RECEPCION', // Rol base por defecto
+      activo: true
+    };
+  };
+
+  const handleSession = async (session: any) => {
+    if (!session?.user) {
+      setUser(null);
       setLoading(false);
-    }, 10000);
+      return;
+    }
 
-    const initAuth = async () => {
-      // 1. Carga desde localStorage (Demo o sesión previa)
-      const saved = localStorage.getItem('ergo_user');
-      if (saved) {
-        try { 
-          const u = JSON.parse(saved);
-          setUser(u); 
-        } catch { /* ignore */ }
-        if (IS_DEMO_MODE) {
-          setLoading(false);
-          clearTimeout(silentFailsafe);
-          return;
-        }
-      }
+    try {
+      const SUPER_ADMINS = [
+        'francisco.rojasp@gmail.com', 
+        'blascojennifer47@gmail.com', 
+        'vera.hugo712@gmail.com', 
+        'carlosalejandroverablasco183@gmail.com'
+      ];
+      const email = session.user.email?.toLowerCase();
+      const isSuperAdmin = email && SUPER_ADMINS.includes(email);
 
-      if (IS_DEMO_MODE || !supabase) {
-        setLoading(false);
-        clearTimeout(silentFailsafe);
-        return;
-      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-      // 2. Obtener sesión inicial directamente
+      const finalUser = mapProfileToUser(profile, session.user, !!isSuperAdmin);
+      
+      setUser(finalUser);
+      localStorage.setItem('ergo_user', JSON.stringify(finalUser));
+    } catch (e) {
+      console.error('Error sincronizando perfil:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // 1. CARGA OPTIMISTA: Recuperar inmediatamente de localStorage para evitar blank screen
+    const saved = localStorage.getItem('ergo_user');
+    if (saved) {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await handleSession(session);
-        }
-      } catch (err) {
-        console.warn('Falla en inicio de sesión de Supabase:', err);
-      } finally {
+        const cachedUser = JSON.parse(saved);
+        setUser(cachedUser);
         setLoading(false);
-        clearTimeout(silentFailsafe);
-      }
-    };
-
-    const handleSession = async (session: any) => {
-      if (!session?.user) {
-        const saved = localStorage.getItem('ergo_user');
-        if (!saved) setUser(null);
-        return;
-      }
-
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        // BYPASS: Si es Super Admin, garantizamos el acceso incluso si no hay perfil creado
-        const SUPER_ADMINS = [
-          'francisco.rojasp@gmail.com', 
-          'blascojennifer47@gmail.com', 
-          'vera.hugo712@gmail.com', 
-          'carlosalejandroverablasco183@gmail.com'
-        ];
-        
-        const isSuperAdmin = session.user.email && SUPER_ADMINS.includes(session.user.email.toLowerCase());
-
-        if (!error && profile) {
-          const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
-          const mapKeys = (obj: any): any => {
-            if (!obj) return obj;
-            return Object.keys(obj).reduce((acc, k) => {
-              acc[toCamel(k)] = obj[k];
-              return acc;
-            }, {} as any);
-          };
-
-          const u = mapKeys(profile) as Usuario;
-          if (isSuperAdmin) u.rol = 'ADMIN';
-
-          setUser(u);
-          localStorage.removeItem('ergo_user');
-        } else if (isSuperAdmin) {
-          // Fallback seguro en recargas (F5) para admins sin perfil real en tabla
-          setUser({
-            id: session.user.id,
-            nombre: session.user.email.split('@')[0],
-            email: session.user.email,
-            rol: 'ADMIN',
-            activo: true
-          });
-        } else {
-          console.error("No profile found or error fetching profile inside handleSession:", error || 'User lacks profile record');
-          setUser(null); // Evitar quedarse pegado sin profile
-        }
+        console.debug('⚡ Resiliencia: Sesión recuperada de caché local.');
       } catch (e) {
-        console.error("Critical error in handleSession:", e);
-        setUser(null);
-      } finally {
-        setLoading(false); // Siempre garantizamos quitar loading tras el fetch
+        localStorage.removeItem('ergo_user');
       }
-    };
+    }
 
-    initAuth();
-
-    // 3. Supabase Auth Listener (solo si existe el cliente)
+    // 2. ESCUCHA DE SESIÓN: Supabase como única fuente de verdad en red
     let subscription: any = null;
-    if (supabase) {
-      const { data } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-        console.debug('🚀 Auth Event detected:', event);
 
-        if (event === 'PASSWORD_RECOVERY') {
+    if (supabase) {
+      // Intentar obtener sesión inicial de forma asíncrona pero sin bloquear el render
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) handleSession(session);
+        else if (!saved) setLoading(false);
+      });
+
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.debug(`🔑 Evento Auth: ${event}`);
+
+        if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem('ergo_user');
+          setLoading(false);
+        } else if (event === 'PASSWORD_RECOVERY') {
           window.location.hash = '#/reset-password';
           setLoading(false);
-          return;
+        } else if (session) {
+          handleSession(session);
         }
-
-        await handleSession(session);
-        setLoading(false);
       });
       subscription = data.subscription;
     } else {
@@ -145,24 +120,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (subscription) subscription.unsubscribe();
     };
-  }, []); // Solo al montar
+  }, []);
 
   const login = async (email: string, password: string): Promise<Usuario> => {
     try {
       const u = await loginUser(email, password);
-      // Guardado permanente para refrescos rápidos
       setUser(u);
       localStorage.setItem('ergo_user', JSON.stringify(u));
       return u;
     } catch (err: any) {
-      // EMERGENCIA: Si hay un error de red pero el usuario ya estaba en este dispositivo, permitimos entrar
+      // MODO EMERGENCIA: Si falla la red pero el usuario coincide con el caché, permitimos entrar
       const saved = localStorage.getItem('ergo_user');
       if (saved) {
-        const u = JSON.parse(saved);
-        if (u.email.toLowerCase() === email.toLowerCase()) {
-          console.warn("🔐 MODO EMERGENCIA: Accediendo con perfil local por falla de red.");
-          setUser(u);
-          return u;
+        const cached = JSON.parse(saved);
+        if (cached.email.toLowerCase() === email.toLowerCase()) {
+          console.warn("🔐 Accediendo vía caché por falla de red.");
+          setUser(cached);
+          return cached;
         }
       }
       throw err;
@@ -171,9 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     localStorage.removeItem('ergo_user');
-    if (!IS_DEMO_MODE) {
-      await supabase.auth.signOut();
-    }
+    if (supabase) await supabase.auth.signOut();
     setUser(null);
   };
 
@@ -188,7 +160,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, resetPassword, updatePassword: updatePasswordNew }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      resetPassword, 
+      updatePassword: updatePasswordNew 
+    }}>
       {children}
     </AuthContext.Provider>
   );
