@@ -258,9 +258,6 @@ tbody tr:hover {
 @media (max-width: 768px) {
   .page-content { padding: 16px; }
   .stat-value { font-size: 1.8rem; }
-  .grid-responsive { gap: 16px; }
-}
- 30px; }
 }
 
 @media (max-width: 900px) {

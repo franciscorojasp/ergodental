@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getPacientes, getPersonal, createCita, updateCita,
-  type Cita, type Paciente, type Personal, type TipoReferencia,
+  type Cita, type Paciente, type Personal,
   type TipoAtencion, type CondicionPaciente, type EstadoFinanciero
 } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
