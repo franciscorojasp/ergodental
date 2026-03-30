@@ -102,7 +102,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="app-layout" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="app-layout animate-fade-in" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -144,7 +144,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 function HomeRedirect() {
   const { user, loading } = useAuth();
   const { content } = useContent();
-  if (loading) return <AppLoader subtitle={content.loading_app} />;
+
+  if (loading) return <AppLoader subtitle={content.loading_session} />;
   if (!user) return <Navigate to="/login" replace />;
   const home = user.rol ? ROL_HOME[user.rol] : '/login';
   return <Navigate to={home || '/login'} replace />;
