@@ -697,14 +697,8 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     throw new Error('Configuración de base de datos no disponible en línea.');
   }
 
-  // 3. Autenticación Directa con Timeout de Seguridad (15s)
-  // En redes inestables, si no responde en 15s lanzamos error para activar bypass
-  const loginPromise = supabase.auth.signInWithPassword({ email, password });
-  const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('TIMEOUT_RED')), 15000)
-  );
-
-  const { data: authData, error: authError } = await Promise.race([loginPromise, timeoutPromise]) as any;
+  // 3. Autenticación Directa (Sin límites de tiempo artificiales)
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
   if (authError) throw authError;
 
   // 4. Carga de Perfil de Usuario
