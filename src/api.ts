@@ -103,13 +103,14 @@ export async function processSyncQueue() {
   
   for (const item of queue) {
     try {
-      // ─── REPARADOR DE DATOS (MIGRACIÓN v1.3 DE EMERGENCIA) ─────────
-      // Si hay datos atrapados con el nombre de columna viejo 'data', 
-      // los migramos a 'piezas' antes de intentar subir.
-      if (item.table === 'odontogramas' && item.payload.data && !item.payload.piezas) {
-        console.log('🩹 Reparando datos del odontograma atrapados en la cola...');
-        item.payload.piezas = item.payload.data;
+      // ─── REPARADOR DE DATOS (MIGRACIÓN v1.4 DE EMERGENCIA) ─────────
+      // Si hay datos atrapados con el nombre de columna viejo 'data' o 'piezas', 
+      // los migramos a 'datos' antes de intentar subir.
+      if (item.table === 'odontogramas' && (item.payload.data || item.payload.piezas) && !item.payload.datos) {
+        console.log('🩹 Reparando datos del odontograma atrapados en la cola (v1.4)...');
+        item.payload.datos = item.payload.piezas || item.payload.data;
         delete item.payload.data;
+        delete item.payload.piezas;
       }
       // ─────────────────────────────────────────────────────────────
 
@@ -1242,10 +1243,10 @@ export async function getOdontograma(pacienteId: string): Promise<Odontograma | 
   
   if (data) {
     const raw = mapKeys(data, toCamel) as any;
-    // Soporte para ambos nombres de columna (retrocompatibilidad o error de esquema)
+    // Soporte para nombres de columna históricos/detectados
     return {
       ...raw,
-      piezas: raw.piezasDentales || raw.piezas || []
+      piezas: raw.datos || raw.piezasDentales || raw.piezas || raw.data || []
     } as Odontograma;
   }
   return null;
@@ -1261,10 +1262,10 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
     return nuevo;
   }
 
-  // Mapeo del Odontograma: Probamos con 'data' (común en Supabase JSON blobs)
+  // Mapeo del Odontograma: El servidor de producción espera 'datos'
   const dbData = {
     paciente_id: o.pacienteId,
-    data: sanitizeData(o.piezas) 
+    datos: sanitizeData(o.piezas) 
   };
 
   return await withOfflineSync<Odontograma>(
