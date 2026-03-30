@@ -674,7 +674,7 @@ export async function verifyRecoveryCode(email: string, token: string) {
 }
 
 export async function loginUser(email: string, password: string): Promise<Usuario> {
-  // 1. Credenciales Demo (Acceso local instantáneo)
+  // 1. Credenciales Demo (Local)
   const DEMO_CREDS: Record<string, string> = {
     'admin@ergodental.com':     'Ergodental2024!',
     'doctor@ergodental.com':    'Ergodental2024!',
@@ -688,16 +688,16 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     if (user) return user;
   }
 
-  // 2. Validación de Entorno
+  // 2. Validación de Red
   if (typeof window !== 'undefined' && !window.navigator.onLine) {
-    throw new Error('No tienes conexión a internet activa.');
+    throw new Error('No tienes conexión a internet activa para iniciar sesión.');
   }
 
   if (!IS_SUPABASE_CONNECTED || !supabase) {
-    throw new Error('Configuración de base de datos no disponible.');
+    throw new Error('Configuración de base de datos no disponible en línea.');
   }
 
-  // 3. Autenticación Directa (Sin esperas ni parches)
+  // 3. Login en Supabase
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
   if (authError) throw authError;
 
