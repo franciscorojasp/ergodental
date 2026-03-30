@@ -416,18 +416,18 @@ export default function Pacientes() {
               <form onSubmit={handleSave}>
                 <div className="modal-body">
                   <div className="grid-2">
-                    <div className="input-group"><label>Nombre *</label><input className="input" required value={form.nombre} onChange={e=>setForm(f=>({...f,nombre:e.target.value}))} /></div>
-                    <div className="input-group"><label>Apellido *</label><input className="input" required value={form.apellido} onChange={e=>setForm(f=>({...f,apellido:e.target.value}))} /></div>
+                    <div className="input-group"><label>Nombre *</label><input id="paciente-nombre" name="nombre" className="input" required value={form.nombre} onChange={e=>setForm(f=>({...f,nombre:e.target.value}))} /></div>
+                    <div className="input-group"><label>Apellido *</label><input id="paciente-apellido" name="apellido" className="input" required value={form.apellido} onChange={e=>setForm(f=>({...f,apellido:e.target.value}))} /></div>
                   </div>
                   <div className="grid-2">
-                    <div className="input-group"><label>Cédula *</label><input className="input" required placeholder="V-12345678" value={form.cedula} onChange={e=>setForm(f=>({...f,cedula:e.target.value}))} /></div>
-                    <div className="input-group"><label>Fecha de nacimiento *</label><input className="input" type="date" value={form.fechaNacimiento} onChange={e=>setForm(f=>({...f,fechaNacimiento:e.target.value}))} /></div>
+                    <div className="input-group"><label>Cédula *</label><input id="paciente-cedula" name="cedula" className="input" required placeholder="V-12345678" value={form.cedula} onChange={e=>setForm(f=>({...f,cedula:e.target.value}))} /></div>
+                    <div className="input-group"><label>Fecha de nacimiento *</label><input id="paciente-fecha-nacimiento" name="fechaNacimiento" className="input" type="date" value={form.fechaNacimiento} onChange={e=>setForm(f=>({...f,fechaNacimiento:e.target.value}))} /></div>
                   </div>
                   <div className="grid-2">
-                    <div className="input-group"><label>Teléfono</label><input className="input" placeholder="0412-1234567" value={form.telefono} onChange={e=>setForm(f=>({...f,telefono:e.target.value}))} /></div>
-                    <div className="input-group"><label>Email</label><input className="input" type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} /></div>
+                    <div className="input-group"><label>Teléfono</label><input id="paciente-telefono" name="telefono" className="input" placeholder="0412-1234567" value={form.telefono} onChange={e=>setForm(f=>({...f,telefono:e.target.value}))} /></div>
+                    <div className="input-group"><label>Email</label><input id="paciente-email" name="email" className="input" type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} /></div>
                   </div>
-                  <div className="input-group"><label>Dirección</label><input className="input" value={form.direccion} onChange={e=>setForm(f=>({...f,direccion:e.target.value}))} /></div>
+                  <div className="input-group"><label>Dirección</label><input id="paciente-direccion" name="direccion" className="input" value={form.direccion} onChange={e=>setForm(f=>({...f,direccion:e.target.value}))} /></div>
 
                   <div style={{ marginTop:'18px', padding:'12px', background:form.alergias ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)', borderRadius:'12px', border: `1px solid ${form.alergias ? 'var(--danger)' : 'var(--border)'}`, transition:'all 0.3s ease' }}>
                     <label style={{ display:'flex', alignItems:'center', gap:'10px', cursor:'pointer', marginBottom: form.alergias ? '10px' : '0' }}>
