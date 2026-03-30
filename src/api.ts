@@ -103,32 +103,53 @@ export async function processSyncQueue() {
   
   for (const item of queue) {
     try {
-      // ─── REPARADOR DE DATOS (MIGRACIÓN v1.4 DE EMERGENCIA) ─────────
-      // Si hay datos atrapados con el nombre de columna viejo 'data' o 'piezas', 
-      // los migramos a 'datos' antes de intentar subir.
-      if (item.table === 'odontogramas' && (item.payload.data || item.payload.piezas) && !item.payload.datos) {
-        console.log('🩹 Reparando datos del odontograma atrapados en la cola (v1.4)...');
-        item.payload.datos = item.payload.piezas || item.payload.data;
+      // ─── GOBERNANZA DE DATOS PROACTIVA (REPARADOR v1.9) ────────────
+      // Este bloque actúa como un firewall de esquema antes de tocar la red.
+      
+      // 1. Citas: Eliminar campos que NO existen en el esquema de producción real
+      if (item.table === 'citas') {
+        const toxic = ['tipo_referencia', 'referidor_nombre', 'referidor_contacto', 'last_updated'];
+        toxic.forEach(f => delete item.payload[f]);
+      }
+      
+      // 2. Odontogramas: Asegurar Verdad de Producción (columna 'datos')
+      if (item.table === 'odontogramas') {
+        if ((item.payload.data || item.payload.piezas) && !item.payload.datos) {
+          item.payload.datos = item.payload.piezas || item.payload.data;
+        }
+        // Eliminamos campos documentales que causan 400 Bad Request
+        delete item.payload.id; 
         delete item.payload.data;
         delete item.payload.piezas;
+        delete item.payload.last_updated;
+      }
+
+      // 3. Pagos y Egresos: Blindaje de Campos Económicos (v1.9)
+      // Garantizamos que campos adicionales no bloqueen la contabilidad
+      if (item.table === 'pagos' || item.table === 'egresos') {
+        // El campo last_updated es el principal sospechoso de errores 400 en estas tablas
+        delete item.payload.last_updated;
+        delete item.payload.lastUpdated;
       }
       // ─────────────────────────────────────────────────────────────
 
       let operation;
-      if (item.action === 'INSERT') {
+      if (item.table === 'odontogramas') {
+        operation = supabase.from('odontogramas').upsert(item.payload, { onConflict: 'paciente_id' });
+      } else if (item.action === 'INSERT') {
         operation = supabase.from(item.table).insert(item.payload);
       } else if (item.action === 'UPDATE') {
         const { id, ...rest } = item.payload;
         if (!id) throw new Error('Missing ID for update');
         operation = supabase.from(item.table).update(rest).eq('id', id);
       } else if (item.action === 'UPSERT') {
-        const onConflict = item.table === 'odontogramas' ? 'paciente_id' : 'id';
-        operation = supabase.from(item.table).upsert(item.payload, { onConflict });
+        operation = supabase.from(item.table).upsert(item.payload, { onConflict: 'id' });
       } else if (item.action === 'DELETE') {
         operation = supabase.from(item.table).delete().eq('id', item.payload.id);
       } else {
         throw new Error('Action not supported');
       }
+
 
       const { error } = await operation;
       if (error) throw error;
@@ -778,6 +799,9 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
     return nuevo;
   }
   const dbData = sanitizeData(mapKeys(p, toSnake));
+  // Blindaje Estructural v1.9
+  delete dbData.last_updated;
+  
   return await withOfflineSync<Paciente>(
     () => supabase.from('pacientes').insert(dbData).select().single(),
     'pacientes',
@@ -797,7 +821,10 @@ export async function updatePaciente(p: Partial<Paciente> & { id: string }): Pro
     return DEMO_PACIENTES[idx];
   }
   const { id, ...rest } = p;
-  const dbData = mapKeys(rest, toSnake);
+  const dbData = sanitizeData(mapKeys(rest, toSnake));
+  // Blindaje Estructural v1.9
+  delete dbData.last_updated;
+
   return await withOfflineSync<Paciente>(
     () => supabase.from('pacientes').update(dbData).eq('id', id).select().single(),
     'pacientes',
@@ -904,6 +931,10 @@ export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
     return nueva;
   }
   const dbData = mapKeys(c, toSnake);
+  // Saneamiento de esquema v1.8 (Blindaje total)
+  const schemaToxicFields = ['tipo_referencia', 'referidor_nombre', 'referidor_contacto', 'last_updated'];
+  schemaToxicFields.forEach(field => delete dbData[field]);
+  
   return await withOfflineSync<Cita>(
     () => supabase.from('citas').insert(dbData).select().single(),
     'citas',
@@ -924,6 +955,10 @@ export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cit
   }
   const { id, ...rest } = c;
   const dbData = mapKeys(rest, toSnake);
+  // Saneamiento de esquema v1.8 (Blindaje total)
+  const schemaToxicFields = ['tipo_referencia', 'referidor_nombre', 'referidor_contacto', 'last_updated'];
+  schemaToxicFields.forEach(field => delete dbData[field]);
+
   return await withOfflineSync<Cita>(
     () => supabase.from('citas').update(dbData).eq('id', id).select().single(),
     'citas',
@@ -992,6 +1027,9 @@ export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
     return nuevo;
   }
   const dbData = sanitizeData(mapKeys(p, toSnake));
+  // Blindaje Estructural v1.9
+  delete dbData.last_updated;
+
   return await withOfflineSync<Pago>(
     () => supabase.from('pagos').insert(dbData).select().single(),
     'pagos',
@@ -1016,6 +1054,9 @@ export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
     return nuevo;
   }
   const dbData = sanitizeData(mapKeys(e, toSnake));
+  // Blindaje Estructural v1.9
+  delete dbData.last_updated;
+
   return await withOfflineSync<Egreso>(
     () => supabase.from('egresos').insert(dbData).select().single(),
     'egresos',
@@ -1243,7 +1284,7 @@ export async function getOdontograma(pacienteId: string): Promise<Odontograma | 
   
   if (data) {
     const raw = mapKeys(data, toCamel) as any;
-    // Soporte para nombres de columna históricos/detectados
+    // Soporte para nombres de columna históricos/detectados (Verdad de Producción: 'datos')
     return {
       ...raw,
       piezas: raw.datos || raw.piezasDentales || raw.piezas || raw.data || []
@@ -1262,7 +1303,7 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
     return nuevo;
   }
 
-  // Mapeo del Odontograma: El servidor de producción espera 'datos'
+  // Mapeo del Odontograma: El servidor de producción espera 'datos' estrictamente
   const dbData = {
     paciente_id: o.pacienteId,
     datos: sanitizeData(o.piezas) 
@@ -1270,6 +1311,7 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
 
   return await withOfflineSync<Odontograma>(
     async () => {
+      // Usar paciente_id como clave única de conflicto para evitar fallos por ID numérico
       const { data, error } = await supabase.from('odontogramas').upsert(dbData, { onConflict: 'paciente_id' }).select().single();
       return { data, error };
     },
@@ -1279,6 +1321,7 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
     { ...o, id: `tmp_${Date.now()}`, fecha: new Date().toISOString() } as unknown as Odontograma
   );
 }
+
 
 // ─── REPORTES Y CORRELATIVO ─────────────────────────────────────────────────
 export async function getGlobalCorrelativo(): Promise<string> {

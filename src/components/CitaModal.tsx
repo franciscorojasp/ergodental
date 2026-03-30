@@ -50,11 +50,9 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
     tipoAtencion: 'Consulta' as TipoAtencion,
     condicion: 'Evaluación' as CondicionPaciente,
     estadoFinanciero: 'Pago Inmediato' as EstadoFinanciero,
-    tipoReferencia: '' as TipoReferencia | '',
-    referidorNombre: '', referidorContacto: '',
     lastUpdated: undefined as number | undefined,
-    notificarPaciente: true, // Novedad: check para notificar por whatsapp
-    notificarDoctor: true,   // Novedad: check para notificar por whatsapp
+    notificarPaciente: true, 
+    notificarDoctor: true,   
   };
 
   const [form, setForm] = useState(initForm);
@@ -75,9 +73,6 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
           tipoAtencion: editingCita.tipoAtencion || 'Consulta',
           condicion: editingCita.condicion || 'Evaluación',
           estadoFinanciero: editingCita.estadoFinanciero || 'Pago Inmediato',
-          tipoReferencia: editingCita.tipoReferencia || '',
-          referidorNombre: editingCita.referidorNombre || '',
-          referidorContacto: editingCita.referidorContacto || '',
           lastUpdated: editingCita.lastUpdated,
           notificarPaciente: true,
           notificarDoctor: true,
@@ -90,13 +85,9 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
   }, [isOpen, editingCita, clinica.id]);
 
   const onPacienteChange = (id: string) => {
-    const pac = pacientes.find(p => p.id === id);
     setForm(f => ({
       ...f,
-      pacienteId: id,
-      tipoReferencia: pac?.tipoReferencia || '',
-      referidorNombre: pac?.referidorNombre || '',
-      referidorContacto: pac?.referidorContacto || '',
+      pacienteId: id
     }));
   };
 
@@ -128,9 +119,6 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
         tipoAtencion: form.tipoAtencion,
         condicion: form.condicion,
         estadoFinanciero: form.estadoFinanciero,
-        tipoReferencia: (form.tipoReferencia || undefined) as TipoReferencia | undefined,
-        referidorNombre: form.referidorNombre || undefined,
-        referidorContacto: form.referidorContacto || undefined,
         lastUpdated: form.lastUpdated,
       };
 
