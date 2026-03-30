@@ -32,26 +32,27 @@ import Desarrolladores from './pages/Desarrolladores';
 import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
+import { useContent } from './ContentContext';
 
-function AppLoader({ subtitle = "Cargando..." }: { subtitle?: string }) {
+function AppLoader({ subtitle }: { subtitle?: string }) {
+  const { content } = useContent();
   return (
     <div style={{ 
       position: 'fixed', inset: 0, zIndex: 99999, 
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-      background: 'var(--bg-primary)', color: 'var(--text-primary)'
+      background: 'var(--bg-dark)', color: 'var(--text-primary)'
     }}>
-      <div style={{
+      <div className="animate-pulse-view" style={{
         width: 100, height: 100, borderRadius: 24, 
         background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-        boxShadow: '0 20px 50px rgba(0,198,255,0.4)',
-        animation: 'pulse 2.5s infinite',
+        boxShadow: '0 20px 50px rgba(0,198,255,0.3)',
         overflow: 'hidden',
-        padding: '2px' // para dar un pequeño borde al gradiente
+        padding: '2px' 
       }}>
-        <img src="/logo.png" alt="Logo Ergodental" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '22px' }} />
+        <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '22px' }} />
       </div>
-      <h2 style={{ marginTop: '28px', fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.5px', textTransform: 'uppercase' }}>ErgodentalVE</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '10px', letterSpacing: '0.5px' }}>{subtitle}</p>
+      <h2 style={{ marginTop: '32px', fontSize: '2rem', fontWeight: 900, letterSpacing: '-1px', textTransform: 'uppercase', background: 'linear-gradient(to right, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Ergodental</h2>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '12px', letterSpacing: '0.5px', fontWeight: 600 }}>{subtitle || content.loading_app}</p>
     </div>
   );
 }
@@ -81,7 +82,9 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
-  if (loading) return <AppLoader subtitle="Restaurando sesión segura..." />;
+  const { content } = useContent();
+
+  if (loading) return <AppLoader subtitle={content.loading_session} />;
   if (!user) return <Navigate to="/login" replace />;
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -140,7 +143,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
-  if (loading) return <AppLoader subtitle="Iniciando aplicación..." />;
+  const { content } = useContent();
+  if (loading) return <AppLoader subtitle={content.loading_app} />;
   if (!user) return <Navigate to="/login" replace />;
   const home = user.rol ? ROL_HOME[user.rol] : '/login';
   return <Navigate to={home || '/login'} replace />;

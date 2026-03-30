@@ -2,12 +2,17 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { ContentProvider } from './ContentContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ContentProvider>
+      <App />
+    </ContentProvider>
   </StrictMode>,
 )
+
+
 
 // Limpieza profunda de Service Workers y Caches obsoletos (Estrategia PWA Primer Mundo)
 if ('serviceWorker' in navigator) {
