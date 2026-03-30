@@ -19,15 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Failsafe: Si después de 6 segundos sigue cargando, forzar el fin del loading
-    // para evitar la pantalla blanca permanente.
-    const failsafe = setTimeout(() => {
-      if (loading) {
-        console.warn('⚠️ Auth Initial Timeout (6s): Forzando carga básica...');
-        setLoading(false);
-      }
-    }, 6000);
-
     const initAuth = async () => {
       // 1. Carga desde localStorage (Demo o sesión previa)
       const saved = localStorage.getItem('ergo_user');
@@ -38,33 +29,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch { /* ignore */ }
         if (IS_DEMO_MODE) {
           setLoading(false);
-          clearTimeout(failsafe);
           return;
         }
       }
 
       if (IS_DEMO_MODE || !supabase) {
         setLoading(false);
-        clearTimeout(failsafe);
         return;
       }
 
-      // 2. Obtener sesión inicial con timeout de 5 segundos
+      // 2. Obtener sesión inicial directamente (Sin límites de tiempo artificiales)
       try {
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('TIMEOUT')), 5000)
-        );
-
-        const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
-        if (result.data?.session) {
-          await handleSession(result.data.session);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await handleSession(session);
         }
       } catch (err) {
-        console.warn('Conexión lenta o fallida en inicio, procediendo a interfaz...');
+        console.warn('Falla en inicio de sesión de Supabase:', err);
       } finally {
         setLoading(false);
-        clearTimeout(failsafe);
       }
     };
 
