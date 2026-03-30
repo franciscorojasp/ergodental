@@ -158,15 +158,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<Usuario> => {
     const u = await loginUser(email, password);
-    // Verificamos si es un correo de prueba o un bypass de desarrollador
-    const isDemoAccount = ['admin@ergodental.com', 'doctor@ergodental.com', 'asistente@ergodental.com', 'recepcion@ergodental.com', 'pro@ergodental.com'].includes(u.email);
-    const isBypass = u.id === 'user-temp-fix' || u.id === 'admin-offline-bypass';
     
-    if (IS_DEMO_MODE || isDemoAccount || isBypass) {
-      setUser(u);
-      localStorage.setItem('ergo_user', JSON.stringify(u));
-    }
-    // Si es Supabase real, onAuthStateChange se encargará más tarde
+    // PERSISTENCIA TOTAL: Guardamos al usuario siempre para que refrescar la página sea instantáneo
+    setUser(u);
+    localStorage.setItem('ergo_user', JSON.stringify(u));
+    
     return u;
   };
 
