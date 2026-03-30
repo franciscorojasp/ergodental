@@ -51,7 +51,7 @@ const saveDemoStore = (key: string, data: any[]) => {
 export interface SyncAction {
   id: string;
   table: string;
-  action: 'INSERT' | 'UPDATE' | 'DELETE';
+  action: 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT';
   payload: any;
   timestamp: number;
 }
@@ -89,6 +89,10 @@ export async function processSyncQueue() {
         const { id, ...rest } = item.payload;
         if (!id) throw new Error('Missing ID for update');
         operation = supabase.from(item.table).update(rest).eq('id', id);
+      } else if (item.action === 'UPSERT') {
+        // Para UPSERT, usamos onConflict basado en lo que venga en el payload (generalmente paciente_id)
+        const onConflict = item.table === 'odontogramas' ? 'paciente_id' : 'id';
+        operation = supabase.from(item.table).upsert(item.payload, { onConflict });
       } else if (item.action === 'DELETE') {
         operation = supabase.from(item.table).delete().eq('id', item.payload.id);
       } else {
@@ -130,7 +134,7 @@ if (typeof window !== 'undefined') {
 export async function withOfflineSync<T>(
   operation: () => Promise<{ data: any, error: any }>,
   table: string,
-  action: 'INSERT' | 'UPDATE' | 'DELETE',
+  action: 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT',
   payload: any,
   optimisticData: T
 ): Promise<T> {
@@ -1242,7 +1246,7 @@ export async function saveOdontograma(o: Omit<Odontograma, 'id' | 'fecha'>): Pro
       return { data, error };
     },
     'odontogramas',
-    'UPDATE',
+    'UPSERT',
     dbData,
     { ...o, id: `tmp_${Date.now()}`, fecha: new Date().toISOString() } as unknown as Odontograma
   );
