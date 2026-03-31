@@ -66,37 +66,67 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className="sidebar"
       >
-        {/* Header de Lujo */}
-        <div style={{ padding: '32px 24px', borderBottom: '1px solid var(--border)', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: isPinned ? '24px' : '0' }}>
+        {/* Header de Lujo con Toggle Retráctil */}
+        <div style={{ padding: isPinned ? '32px 24px' : '32px 10px', borderBottom: '1px solid var(--border)', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: isPinned ? '24px' : '0', justifyContent: isPinned ? 'flex-start' : 'center' }}>
             <motion.div 
               whileHover={{ rotate: 5, scale: 1.05 }}
               className="sidebar-logo"
-              onClick={onTogglePinned}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'default', width: isPinned ? '50px' : '40px', height: isPinned ? '50px' : '40px' }}
             >
-              <img src="/logo.png" alt="Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+              <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </motion.div>
             
             {isPinned && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                <div style={{ fontWeight: 900, fontSize: '1.2rem', letterSpacing: '-1px', color: 'var(--text-primary)' }}>ERGODENTAL</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px', filter: 'brightness(0.8)' }}>v2.0 Pro</div>
+                <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>ERGODENTAL</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.8 }}>v2.0 Pro</div>
               </motion.div>
+            )}
+
+            {/* Botón de Retracción Quirúrgico */}
+            {window.innerWidth > 768 && (
+              <motion.button
+                whileHover={{ scale: 1.1, background: 'var(--primary-dim)' }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onTogglePinned}
+                style={{
+                  position: 'absolute',
+                  right: isPinned ? '-12px' : '-12px',
+                  top: '50px',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'var(--bg-dark)',
+                  border: '1px solid var(--border-active)',
+                  color: 'var(--primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 100,
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                  fontSize: '0.7rem'
+                }}
+              >
+                {isPinned ? '◀' : '▶'}
+              </motion.button>
             )}
           </div>
 
-          {isPinned && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <div style={{ marginBottom: '16px' }}>
-                <ClinicaBadge />
-              </div>
-              <CurrencyToggle />
-            </motion.div>
-          )}
+          <AnimatePresence>
+            {isPinned && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <ClinicaBadge />
+                </div>
+                <CurrencyToggle />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Navegación Refinada */}
+        {/* Navegación Refinada con Tooltips */}
         <nav style={{ flex: 1, padding: '20px 0', overflowY: 'auto', overflowX: 'hidden' }}>
           {navVisible.map((item, idx) => (
             <NavLink 
@@ -105,7 +135,11 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               onClick={() => { if(window.innerWidth <= 768) onClose(); }}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               title={!isPinned ? item.label : ''}
-              style={{ justifyContent: isPinned ? 'flex-start' : 'center' }}
+              style={{ 
+                justifyContent: isPinned ? 'flex-start' : 'center',
+                padding: isPinned ? '14px 20px' : '14px 0',
+                margin: isPinned ? '4px 12px' : '4px 8px'
+              }}
             >
               <motion.span 
                 initial={{ scale: 0.8 }}

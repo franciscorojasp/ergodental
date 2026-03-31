@@ -370,9 +370,16 @@ tbody td { padding: 20px 24px; font-weight: 500; font-size: 0.95rem; }
 .page-content {
   flex: 1;
   padding: 48px;
-  max-width: 1800px;
+  max-width: 2100px;
   margin: 0 auto;
   width: 100%;
+  transition: padding var(--transition);
+}
+
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 32px;
 }
 
 /* ── Sidebar de Élite (V2) ───────────────────── */

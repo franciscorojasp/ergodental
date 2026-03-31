@@ -319,8 +319,8 @@ export default function Finanzas(){
         ))}
       </div>
 
-      {/* Stat cards */}
-      <div className="grid-responsive" style={{ marginBottom:'22px' }}>
+      {/* Stat cards - Optimized for Executive View */}
+      <div className="grid-responsive" style={{ marginBottom:'22px', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
         {[
           {label:`Ingresos (${periodo})`,  value: fmt(totalIngresos, 0),          icon:'💰',color:'var(--success)'},
           {label:`Egresos (${periodo})`,   value: fmt(totalEgresos, 0),            icon:'💸',color:'var(--danger)'},
@@ -329,10 +329,10 @@ export default function Finanzas(){
           {label:'Honorarios doctores',     value: fmt(totalHonorarios, 0),        icon:'👨‍⚕️',color:'var(--accent)'},
           {label:'Comisión foráneos',       value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
         ].map((s,i)=>(
-          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}}>
-            <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color}}>{s.icon}</div>
-            <div className="stat-value">{s.value}</div>
-            <div className="stat-label" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
+          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: '160px' }}>
+            <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color, fontSize: '1.8rem'}}>{s.icon}</div>
+            <div className="stat-value" style={{ fontSize: '2.2rem' }}>{s.value}</div>
+            <div className="stat-label" style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{s.label}</div>
           </motion.div>
         ))}
       </div>
