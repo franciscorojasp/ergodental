@@ -142,7 +142,7 @@ export default function Dashboard() {
 
       {/* Detailed Insights Section - Supreme Mirrored Symmetry */}
       <div className="grid-responsive" style={{ 
-        marginTop:'48px', 
+        marginTop: isMobile ? '24px' : '48px', 
         display: 'grid',
         gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
         gap: isMobile ? '20px' : '32px'

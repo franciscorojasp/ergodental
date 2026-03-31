@@ -68,6 +68,7 @@ export default function Pacientes() {
   const { clinica } = useClinica();
   const [pacientes, setPacientes]     = useState<Paciente[]>([]);
   const [busqueda, setBusqueda]       = useState('');
+  const [isMobile]                    = useState(window.innerWidth < 768);
   const [filtroRef, setFiltroRef]     = useState('Todos');
   const [modal, setModal]             = useState(false);
   const [detalleId, setDetalleId]     = useState<string | null>(null);
@@ -272,7 +273,14 @@ export default function Pacientes() {
         {detalle && (
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e=>e.target===e.currentTarget&&setDetalleId(null)}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} style={{ maxWidth: 800 }}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              style={{ maxWidth: 800 }}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
                   <div style={{ width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, color:'#fff' }}>
@@ -416,7 +424,14 @@ export default function Pacientes() {
         {modal && (
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e=>e.target===e.currentTarget&&closeModal()}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} style={{maxWidth:640}}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              style={{maxWidth:640}}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>{editingId ? '✏️ Editar Paciente' : '🦷 Nuevo Paciente'}</h3>
                 <button className="btn-close" onClick={()=>closeModal()}>✕</button>

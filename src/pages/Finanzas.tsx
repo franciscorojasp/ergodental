@@ -90,6 +90,7 @@ export default function Finanzas(){
   const { fmt, tasaBCV } = useMoneda();
   const { user }         = useAuth();
   const { clinica }      = useClinica();
+  const [isMobile]       = useState(window.innerWidth < 768);
 
   const hoy  = new Date().toLocaleDateString('en-CA');
 
@@ -329,7 +330,7 @@ export default function Finanzas(){
           {label:'Honorarios doctores',     value: fmt(totalHonorarios, 0),        icon:'👨‍⚕️',color:'var(--accent)'},
           {label:'Comisión foráneos',       value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
         ].map((s,i)=>(
-          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: '160px' }}>
+          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: isMobile ? '110px' : '160px' }}>
             <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color, fontSize: '1.8rem'}}>{s.icon}</div>
             <div className="stat-value" style={{ fontSize: '2.2rem' }}>{s.value}</div>
             <div className="stat-label" style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{s.label}</div>
@@ -712,7 +713,14 @@ export default function Finanzas(){
         {modalPago&&(
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e=>e.target===e.currentTarget&&setModalPago(false)}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} style={{maxWidth:660}}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              style={{maxWidth:660}}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>💰 Registrar Ingreso</h3>
                 <button className="btn-close" onClick={()=>setModalPago(false)}>✕</button>
@@ -854,7 +862,14 @@ export default function Finanzas(){
         {modalEgreso&&(
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e=>e.target===e.currentTarget&&setModalEgreso(false)}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}} style={{maxWidth:560}}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              style={{maxWidth:560}}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>💸 Registrar Egreso</h3>
                 <button className="btn-close" onClick={()=>setModalEgreso(false)}>✕</button>
