@@ -322,8 +322,8 @@ export default function Finanzas(){
       {/* Stat cards - Optimized for Executive View */}
       <div className="executive-stats-hub" style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '12px',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: isMobile ? '8px' : '12px',
         marginBottom: '16px'
       }}>
         {[
@@ -334,10 +334,10 @@ export default function Finanzas(){
           {label:'Honorarios',value: fmt(totalHonorarios, 0),        icon:'👨‍⚕️',color:'var(--accent)'},
           {label:'Foráneos',  value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
         ].map((s,i)=>(
-          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: isMobile ? '110px' : '160px' }}>
-            <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color, fontSize: '1.8rem'}}>{s.icon}</div>
-            <div className="stat-value" style={{ fontSize: '2.2rem' }}>{s.value}</div>
-            <div className="stat-label" style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{s.label}</div>
+          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: isMobile ? '100px' : '160px' }}>
+            <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color, fontSize: isMobile ? '1.4rem' : '1.8rem', top: isMobile ? '12px' : '20px', right: isMobile ? '12px' : '20px'}}>{s.icon}</div>
+            <div className="stat-value" style={{ fontSize: isMobile ? '1.6rem' : '2.2rem' }}>{s.value}</div>
+            <div className="stat-label" style={{ color: 'var(--text-secondary)', fontSize: isMobile ? '0.65rem' : '0.75rem' }}>{s.label}</div>
           </motion.div>
         ))}
       </div>

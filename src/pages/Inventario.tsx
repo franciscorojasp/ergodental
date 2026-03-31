@@ -66,9 +66,9 @@ export default function Inventario() {
 
       {bajoStock > 0 && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: 'var(--warning-dim)', border: '1px solid var(--warning)', borderRadius: 'var(--radius)', padding: '14px 18px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--warning)', fontSize: '0.88rem' }}>
-          <span style={{ fontSize: '1.2rem' }}>⚠️</span>
-          <span><strong>{bajoStock} producto(s)</strong> están por debajo del stock mínimo. Se recomienda reabastecer pronto.</span>
+          style={{ background: 'var(--warning-dim)', border: '1px solid var(--warning)', borderRadius: '12px', padding: '8px 12px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--warning)', fontSize: '0.75rem' }}>
+          <span style={{ fontSize: '1rem' }}>⚠️</span>
+          <span><strong>{bajoStock} en stock bajo.</strong> reabastecer pronto.</span>
         </motion.div>
       )}
 

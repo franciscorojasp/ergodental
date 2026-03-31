@@ -225,17 +225,21 @@ export default function Pacientes() {
                 const regla = TABLA_REFERENCIAS.find(r => r.tipo === p.tipoReferencia);
                 return (
                   <motion.tr key={`${p.id}-${i}`} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}>
-                    <td className="text-left col-expand" data-main="true" onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer' }}>
+                    <td className="text-left col-expand" data-main="true" onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer', position:'relative', borderBottom:'1px solid var(--border-light) !important' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                         <div style={{
-                          width:34, height:34, borderRadius:'50%', flexShrink:0,
+                          width:36, height:36, borderRadius:'50%', flexShrink:0,
                           background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-                          display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'0.82rem',
+                          display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'0.85rem',
                           color: '#fff'
                         }}>{p.nombre.charAt(0)}{p.apellido.charAt(0)}</div>
-                        <div>
-                          <div style={{ fontWeight:600 }}>{p.nombre} {p.apellido}</div>
-                          <div style={{ fontSize:'0.76rem', color:'var(--text-muted)' }}>{p.email}</div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontWeight:700, fontSize:'1.05rem' }}>{p.nombre} {p.apellido}</div>
+                          <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)' }}>{p.email}</div>
+                        </div>
+                        {/* Quick actions integrated on mobile title */}
+                        <div className="show-mobile" style={{ display:'flex', gap:'4px' }}>
+                          <button className="btn btn-ghost btn-sm" style={{ width:32, padding:0 }} onClick={(e) => { e.stopPropagation(); openEdit(p); }}>✏️</button>
                         </div>
                       </div>
                     </td>
@@ -245,10 +249,10 @@ export default function Pacientes() {
                     <td className="text-left hide-mobile" data-label="Referido por">
                       {regla ? <span className={`badge ${REF_BADGE[p.tipoReferencia!]}`}>{regla.label}</span> : <span className="badge badge-muted">—</span>}
                     </td>
-                    <td className="text-right" data-label="Acciones">
+                    <td className="text-right hide-mobile" data-label="Acciones">
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button className="btn btn-ghost btn-sm" onClick={() => { console.log('DEBUG: Edit clicked', p.id); openEdit(p); }} title="Editar">✏️</button>
-                        <button className="btn btn-ghost btn-sm" onClick={() => { console.log('DEBUG: Delete clicked', p.id); setDeletingId(p.id); }} style={{ color:'var(--danger)' }} title="Eliminar">🗑️</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)} title="Editar">✏️</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setDeletingId(p.id)} style={{ color:'var(--danger)' }} title="Eliminar">🗑️</button>
                       </div>
                     </td>
                   </motion.tr>

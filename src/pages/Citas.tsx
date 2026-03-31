@@ -95,15 +95,24 @@ export default function Citas() {
             <tbody>
               {filtradas.map((c, i) => (
                 <motion.tr key={c.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.03 }}>
-                  <td className="text-left" data-label="Fecha/Hora" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
-                    <div style={{ fontWeight:700 }}>{c.fecha}</div>
-                    <div style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>{c.hora}</div>
+                  <td className="text-left col-expand" data-main="true" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer', borderBottom:'1px solid var(--border-light) !important' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:700, fontSize:'1.05rem' }}>{c.pacienteNombre}</div>
+                        <div style={{ fontSize:'0.75rem', color:'var(--primary)', fontWeight:600 }}>{c.fecha} · {c.hora}</div>
+                      </div>
+                      {/* Integrated mobile actions */}
+                      <div className="show-mobile" style={{ display:'flex', gap:'4px' }}>
+                         <button className="btn btn-ghost btn-sm" style={{ width:28, height:28, padding:0 }} onClick={(e) => { e.stopPropagation(); openEdit(c); }}>✏️</button>
+                      </div>
+                    </div>
                   </td>
-                  <td className="text-left col-expand" data-main="true">{c.pacienteNombre}</td>
+                  <td className="text-left hide-mobile" data-label="Paciente">{c.pacienteNombre}</td>
+                  <td className="text-left hide-mobile" data-label="Fecha/Hora">{c.fecha} {c.hora}</td>
                   <td className="text-left hide-mobile" data-label="Doctor">{c.doctorNombre}</td>
-                  <td className="text-left hide-mobile" data-label="Motivo" style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
+                  <td className="text-left" data-label="Motivo" style={{ fontSize:'0.82rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
                   <td className="text-center" data-label="Estado"><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
-                  <td className="text-right">
+                  <td className="text-right hide-mobile">
                     <div style={{ display:'flex', gap:'8px', justifyContent: 'flex-end' }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>
                       <button className="btn btn-ghost btn-sm" style={{ color:'var(--danger)' }} onClick={() => setDeletingId(c.id)}>🗑️</button>

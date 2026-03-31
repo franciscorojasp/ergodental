@@ -75,38 +75,30 @@ export default function Agenda() {
     <div className="agenda-container" style={{ animation: 'fadeIn 0.5s ease' }}>
       <div className="page-header condensed">
         <h1 className="is-mobile-inline">Agenda</h1>
-        <div className="action-grid mobile-scroll">
+        <div className="action-grid">
           <select 
             className="input input-sm" 
-            style={{ width: isMobile ? '160px' : '220px' }}
+            style={{ width: isMobile ? '120px' : '200px' }}
             value={doctorId}
             onChange={e => setDoctorId(e.target.value)}
           >
-            <option value="Todos">Doctores (Todos)</option>
-            {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+            <option value="Todos">Doctores</option>
+            {personal.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>
-          <div className="filter-grid" style={{ 
-            background: 'rgba(255,255,255,0.03)',
-            borderRadius: '8px',
-            padding: '2px 4px',
-            margin: 0
-          }}>
-            <button className="btn btn-ghost btn-sm" style={{ padding:0, width:32 }} onClick={() => navWeek(-1)}>◀</button>
-            <div style={{ fontWeight: 800, fontSize: '0.75rem', minWidth: '60px', textAlign: 'center' }}>
-              {isMobile ? weekDates[selectedDayIdx].toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }) : `${weekDates[0].getDate()}/${weekDates[0].getMonth()+1} - ${weekDates[6].getDate()}/${weekDates[6].getMonth()+1}`}
-            </div>
-            <button className="btn btn-ghost btn-sm" style={{ padding:0, width:32 }} onClick={() => navWeek(1)}>▶</button>
+          <div style={{ display:'flex', gap:'2px', background:'rgba(255,255,255,0.04)', borderRadius:'8px', padding:'2px' }}>
+            <button className="btn btn-ghost btn-sm" style={{ padding:0, width:28, height:28 }} onClick={() => navWeek(-1)}>◀</button>
+            <button className="btn btn-primary btn-sm" style={{ padding:'0 8px', height:28, fontSize:'0.7rem' }} onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
+            <button className="btn btn-ghost btn-sm" style={{ padding:0, width:28, height:28 }} onClick={() => navWeek(1)}>▶</button>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
         </div>
       </div>
 
       {isMobile && (
-        <div className="filter-grid mobile-scroll" style={{ padding:'4px 8px', marginBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
+        <div className="filter-grid mobile-scroll" style={{ padding:'4px 6px', marginBottom: '4px', borderBottom: '1px solid var(--border-light)', gap:'4px' }}>
           {DAYS.map((d, i) => (
             <button key={d} onClick={() => setSelectedDayIdx(i)} 
               className={`btn btn-sm ${selectedDayIdx === i ? 'btn-primary' : 'btn-ghost'}`} 
-              style={{ flex: 1, padding: '6px 0', minWidth: '42px', fontSize:'0.7rem', borderRadius:'6px' }}>
+              style={{ flex: 1, height:28, minWidth: '38px', fontSize:'0.65rem' }}>
               {d.substring(0, 3)}
             </button>
           ))}
