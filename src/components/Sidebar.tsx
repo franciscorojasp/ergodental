@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 import { NavLink, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { canAccess, ROL_LABEL, type Modulo } from '../permissions';
