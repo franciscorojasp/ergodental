@@ -81,7 +81,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             {isPinned && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
                 <div style={{ fontWeight: 900, fontSize: '1.2rem', letterSpacing: '-1px', color: 'var(--text-primary)' }}>ERGODENTAL</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px' }}>v2.0 Pro</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px', filter: 'brightness(0.8)' }}>v2.0 Pro</div>
               </motion.div>
             )}
           </div>
@@ -146,7 +146,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               width: 38, height: 38, borderRadius: '12px', flexShrink: 0,
               background: 'linear-gradient(135deg, var(--primary), var(--accent))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 900, color: '#000', fontSize: '1rem',
+              fontWeight: 900, color: '#fff', fontSize: '1rem',
               boxShadow: '0 4px 12px var(--primary-glow)'
             }}>
               {user?.nombre?.charAt(0) || 'U'}
@@ -154,7 +154,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             
             {isPinned && (
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
                   {user?.nombre}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>

@@ -313,7 +313,7 @@ export default function Finanzas(){
       <div className="filter-grid" style={{ marginBottom:'20px' }}>
         {PERIODOS.map(p=>(
           <button key={p} onClick={()=>setPeriodo(p)} className="btn btn-ghost btn-sm"
-            style={periodo===p?{borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)', justifyContent:'center'}:{justifyContent:'center'}}>
+            style={periodo===p?{background:'var(--active-bg)',color:'var(--active-text)', borderColor:'var(--active-bg)', justifyContent:'center'}:{justifyContent:'center'}}>
             {p}
           </button>
         ))}
@@ -330,9 +330,9 @@ export default function Finanzas(){
           {label:'Comisión foráneos',       value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
         ].map((s,i)=>(
           <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}}>
-            <div className="stat-icon" style={{background:`color-mix(in srgb, ${s.color} 15%, transparent)`}}>{s.icon}</div>
-            <div className="stat-value" style={{color:s.color,fontSize:'1.35rem'}}>{s.value}</div>
-            <div className="stat-label">{s.label}</div>
+            <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color}}>{s.icon}</div>
+            <div className="stat-value">{s.value}</div>
+            <div className="stat-label" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
           </motion.div>
         ))}
       </div>
@@ -341,7 +341,7 @@ export default function Finanzas(){
       <div className="filter-grid" style={{ marginBottom:'18px' }}>
         {TABS.map(t=>(
           <button key={t.key} onClick={()=>setTab(t.key)} className="btn btn-ghost btn-sm"
-            style={tab===t.key?{borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)', justifyContent:'center'}:{justifyContent:'center'}}>
+            style={tab===t.key?{background:'var(--active-bg)',color:'var(--active-text)', borderColor:'var(--active-bg)', justifyContent:'center'}:{justifyContent:'center'}}>
             {t.label}
           </button>
         ))}

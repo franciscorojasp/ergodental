@@ -44,7 +44,7 @@ export default function ClinicaBadge() {
           <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 900, letterSpacing: '1.5px', marginBottom: '2px' }}>
             Sede Activa
           </div>
-          <div style={{ fontSize: '0.9rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff' }}>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
             {clinica.nombreCorto}
           </div>
         </div>
@@ -69,9 +69,9 @@ export default function ClinicaBadge() {
             style={{
               position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px',
               padding: '8px', zIndex: 1000,
-              background: 'rgba(10, 15, 30, 0.95)',
-              border: '1px solid var(--border-active)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              background: 'var(--bg-modal)',
+              border: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-lg)',
             }}
           >
             <div style={{ padding: '8px 12px 4px', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>

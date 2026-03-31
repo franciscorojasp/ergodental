@@ -126,11 +126,10 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: i * 0.1, type: 'spring' }}
-            style={{ color: s.color }}
           >
-            <div className="stat-icon">{s.icon}</div>
+            <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)', color: s.color }}>{s.icon}</div>
             <div className="stat-value">{s.value}</div>
-            <div className="stat-label">{s.label}</div>
+            <div className="stat-label" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
           </motion.div>
         ))}
       </div>
@@ -169,7 +168,7 @@ export default function Dashboard() {
                 }}>
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary)', minWidth: '55px' }}>{c.hora}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>{c.pacienteNombre}</div>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>{c.pacienteNombre}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{c.motivo}</div>
                   </div>
                   <span className="badge" style={{
@@ -214,7 +213,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>{c.pacienteNombre}</div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>{c.pacienteNombre}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{c.hora} · {c.doctorNombre}</div>
                 </div>
                 {c.tipoReferencia && (

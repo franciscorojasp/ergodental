@@ -49,7 +49,7 @@ export default function CurrencyToggle() {
             initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
             style={{ 
               fontWeight: 900, fontSize: '1.1rem', 
-              color: necesitaTasa ? 'var(--warning)' : '#fff', 
+              color: necesitaTasa ? 'var(--warning)' : 'var(--text-primary)', 
               letterSpacing: '-0.5px',
               display: 'flex', alignItems: 'center', gap: '6px'
             }}
