@@ -584,7 +584,7 @@ tbody td {
   transition: all var(--transition);
 }
 
-/* ── Modales de Clase Mundial ──────────────────── */
+/* ── Modales de Clase Mundial (Hybrid Desktop/Mobile) ──────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -607,6 +607,7 @@ tbody td {
   display: flex;
   flex-direction: column;
   position: relative;
+  /* Desktop Animation */
   animation: modalEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -621,6 +622,10 @@ tbody td {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: inherit;
 }
 
 .modal-header h3 {
@@ -641,6 +646,68 @@ tbody td {
   justify-content: flex-end;
   gap: 16px;
   background: rgba(255, 255, 255, 0.03);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+/* 📱 High-Fidelity Mobile Bottom Sheet Engine */
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .modal {
+    max-width: 100% !important;
+    border-radius: 32px 32px 0 0 !important;
+    border-bottom: none !important;
+    max-height: 94vh !important;
+    /* Native Bottom Sheet Animation */
+    animation: bottomSheetEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  @keyframes bottomSheetEnter {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    margin: 12px auto 0;
+    flex-shrink: 0;
+  }
+
+  .modal-header {
+    padding: 20px !important;
+    border-radius: 32px 32px 0 0 !important;
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem !important;
+  }
+
+  .modal-body {
+    padding: 24px 20px !important;
+    max-height: none !important; /* Full available scroll */
+    flex: 1;
+  }
+
+  .modal-footer {
+    padding: 16px 20px !important;
+    background: var(--bg-modal) !important;
+    border-top: 1px solid var(--border) !important;
+    flex-direction: column-reverse !important;
+  }
+
+  .modal-footer .btn {
+    width: 100% !important;
+    min-height: 56px !important;
+  }
 }
 
 /* ── Cabecera de Página Pro ───────────────────── */

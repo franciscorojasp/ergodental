@@ -216,6 +216,8 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const isMobile = window.innerWidth <= 768;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -227,20 +229,23 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
           onClick={e => e.target === e.currentTarget && onClose()}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 40 }}
+            initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 40 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
             className="modal"
             style={{ maxWidth: '700px' }}
           >
+            {/* Visual Handle for Mobile Ergonomics */}
+            <div className="modal-handle" />
+
             {/* Header Quirúrgico */}
             <div className="modal-header" style={{ background: 'linear-gradient(to right, var(--primary-dim), transparent)' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '1.6rem' }}>📅</span>
+                <span style={{ fontSize: isMobile ? '1.2rem' : '1.6rem' }}>📅</span>
                 <span>{editingCita ? 'Editar Cita Médica' : 'Nueva Cita Médica'}</span>
               </h3>
-              <button className="btn-close" onClick={onClose} style={{ fontSize: '1.5rem' }}>✕</button>
+              <button className="btn-close" onClick={onClose} style={{ fontSize: isMobile ? '1.2rem' : '1.5rem' }}>✕</button>
             </div>
 
             <form onSubmit={handleSave}>
