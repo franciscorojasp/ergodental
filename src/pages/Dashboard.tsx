@@ -17,6 +17,7 @@ export default function Dashboard() {
   const { user }  = useAuth();
   const { fmt }   = useMoneda();
   const { clinica } = useClinica();
+  const isMobile = window.innerWidth <= 768;
 
   const [citas,       setCitas]       = useState<Cita[]>([]);
   const [pagos,       setPagos]       = useState<Pago[]>([]);
@@ -140,7 +141,7 @@ export default function Dashboard() {
         {/* Citas de hoy */}
         <motion.div 
           className="glass" 
-          style={{ padding: '32px', position: 'relative', overflow: 'hidden' }} 
+          style={{ padding: isMobile ? '20px' : '32px', position: 'relative', overflow: 'hidden' }} 
           initial={{ opacity: 0, x: -20 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: 0.4 }}
@@ -186,7 +187,7 @@ export default function Dashboard() {
         {/* Próximas citas */}
         <motion.div 
           className="glass" 
-          style={{ padding: '32px', position: 'relative', overflow: 'hidden' }} 
+          style={{ padding: isMobile ? '20px' : '32px', position: 'relative', overflow: 'hidden' }} 
           initial={{ opacity: 0, x: 20 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: 0.5 }}

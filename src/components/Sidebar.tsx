@@ -114,9 +114,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               onClick={() => { if(isMobile) onClose(); }}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               title={!showFull ? item.label : ''}
-              style={{ justifyContent: showFull ? 'flex-start' : 'center' }}
             >
-              <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{item.icon}</span>
+              <span style={{ fontSize: '1.4rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
               {showFull && (
                 <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.label}</span>
               )}
@@ -132,7 +131,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             marginTop: '16px', padding: '10px', borderRadius: '16px',
             background: 'var(--bg-dark)', border: '1px solid var(--border)',
             display: 'flex', flexDirection: showFull ? 'row' : 'column',
-            alignItems: 'center', gap: '10px'
+            alignItems: 'center', gap: '10px', width: '100%'
           }}>
             <div style={{ 
               width: 34, height: 34, borderRadius: '10px', flexShrink: 0,

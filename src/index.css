@@ -509,6 +509,13 @@ tbody td {
 
 .sidebar.collapsed .sidebar-header {
   padding: 24px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-logo {
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .sidebar.collapsed {
