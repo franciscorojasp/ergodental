@@ -136,8 +136,13 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Detailed Insights Section - Maximize Screen Space */}
-      <div className="grid-responsive" style={{ marginTop:'48px', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))' }}>
+      {/* Detailed Insights Section - Supreme Mirrored Symmetry */}
+      <div className="grid-responsive" style={{ 
+        marginTop:'48px', 
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: isMobile ? '20px' : '32px'
+      }}>
         {/* Citas de hoy */}
         <motion.div 
           className="glass" 

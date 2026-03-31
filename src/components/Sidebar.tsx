@@ -42,14 +42,11 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
   const navVisible = NAV.filter(item => canAccess(user?.rol, item.modulo));
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  // On mobile (window width < 768), we always show full content if the sidebar is "open"
-  // but we ignore the "pinned" animation logic to prevent layout glitches.
   const isMobile = window.innerWidth <= 768;
   const showFull = isPinned || isMobile;
 
   return (
     <>
-      {/* Mobile Backdrop - Simple & Reliable */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -63,27 +60,38 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
       </AnimatePresence>
 
       <aside className={`sidebar ${isOpen ? 'open' : ''} ${!isPinned && !isMobile ? 'collapsed' : ''}`}>
-        {/* Header: Solid & Non-Glitchy */}
         <div className="sidebar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minHeight: '44px' }}>
-            <div className="sidebar-logo" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', minHeight: '44px', width: '100%' }}>
+            <motion.div 
+              whileHover={{ rotate: 5, scale: 1.05 }}
+              className="sidebar-logo" 
+              style={{ width: '44px', height: '44px', flexShrink: 0 }}
+            >
               <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
+            </motion.div>
             
-            {showFull && (
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--text-primary)', lineHeight: 1.1 }}>
-                  ERGODENTALVE
-                </div>
-                <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '2px' }}>
-                  Professional v2.0
-                </div>
-              </div>
-            )}
+            <AnimatePresence>
+              {showFull && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }} 
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}
+                >
+                  <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+                    ERGODENTALVE
+                  </div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '3px', opacity: 0.8 }}>
+                    Professional v2.0
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {!isMobile && (
               <button
                 onClick={onTogglePinned}
+                className="sidebar-toggle-btn"
                 style={{
                   position: 'absolute', right: '-12px', top: '38px',
                   width: '24px', height: '24px', borderRadius: '50%',
@@ -97,78 +105,122 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             )}
           </div>
 
-          {showFull && (
-            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <ClinicaBadge />
-              <CurrencyToggle />
-            </div>
-          )}
+          <AnimatePresence>
+            {showFull && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '15px', overflow: 'hidden' }}
+              >
+                <ClinicaBadge />
+                <CurrencyToggle />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Navigation */}
-        <nav style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }} className="custom-scrollbar">
-          {navVisible.map((item) => (
+        <nav style={{ flex: 1, padding: '20px 0', overflowY: 'auto' }} className="custom-scrollbar">
+          {navVisible.map((item, idx) => (
             <NavLink 
               key={item.to} 
               to={item.to} 
               onClick={() => { if(isMobile) onClose(); }}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               title={!showFull ? item.label : ''}
+              style={{ justifyContent: showFull ? 'flex-start' : 'center' }}
             >
-              <span style={{ fontSize: '1.4rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
-              {showFull && (
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.label}</span>
-              )}
+              <motion.span 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: idx * 0.02 }}
+                style={{ fontSize: '1.4rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                {item.icon}
+              </motion.span>
+              <AnimatePresence>
+                {showFull && (
+                  <motion.span 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    style={{ fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'nowrap' }}
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </NavLink>
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="sidebar-footer">
           <SyncIndicator isPinned={showFull} />
 
           <div style={{ 
-            marginTop: '16px', padding: '10px', borderRadius: '16px',
-            background: 'var(--bg-dark)', border: '1px solid var(--border)',
+            marginTop: '20px', padding: '12px', borderRadius: '18px',
+            background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
             display: 'flex', flexDirection: showFull ? 'row' : 'column',
-            alignItems: 'center', gap: '10px', width: '100%'
+            alignItems: 'center', gap: '12px', width: '100%', position: 'relative'
           }}>
-            <div style={{ 
-              width: 34, height: 34, borderRadius: '10px', flexShrink: 0,
-              background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 900, color: '#fff', fontSize: '0.9rem'
+            <motion.div 
+               whileHover={{ scale: 1.1 }}
+               style={{ 
+                width: 38, height: 38, borderRadius: '12px', flexShrink: 0,
+                background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 900, color: '#fff', fontSize: '1rem',
+                boxShadow: '0 4px 15px var(--primary-glow)'
             }}>
               {user?.nombre?.charAt(0) || 'U'}
-            </div>
+            </motion.div>
             
-            {showFull && (
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
-                  {user?.nombre}
-                </div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
-                  {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
-                </div>
-              </div>
-            )}
+            <AnimatePresence>
+              {showFull && (
+                <motion.div 
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}
+                >
+                  <div style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
+                    {user?.nombre}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
+                    {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.1, color: 'var(--danger)' }}
               onClick={handleLogout}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.25rem', padding: '4px' }}
             >
               ⏻
-            </button>
+            </motion.button>
           </div>
 
-          <button 
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
             onClick={toggleTheme}
             className="btn btn-ghost"
-            style={{ width: '100%', marginTop: '10px', height: '40px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+            style={{ width: '100%', marginTop: '12px', height: '44px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '1px solid var(--border-light)' }}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
-            {showFull && <span style={{ fontSize: '0.75rem', fontWeight: 800, marginLeft: '8px' }}>{theme === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}</span>}
-          </button>
+            <span style={{ fontSize: '1.1rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
+            <AnimatePresence>
+              {showFull && (
+                <motion.span 
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  style={{ fontSize: '0.75rem', fontWeight: 800, marginLeft: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}
+                >
+                  {theme === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
         </div>
       </aside>
     </>

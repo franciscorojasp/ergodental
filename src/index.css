@@ -692,6 +692,8 @@ tbody td {
     z-index: 1000;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
     box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(20px);
   }
 
   .sidebar.open {
@@ -740,20 +742,21 @@ tbody td {
   .mobile-header { display: flex; }
   .page-content { padding: 12px 16px 40px; }
   
-  /* ELITE TABLE-TO-CARD ENGINE (Surgical Responsiveness) */
+  /* SUPREME TABLE-TO-CARD ENGINE */
   .table-wrap { overflow: visible !important; border:none; background:none; }
   .table-fixed { display: block !important; width: 100% !important; border:none; background:none; }
   
-  table thead { display: none; } /* Surgical header removal for cards */
+  table thead { display: none; }
   
   table tr { 
-    display: flex !important; 
-    flex-direction: column !important;
+    display: grid !important; 
+    grid-template-columns: 1fr !important;
+    gap: 0;
     margin-bottom: 24px !important;
     background: var(--bg-card) !important;
     border: 1.5px solid var(--border) !important;
     border-radius: 20px !important;
-    padding: 24px !important;
+    padding: 20px !important;
     box-shadow: var(--shadow-sm) !important;
     position: relative;
     overflow: hidden;
@@ -763,7 +766,7 @@ tbody td {
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-start !important;
-    padding: 10px 0 !important;
+    padding: 8px 0 !important;
     border: none !important;
     border-bottom: 1px solid var(--border-light) !important;
     width: 100% !important;
@@ -775,28 +778,29 @@ tbody td {
 
   table td::before {
     content: attr(data-label);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: var(--primary); /* Use primary color for labels on mobile for clarity */
+    color: var(--primary);
     letter-spacing: 1px;
     margin-bottom: 4px;
-    opacity: 0.8;
+    opacity: 0.7;
   }
 
-  /* Priority names / titles in cards */
+  /* Priority titles in grid-cards */
   table td[data-main="true"] {
-    font-size: 1.25rem !important;
+    font-size: 1.2rem !important;
     font-weight: 900 !important;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     color: var(--text-primary);
     border-bottom: 2px solid var(--primary-dim) !important;
-    padding-bottom: 12px !important;
+    padding-bottom: 10px !important;
   }
 
   table td[data-main="true"]::before { display: none; }
 
   .text-right { text-align: left !important; } 
+
   .action-grid { 
     width: 100%; 
     display: grid !important;
@@ -820,16 +824,18 @@ tbody td {
   }
 
   .page-header h1 {
-    font-size: 1.8rem !important;
-    line-height: 1.1 !important;
+    font-size: 2.2rem !important;
+    line-height: 1 !important;
     margin-bottom: 8px !important;
     white-space: normal !important;
+    letter-spacing: -1.5px !important;
   }
 
   .page-header .text-muted, .page-header p {
-    font-size: 0.82rem !important;
+    font-size: 0.85rem !important;
     width: 100% !important;
     display: block !important;
+    opacity: 0.8;
   }
 }
 
