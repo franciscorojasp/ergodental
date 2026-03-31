@@ -36,32 +36,32 @@ export default function ClinicaModal() {
           initial={{ scale: 0.9, opacity: 0, y: 30 }}
           animate={{ scale: 1,    opacity: 1, y: 0  }}
           exit={{    scale: 0.9, opacity: 0, y: 30 }}
-          style={{ maxWidth: '480px', textAlign: 'center' }}
+          style={{ maxWidth: '560px', textAlign: 'center' }}
         >
-          <div className="modal-body" style={{ padding: '48px 40px' }}>
+          <div className="modal-body" style={{ padding: '48px 40px', maxHeight: 'none', overflowY: 'visible' }}>
             <div style={{ marginBottom: '40px' }}>
               <motion.div 
                 animate={{ rotate: [0, -5, 5, 0] }}
                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                 style={{
-                  width: 90, height: 90, borderRadius: 24, margin: '0 auto 24px',
+                  width: 100, height: 100, borderRadius: 28, margin: '0 auto 24px',
                   background: 'linear-gradient(135deg, var(--primary), var(--accent))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '2.8rem', boxShadow: '0 20px 50px rgba(0,198,255,0.4)',
+                  fontSize: '3.2rem', boxShadow: '0 25px 60px rgba(0,198,255,0.4)',
                   position: 'relative', overflow: 'hidden'
                 }}
               >
                 🏢
               </motion.div>
-              <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-1.5px', background: 'linear-gradient(to bottom, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textTransform: 'lowercase' }}>
+              <h2 style={{ fontSize: '2.4rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-2px', background: 'linear-gradient(to bottom, #fff, #cbd5e1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textTransform: 'lowercase' }}>
                 ergodental
               </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', fontWeight: 600, margin: '0 auto' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 600, margin: '0 auto' }}>
                 Seleccione su Clínica
               </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
               {clinicas.map(c => (
                 <motion.button
                   key={c.id}
@@ -74,11 +74,11 @@ export default function ClinicaModal() {
                   style={{
                     background: 'rgba(255,255,255,0.04)',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '18px',
-                    padding: '18px 24px',
+                    borderRadius: '20px',
+                    padding: '24px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '18px',
+                    gap: '20px',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -86,20 +86,28 @@ export default function ClinicaModal() {
                   }}
                 >
                   <div style={{
-                    width: 48, height: 48, borderRadius: 14,
-                    background: 'rgba(0,198,255,0.12)',
+                    width: 56, height: 56, borderRadius: 16,
+                    background: c.logoUrl ? `url(${c.logoUrl})` : 'rgba(0,198,255,0.12)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.6rem'
-                  }}>🦷</div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '1px' }}>{c.nombre}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.2px' }}>Sede {c.nombreCorto}</div>
+                    fontSize: '1.8rem', flexShrink: 0
+                  }}>
+                    {!c.logoUrl && '🦷'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.3rem', marginBottom: '2px', lineHeight: 1.2 }}>{c.nombre}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Sede {c.nombreCorto}</span>
+                      {c.direccion && <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>}
+                      {c.direccion && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{c.direccion}</span>}
+                    </div>
                   </div>
                 </motion.button>
               ))}
             </div>
 
-            <p style={{ marginTop: '32px', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+            <p style={{ marginTop: '40px', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500, maxWidth: '400px', margin: '40px auto 0' }}>
               Podrá cambiar de sede en cualquier momento desde el menú lateral.
             </p>
           </div>
