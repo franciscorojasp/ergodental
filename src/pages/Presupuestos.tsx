@@ -249,60 +249,67 @@ export default function Presupuestos() {
         </div>
       </div>
 
-      <motion.div className="glass overflow-hidden" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="table-wrap">
-          <table className="table-fixed">
-            <thead>
-              <tr>
-                <th style={{ width: '120px' }}>ID</th>
-                <th style={{ width: '140px' }}>Fecha</th>
-                <th className="col-expand">Paciente</th>
-                <th className="text-center" style={{ width: '140px' }}>Estado</th>
-                <th style={{ width: '160px' }}>Total</th>
-                <th className="text-right" style={{ width: '180px' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtrados.map((p, i) => (
-                <motion.tr key={p.id || `idx-${i}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
-                  <td><div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'monospace' }}>#{p.id ? p.id.slice(-6).toUpperCase() : 'S/ID'}</div></td>
-                  <td><div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.fecha}</div></td>
-                  <td className="col-expand" data-main="true">
-                    <div style={{ fontWeight: 800, fontSize: '1.02rem' }}>{p.pacienteNombre}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {p.pacienteId.slice(-6)}</div>
-                  </td>
-                  <td className="text-center">
-                    <span className={`badge badge-${p.estado.toLowerCase()}`} style={{ padding: '4px 12px', minWidth: '100px', justifyContent: 'center', fontSize: '0.65rem' }}>{p.estado.toUpperCase()}</span>
-                  </td>
-                  <td><div style={{ color: 'var(--success)', fontWeight: 900, fontSize: '1.1rem' }}>{fmt(p.total)}</div></td>
-                  <td className="text-right">
-                    <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
-                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => imprimirPresupuesto(p)} title="Imprimir PDF">📄</button>
-                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)} title="Editar">✏️</button>
-                      {p.estado === 'Borrador' && (
-                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--success)' }} onClick={() => {
-                          updatePresupuesto({ id: p.id, estado: 'Aprobado' }).then(() => {
-                            getPresupuestos().then(data => setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id)));
-                          });
-                        }} title="Aprobar">✅</button>
-                      )}
-                      {p.estado === 'Aprobado' && (
-                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--accent)' }} onClick={() => handleGenerarRecibo(p)} title="Procesar Pago">💳</button>
-                      )}
-                      <RoleGuard modulo="presupuestos" accion="eliminar">
-                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => handleDelete(p.id)} title="Eliminar">🗑️</button>
-                      </RoleGuard>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-              {filtrados.length === 0 && (
-                <tr><td colSpan={6} className="table-empty">No hay registros en esta categoría.</td></tr>
-              )}
-            </tbody>
-          </table>
+      {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px', opacity: 0.6 }}>
+          <div className="spinner" style={{ marginBottom: '14px' }} />
+          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Cargando protocolos clínicos y presupuestos...</p>
         </div>
-      </motion.div>
+      ) : (
+        <motion.div className="glass overflow-hidden" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="table-wrap">
+            <table className="table-fixed">
+              <thead>
+                <tr>
+                  <th style={{ width: '120px' }}>ID</th>
+                  <th style={{ width: '140px' }}>Fecha</th>
+                  <th className="col-expand">Paciente</th>
+                  <th className="text-center" style={{ width: '140px' }}>Estado</th>
+                  <th style={{ width: '160px' }}>Total</th>
+                  <th className="text-right" style={{ width: '180px' }}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((p, i) => (
+                  <motion.tr key={p.id || `idx-${i}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
+                    <td><div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'monospace' }}>#{p.id ? p.id.slice(-6).toUpperCase() : 'S/ID'}</div></td>
+                    <td><div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.fecha}</div></td>
+                    <td className="col-expand" data-main="true">
+                      <div style={{ fontWeight: 800, fontSize: '1.02rem' }}>{p.pacienteNombre}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {p.pacienteId.slice(-6)}</div>
+                    </td>
+                    <td className="text-center">
+                      <span className={`badge badge-${p.estado.toLowerCase()}`} style={{ padding: '4px 12px', minWidth: '100px', justifyContent: 'center', fontSize: '0.65rem' }}>{p.estado.toUpperCase()}</span>
+                    </td>
+                    <td><div style={{ color: 'var(--success)', fontWeight: 900, fontSize: '1.1rem' }}>{fmt(p.total)}</div></td>
+                    <td className="text-right">
+                      <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => imprimirPresupuesto(p)} title="Imprimir PDF">📄</button>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)} title="Editar">✏️</button>
+                        {p.estado === 'Borrador' && (
+                          <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--success)' }} onClick={() => {
+                            updatePresupuesto({ id: p.id, estado: 'Aprobado' }).then(() => {
+                              getPresupuestos().then(data => setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id)));
+                            });
+                          }} title="Aprobar">✅</button>
+                        )}
+                        {p.estado === 'Aprobado' && (
+                          <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--accent)' }} onClick={() => handleGenerarRecibo(p)} title="Procesar Pago">💳</button>
+                        )}
+                        <RoleGuard modulo="presupuestos" accion="eliminar">
+                          <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => handleDelete(p.id)} title="Eliminar">🗑️</button>
+                        </RoleGuard>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+                {filtrados.length === 0 && (
+                  <tr><td colSpan={6} className="table-empty">No hay registros en esta categoría.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
 
       <AnimatePresence>
         {modal && (
