@@ -107,28 +107,21 @@ export default function Personal() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>Personal</h1>
-          <p style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-            <span className="badge badge-primary" style={{ fontSize:'0.7rem' }}>{clinica.nombreCorto}</span>
-            {personal.filter(p => p.activo).length} miembros activos · {personal.length} total
-          </p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Personal</h1>
         <div className="action-grid">
-          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Miembro</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo</button>
         </div>
       </div>
 
-      <div className="glass" style={{ padding: '20px', marginBottom: '20px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <div className="search-wrap" style={{ flex: '1 1 300px' }}>
+      <div className="filter-glass" style={{ padding: '8px 12px', marginBottom: '8px' }}>
+        <div className="search-wrap" style={{ width:'100%', marginBottom:'8px' }}>
           <span className="search-icon">🔍</span>
-          <input className="input" placeholder="Buscar por nombre o especialidad..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+          <input className="input input-sm" placeholder="Buscar por nombre o especialidad..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div className="filter-grid" style={{ flex: '1 1 100%' }}>
+        <div className="filter-grid mobile-scroll" style={{ width:'100%', gap:'8px' }}>
           {tipos.map(t => (
-            <button key={t} onClick={() => setFiltroTipo(t)} className="btn btn-ghost btn-sm"
-              style={filtroTipo === t ? { borderColor: 'var(--primary)', color: 'var(--primary)', background: 'var(--primary-dim)', justifyContent: 'center' } : { justifyContent: 'center' }}>
+            <button key={t} onClick={() => setFiltroTipo(t)} className={`btn btn-sm ${filtroTipo===t?'btn-primary':'btn-ghost'}`}>
               {t}
             </button>
           ))}

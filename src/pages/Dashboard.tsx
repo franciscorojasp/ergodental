@@ -108,16 +108,16 @@ export default function Dashboard() {
       {/* High-End Stats Grid - Optimized for space */}
       <div className="executive-stats-hub" style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '20px',
-        marginBottom: '48px'
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: isMobile ? '12px' : '20px',
+        marginBottom: isMobile ? '24px' : '48px'
       }}>
         {[
-          { label:'Total Pacientes',        value: totalPac,                        icon:'🦷', color:'var(--primary)' },
-          { label:`Citas (${periodo})`,    value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
-          { label:`Pendientes`,             value: pendientesPeriodo,               icon:'⏳', color:'var(--warning)' },
-          { label:'Personal Activo',       value: totalPers,                        icon:'👨‍⚕️', color:'var(--success)' },
-          { label:`Ingresos (${periodo})`, value: fmt(ingresosPeriodo, 0),         icon:'💰', color:'var(--success)' },
+          { label:'Pacientes',        value: totalPac,                        icon:'🦷', color:'var(--primary)' },
+          { label:`Citas`,            value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
+          { label:`Pendientes`,       value: pendientesPeriodo,               icon:'⏳', color:'var(--warning)' },
+          { label:'Personal',         value: totalPers,                        icon:'👨‍⚕️', color:'var(--success)' },
+          { label:`Ingresos`,         value: fmt(ingresosPeriodo, 0),         icon:'💰', color:'var(--success)' },
         ].map((s,i) => (
           <motion.div 
             key={s.label} 
@@ -125,10 +125,11 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: i * 0.1, type: 'spring' }}
+            style={{ minHeight: isMobile ? '110px' : '200px' }}
           >
             <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)', color: s.color }}>{s.icon}</div>
-            <div className="stat-value">{s.value}</div>
-            <div className="stat-label" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
+            <div className="stat-value" style={{ fontSize: isMobile ? '1.6rem' : '3rem' }}>{s.value}</div>
+            <div className="stat-label" style={{ color: 'var(--text-secondary)', fontSize: isMobile ? '0.65rem' : '0.85rem' }}>{s.label}</div>
           </motion.div>
         ))}
       </div>

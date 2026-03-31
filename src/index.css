@@ -50,13 +50,19 @@
   --shadow-lg:      0 20px 60px -15px rgba(0, 0, 0, 0.8);
   --shadow-sm:      0 8px 30px rgba(0, 0, 0, 0.5);
   --glass-blur:     30px;
-  --transition:     0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+  --transition:     all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
   
-  /* Estados Activos y Capas (Surgical) */
+  /* Clinical Density Tokens (Surgery-Grade) */
+  --p-clinical-xs:  8px;
+  --p-clinical-sm:  12px;
+  --p-clinical-md:  20px;
+  --gap-clinical:   12px;
+
+  /* Estados Activos y Capas */
   --active-bg:      var(--primary);
   --active-text:    #000000;
   --active-grad:    linear-gradient(135deg, var(--primary-dim), rgba(0, 0, 0, 0.2));
-  --modal-overlay:  rgba(2, 4, 12, 0.85);
+  --modal-overlay:  rgba(2, 4, 12, 0.9);
 }
 
 .light-mode {
@@ -656,19 +662,36 @@ tbody td {
   .modal-overlay {
     align-items: flex-end !important;
     padding: 0 !important;
-    background: rgba(0, 0, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
   }
 
   .modal {
+    width: 100% !important;
     max-width: 100% !important;
+    margin: 0 !important;
     border-radius: 32px 32px 0 0 !important;
-    border-bottom: none !important;
+    border: none !important;
+    padding-bottom: env(safe-area-inset-bottom, 24px) !important;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4) !important;
     max-height: 94vh !important;
-    /* Native Bottom Sheet Animation */
-    animation: bottomSheetEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    overflow: hidden;
   }
 
-  @keyframes bottomSheetEnter {
+  /* Integrated handle indicator */
+  .modal::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    margin: 12px auto 8px auto;
+    flex-shrink: 0;
+  }
+
+  @keyframes slideUp {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
   }
@@ -1009,3 +1032,51 @@ tbody td {
   }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL ERGONOMIC UTILITIES (Surgery-Grade)
+   ───────────────────────────────────────────────────────────── */
+
+.page-header.condensed {
+  padding: 8px 16px !important;
+  border-bottom: 1px solid var(--border-light);
+  background: rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px !important;
+}
+
+.is-mobile-inline span {
+  color: var(--primary);
+  font-weight: 400;
+}
+
+/* Perfect alignment for clinical inputs */
+.input-sm {
+  height: 38px !important;
+  font-size: 0.82rem !important;
+  border-radius: 10px !important;
+  padding: 0 12px !important;
+}
+
+/* High-Density Grid for Tablet Landscape (Professional View) */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  .stat-card { padding: 24px !important; }
+}
+
+/* Smooth Focus Rings for Professional Accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Global Transition for Page Navigation */
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}

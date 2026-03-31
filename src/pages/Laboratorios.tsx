@@ -59,13 +59,10 @@ export default function Laboratorios() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>Laboratorios Profesionales</h1>
-          <p>Control de trabajos externos y prótesis — {clinica.nombreCorto}</p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Laboratorios</h1>
         <div className="action-grid">
-          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Registrar Trabajo</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Registrar</button>
         </div>
       </div>
 

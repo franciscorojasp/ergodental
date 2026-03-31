@@ -70,18 +70,15 @@ export default function Usuarios() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1>Gestión de Cuentas</h1>
-          <p>Aprueba nuevos registros y gestiona roles de acceso.</p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Cuentas</h1>
       </div>
 
-      <div className="filter-glass animate-fade-in" style={{ marginBottom: '24px' }}>
-        <div className="search-wrap">
+      <div className="filter-glass animate-fade-in" style={{ padding:'8px 12px', marginBottom: '12px' }}>
+        <div className="search-wrap" style={{ width:'100%' }}>
           <span className="search-icon">🔍</span>
           <input 
-            className="input" 
+            className="input input-sm" 
             placeholder="Buscar por correo o nombre..." 
             value={busqueda} 
             onChange={e => setBusqueda(e.target.value)} 
