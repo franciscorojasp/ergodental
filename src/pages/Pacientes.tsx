@@ -220,12 +220,12 @@ export default function Pacientes() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Paciente</th>
-                <th className="hide-mobile" style={{ width: '180px' }}>Identificación</th>
-                <th className="hide-mobile" style={{ width: '180px' }}>Contacto</th>
-                <th className="hide-mobile" style={{ width: '160px' }}>Segmento</th>
-                <th className="text-center" style={{ width: '120px' }}>Estado</th>
-                <th className="text-right" style={{ width: '120px' }}>Acciones</th>
+                <th style={{ width: '30%' }}>Paciente</th>
+                <th className="hide-mobile" style={{ width: '18%' }}>Identificación</th>
+                <th className="hide-mobile" style={{ width: '18%' }}>Contacto</th>
+                <th className="hide-mobile" style={{ width: '18%' }}>Segmentación</th>
+                <th className="text-center" style={{ width: '80px' }}>Estado</th>
+                <th className="text-right" style={{ width: '100px' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>

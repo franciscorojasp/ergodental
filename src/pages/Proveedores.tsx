@@ -88,11 +88,11 @@ export default function Proveedores() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Proveedor</th>
-                <th className="hide-mobile" style={{ width: '180px' }}>Información Legal</th>
-                <th className="hide-mobile" style={{ width: '220px' }}>Contacto Principal</th>
-                <th style={{ width: '180px' }}>Teléfono</th>
-                <th className="text-center" style={{ width: '120px' }}>Estado</th>
+                <th style={{ width: '30%' }}>Proveedor</th>
+                <th className="hide-mobile" style={{ width: '22%' }}>Información Legal</th>
+                <th className="hide-mobile" style={{ width: '22%' }}>Contacto Principal</th>
+                <th style={{ width: '16%' }}>Teléfono</th>
+                <th className="text-center" style={{ width: '10%' }}>Estado</th>
               </tr>
             </thead>
             <tbody>

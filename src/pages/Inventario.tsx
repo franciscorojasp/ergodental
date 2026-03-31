@@ -98,12 +98,12 @@ export default function Inventario() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Producto y Categoría</th>
-                <th className="hide-mobile" style={{ width: '140px' }}>Unidad</th>
-                <th style={{ width: '180px' }}>Stock Actual</th>
-                <th className="hide-mobile" style={{ width: '140px' }}>Mínimo</th>
-                <th style={{ width: '160px' }}>Precio ({moneda})</th>
-                <th className="text-center" style={{ width: '120px' }}>Estado</th>
+                <th style={{ width: '30%' }}>Producto y Categoría</th>
+                <th className="hide-mobile" style={{ width: '15%' }}>Unidad</th>
+                <th style={{ width: '18%' }}>Stock Actual</th>
+                <th className="hide-mobile" style={{ width: '12%' }}>Mínimo</th>
+                <th style={{ width: '15%' }}>Precio ({moneda})</th>
+                <th className="text-center" style={{ width: '10%' }}>Estado</th>
               </tr>
             </thead>
             <tbody>

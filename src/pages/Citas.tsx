@@ -89,11 +89,11 @@ export default function Citas() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Paciente y Horario</th>
-                <th className="hide-mobile" style={{ width: '180px' }}>Doctor</th>
-                <th className="hide-mobile" style={{ width: '200px' }}>Motivo</th>
-                <th className="text-center" style={{ width: '140px' }}>Estado</th>
-                <th className="text-right" style={{ width: '120px' }}>Acciones</th>
+                <th style={{ width: '40%' }}>Paciente y Horario</th>
+                <th className="hide-mobile" style={{ width: '22%' }}>Doctor</th>
+                <th className="hide-mobile" style={{ width: '18%' }}>Motivo</th>
+                <th className="text-center" style={{ width: '100px' }}>Estado</th>
+                <th className="text-right" style={{ width: '100px' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
