@@ -113,7 +113,12 @@ export default function Dashboard() {
       </div>
 
       {/* High-End Stats Grid - Optimized for space */}
-      <div className="grid-responsive" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+      <div className="executive-stats-hub" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+        marginBottom: '48px'
+      }}>
         {[
           { label:'Total Pacientes',        value: totalPac,                        icon:'🦷', color:'var(--primary)' },
           { label:`Citas (${periodo})`,    value: citasPeriodo.length,             icon:'📅', color:'var(--accent)' },
@@ -127,10 +132,9 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: i * 0.1, type: 'spring' }}
-            style={{ minHeight: '180px' }}
           >
             <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.05)', color: s.color }}>{s.icon}</div>
-            <div className="stat-value" style={{ fontSize: '2.5rem' }}>{s.value}</div>
+            <div className="stat-value">{s.value}</div>
             <div className="stat-label" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
           </motion.div>
         ))}

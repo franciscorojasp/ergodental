@@ -881,5 +881,36 @@ tbody td {
     margin-bottom: 6px !important;
     padding-bottom: 6px !important;
   }
+
+  /* Executive Dashboard Mobile Density */
+  .executive-stats-hub {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .executive-stats-hub .stat-card {
+    padding: 20px !important;
+    min-height: 130px !important;
+    justify-content: flex-start !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .executive-stats-hub .stat-value {
+    font-size: 1.8rem !important;
+    margin-top: 8px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .executive-stats-hub .stat-label {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .executive-stats-hub .stat-icon {
+    top: 16px !important;
+    right: 16px !important;
+    font-size: 1.4rem !important;
+  }
 }
 
