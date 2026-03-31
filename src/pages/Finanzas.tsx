@@ -1,5 +1,5 @@
 // src/pages/Finanzas.tsx
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   getPagos, getEgresos, createPago, createEgreso,
@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useClinica } from '../contexts/ClinicaContext';
 import { generarReportePDF, fmtUSD, fmtBS } from '../utils/reportes';
 
-type PeriodoReporte = 'Semanal' | 'Quincenal' | 'Mensual' | 'Trimestral' | 'Semestral' | 'Anual';
+type PeriodoReporte = 'Hoy' | 'Semanal' | 'Quincenal' | 'Mensual' | 'Trimestral' | 'Semestral' | 'Anual';
 type Tab = 'resumen' | 'ingresos' | 'egresos' | 'creditos' | 'doctores' | 'comisiones';
 
 const DIAS_CREDITO = [5, 10, 15, 20, 25, 30] as const;
@@ -37,7 +37,10 @@ function daysBetween(d1:string,d2:string){
   return Math.abs((new Date(d1).getTime()-new Date(d2).getTime())/86400000);
 }
 function isInPeriod(dateStr:string,periodo:PeriodoReporte):boolean{
-  const days={Semanal:7,Quincenal:15,Mensual:30,Trimestral:90,Semestral:180,Anual:365};
+  const days={Hoy:0, Semanal:7,Quincenal:15,Mensual:30,Trimestral:90,Semestral:180,Anual:365};
+  if (periodo === 'Hoy') {
+    return dateStr === new Date().toISOString().split('T')[0];
+  }
   return daysBetween(dateStr,new Date().toISOString().split('T')[0])<=days[periodo];
 }
 
@@ -254,7 +257,7 @@ export default function Finanzas(){
     }finally{setSaving(false);}
   };
 
-  const PERIODOS:PeriodoReporte[]=['Semanal','Quincenal','Mensual','Trimestral','Semestral','Anual'];
+  const PERIODOS:PeriodoReporte[]=['Hoy','Semanal','Quincenal','Mensual','Trimestral','Semestral','Anual'];
 
   // ── PDF Exportar ──────────────────────────────────────────────────
   const generarPDF = async () => {
@@ -299,53 +302,67 @@ export default function Finanzas(){
   ];
 
   return(
-    <div>
+    <div className="page-container animate-fade-in">
       {/* Header */}
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Finanzas</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="is-mobile-inline">Finanzas</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Control de ingresos, honorarios y balance clínico</p>
+        </div>
         <div className="action-grid mobile-scroll">
-          <button className="btn btn-ghost btn-sm" onClick={generarPDF}>📄 PDF</button>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setModalEgreso(true)}>+ Egreso</button>
-          <button className="btn btn-primary btn-sm" onClick={()=>setModalPago(true)}>+ Ingreso</button>
+          <button className="btn btn-ghost btn-sm" onClick={generarPDF}>📄 Exportar PDF</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setModalEgreso(true)}>+ Crear Egreso</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>setModalPago(true)}>+ Nuevo Ingreso</button>
         </div>
       </div>
 
-      {/* Selector periodo */}
-      <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
-        {PERIODOS.map(p=>(
-          <button key={p} onClick={()=>setPeriodo(p)} className={`btn btn-sm ${periodo===p?'btn-primary':'btn-ghost'}`}>
-            {p}
-          </button>
-        ))}
+      {/* Selector periodo - High-End Segmented Control */}
+      <div className="filter-glass" style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', paddingLeft: '12px' }}>
+          Periodo de Reporte
+        </div>
+        <div className="filter-grid" style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '4px' }}>
+          {PERIODOS.map(p=>(
+            <button key={p} onClick={()=>setPeriodo(p)} className={`btn ${periodo===p?'btn-primary':'btn-ghost'}`} style={{ borderRadius: '10px' }}>
+              {p}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stat cards - Optimized for Executive View */}
       <div className="executive-stats-hub" style={{ 
         display: 'grid', 
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: isMobile ? '8px' : '12px',
-        marginBottom: '16px'
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '20px',
+        marginBottom: '32px'
       }}>
         {[
-          {label:`Ingresos`,  value: fmt(totalIngresos, 0),          icon:'💰',color:'var(--success)'},
-          {label:`Egresos`,   value: fmt(totalEgresos, 0),            icon:'💸',color:'var(--danger)'},
-          {label:'Balance',   value: fmt(balance, 0),                icon:'📊',color:balance>=0?'var(--success)':'var(--danger)'},
-          {label:'Créditos',  value: fmt(totalCreditos, 0),          icon:'⏳',color:'var(--warning)'},
-          {label:'Honorarios',value: fmt(totalHonorarios, 0),        icon:'👨‍⚕️',color:'var(--accent)'},
-          {label:'Foráneos',  value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
+          {label:`Ingresos (${periodo})`,  value: fmt(totalIngresos, 0), icon:'💰', color:'var(--success)', trend: '+12%'},
+          {label:`Egresos (${periodo})`,   value: fmt(totalEgresos, 0), icon:'💸', color:'var(--danger)', trend: '-5%'},
+          {label:'Balance Neto',   value: fmt(balance, 0), icon:'📊', color:balance>=0?'var(--success)':'var(--danger)', trend: 'OK'},
+          {label:'Créditos Pendientes', value: fmt(totalCreditos, 0), icon:'⏳', color:'var(--warning)', trend: 'Vigente'},
+          {label:'Honorarios Doctores', value: fmt(totalHonorarios, 0), icon:'👨‍⚕️', color:'var(--accent)', trend: 'Calculado'},
+          {label:'Comisiones Foráneas', value: fmt(comisionesData.totalesForaneo, 0), icon:'🌍', color:'var(--primary)', trend: 'Socio'},
         ].map((s,i)=>(
-          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: isMobile ? '100px' : '160px' }}>
-            <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color, fontSize: isMobile ? '1.4rem' : '1.8rem', top: isMobile ? '12px' : '20px', right: isMobile ? '12px' : '20px'}}>{s.icon}</div>
-            <div className="stat-value" style={{ fontSize: isMobile ? '1.6rem' : '2.2rem' }}>{s.value}</div>
-            <div className="stat-label" style={{ color: 'var(--text-secondary)', fontSize: isMobile ? '0.65rem' : '0.75rem' }}>{s.label}</div>
+          <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}}>
+            <div className="stat-icon" style={{ color: s.color }}>{s.icon}</div>
+            <div>
+              <div className="stat-label">{s.label}</div>
+              <div className="stat-value" style={{ fontSize: '2.2rem' }}>{s.value}</div>
+            </div>
+            <div style={{ fontSize: '0.65rem', color: s.color, fontWeight: 800, background: 'rgba(255,255,255,0.03)', padding: '2px 8px', borderRadius: '20px', width: 'fit-content', marginTop: '12px', border: '1px solid currentColor', opacity: 0.8 }}>
+              {s.trend}
+            </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '12px' }}>
+      {/* Tabs - Modern Navigation */}
+      <div className="filter-grid" style={{ marginBottom: '20px', background: 'transparent', border: 'none', padding: 0 }}>
         {TABS.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)} className={`btn btn-sm ${tab===t.key?'btn-primary':'btn-ghost'}`}>
+          <button key={t.key} onClick={()=>setTab(t.key)} className={`btn btn-sm ${tab===t.key?'btn-primary':'btn-ghost'}`} 
+            style={{ borderRadius: '20px', minHeight: '38px', padding: '0 24px' }}>
             {t.label}
           </button>
         ))}
@@ -353,75 +370,105 @@ export default function Finanzas(){
 
       {/* ── RESUMEN ── */}
       {tab==='resumen'&&(
-        <div className="grid-responsive" style={{ gap:'18px' }}>
-          <motion.div className="glass" style={{padding:'20px'}} initial={{opacity:0}} animate={{opacity:1}}>
-            <h3 style={{fontWeight:700,marginBottom:'12px'}}>💳 Por método de pago</h3>
-            {Object.entries(pagosFiltrados.reduce((acc,p)=>({...acc,[p.metodoPago]:(acc[p.metodoPago]||0)+p.monto}),{} as Record<string,number>))
-              .sort(([,a],[,b])=>b-a).map(([m,t])=>(
-                <div key={m} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid var(--border)'}}>
-                  <span style={{fontSize:'0.88rem'}}>{METODO_ICON[m as MetodoPago]} {m}</span>
-                  <span style={{fontWeight:700,color:'var(--success)'}}>{fmt(t, 0)}</span>
+        <div className="grid-responsive" style={{ gap:'24px' }}>
+          <motion.div className="glass" style={{padding:'24px'}} initial={{opacity:0, x: -20}} animate={{opacity:1, x:0}}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <span style={{ fontSize: '1.5rem' }}>💳</span>
+              <h3 style={{fontWeight:900, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>Por método de pago</h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {Object.entries(pagosFiltrados.reduce((acc,p)=>({...acc,[p.metodoPago]:(acc[p.metodoPago]||0)+p.monto}),{} as Record<string,number>))
+                .sort(([,a],[,b])=>b-a).map(([m,t])=>(
+                  <div key={m} style={{display:'flex',justifyContent:'space-between',alignItems: 'center', padding:'12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-light)'}}>
+                    <span style={{fontSize:'0.9rem', fontWeight: 600}}>{METODO_ICON[m as MetodoPago]} {m}</span>
+                    <span style={{fontWeight:800,color:'var(--success)', fontSize: '1rem'}}>{fmt(t, 0)}</span>
+                  </div>
+                ))}
+              {pagosFiltrados.length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>Sin movimientos en este periodo</div>}
+            </div>
+          </motion.div>
+
+          <motion.div className="glass" style={{padding:'24px'}} initial={{opacity:0, x: 20}} animate={{opacity:1, x: 0}} transition={{delay:0.1}}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <span style={{ fontSize: '1.5rem' }}>🔗</span>
+              <h3 style={{fontWeight:900, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>Distribución por beneficiario</h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                {label:'🏥 Clínica',     value:comisionesData.totalesClinica, color:'var(--primary)', desc: 'Gastos operativos y utilidad'},
+                {label:'👨‍⚕️ Profesional', value:comisionesData.totalesProf,   color:'var(--success)', desc: 'Honorarios por servicios médicos'},
+                {label:'🌍 Foráneos',    value:comisionesData.totalesForaneo, color:'var(--warning)', desc: 'Comisiones a referidores externos'},
+              ].map(item=>(
+                <div key={item.label} style={{padding:'16px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--border-light)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between', marginBottom: '8px'}}>
+                    <span style={{fontSize:'0.95rem', fontWeight: 700}}>{item.label}</span>
+                    <span style={{fontWeight:900,color:item.color, fontSize: '1.1rem'}}>{fmt(item.value)}</span>
+                  </div>
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                    <div style={{ width: `${(item.value / (totalIngresos || 1) * 100)}%`, height: '100%', background: item.color, boxShadow: `0 0 10px ${item.color}80` }} />
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '8px' }}>{item.desc}</div>
                 </div>
               ))}
-          </motion.div>
-          <motion.div className="glass" style={{padding:'20px'}} initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.1}}>
-            <h3 style={{fontWeight:700,marginBottom:'12px'}}>🔗 Distribución por beneficiario</h3>
-            {[
-              {label:'🏥 Clínica',     value:comisionesData.totalesClinica, color:'var(--primary)'},
-              {label:'👨‍⚕️ Profesional', value:comisionesData.totalesProf,   color:'var(--success)'},
-              {label:'🌍 Foráneos',    value:comisionesData.totalesForaneo, color:'var(--warning)'},
-            ].map(item=>(
-              <div key={item.label} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid var(--border)'}}>
-                <span style={{fontSize:'0.88rem'}}>{item.label}</span>
-                <span style={{fontWeight:700,color:item.color}}>{fmt(item.value)}</span>
-              </div>
-            ))}
+            </div>
           </motion.div>
         </div>
       )}
 
       {/* ── INGRESOS ── */}
       {tab==='ingresos'&&(
-        <motion.div className="glass" initial={{opacity:0}} animate={{opacity:1}}>
+        <motion.div className="glass overflow-hidden" initial={{opacity:0, y: 10}} animate={{opacity:1, y: 0}}>
           <div className="table-wrap">
             <table className="table-fixed">
               <thead><tr>
-                <th className="text-left" style={{ width: '10%' }}>Fecha</th>
-                <th className="text-left col-expand" style={{ width: '25%' }}>Paciente</th>
-                <th className="text-left hide-mobile" style={{ width: '15%' }}>Doctor</th>
-                <th className="text-left hide-mobile" style={{ width: '15%' }}>Concepto</th>
-                <th className="text-left" style={{ width: '10%' }}>Monto</th>
-                <th className="text-left hide-mobile" style={{ width: '12%' }}>Método</th>
-                <th className="text-center" style={{ width: '10%' }}>Estado</th>
-                <th className="text-right" style={{ width: '3%' }}></th>
+                <th style={{ width: '120px' }}>Fecha</th>
+                <th className="col-expand">Paciente</th>
+                <th className="hide-mobile" style={{ width: '180px' }}>Doctor</th>
+                <th className="hide-mobile" style={{ width: '180px' }}>Concepto</th>
+                <th style={{ width: '140px' }}>Monto</th>
+                <th className="hide-mobile" style={{ width: '150px' }}>Método</th>
+                <th className="text-center" style={{ width: '120px' }}>Estado</th>
+                <th style={{ width: '40px' }}></th>
               </tr></thead>
               <tbody>
-                {pagos.map(p=>(
-                  <>
-                  <tr key={p.id} style={{cursor:'pointer'}} onClick={()=>setExpandedPago(expandedPago===p.id?null:p.id)}>
-                    <td className="text-left" data-label="Fecha" style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{p.fecha}</td>
-                    <td className="text-left col-expand" data-main="true" style={{fontWeight:600}}>{p.pacienteNombre}</td>
-                    <td className="text-left hide-mobile" data-label="Doctor" style={{color:'var(--text-secondary)',fontSize:'0.84rem'}}>{p.doctorNombre||'—'}</td>
-                    <td className="text-left hide-mobile" data-label="Concepto">{p.concepto}</td>
-                    <td className="text-left" data-label="Monto" style={{fontWeight:700,color:'var(--success)'}}>{fmt(p.monto)}</td>
-                    <td className="text-left hide-mobile" data-label="Método">{METODO_ICON[p.metodoPago]} {p.metodoPago}</td>
-                    <td className="text-center" data-label="Estado"><span className={`badge ${ESTADO_BADGE[p.estado]}`}>{p.estado}</span></td>
-                    <td className="text-right" data-label="Acciones" style={{color:'var(--primary)',fontSize:'0.8rem'}}>{expandedPago===p.id?'▲':'▼'}</td>
+                {pagosFiltrados.map(p=>(
+                  <React.Fragment key={p.id}>
+                  <tr style={{cursor:'pointer'}} onClick={()=>setExpandedPago(expandedPago===p.id?null:p.id)}>
+                    <td style={{color:'var(--text-muted)',fontSize:'0.85rem', fontWeight: 600}}>{p.fecha}</td>
+                    <td data-main="true">
+                      <div style={{ fontWeight: 700 }}>{p.pacienteNombre}</div>
+                      <div className="hide-desktop" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.concepto}</div>
+                    </td>
+                    <td className="hide-mobile" style={{color:'var(--text-secondary)',fontSize:'0.88rem'}}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ opacity: 0.6 }}>👨‍⚕️</span> {p.doctorNombre||'—'}
+                      </div>
+                    </td>
+                    <td className="hide-mobile" style={{ fontSize: '0.88rem' }}>{p.concepto}</td>
+                    <td style={{fontWeight:800,color:'var(--success)', fontSize: '1rem'}}>{fmt(p.monto)}</td>
+                    <td className="hide-mobile" style={{fontSize: '0.88rem'}}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{METODO_ICON[p.metodoPago]}</span> {p.metodoPago}
+                      </div>
+                    </td>
+                    <td className="text-center"><span className={`badge ${ESTADO_BADGE[p.estado]}`}>{p.estado}</span></td>
+                    <td className="text-right" style={{color:'var(--primary)',fontSize:'0.8rem', opacity: 0.6}}>{expandedPago===p.id?'▲':'▼'}</td>
                   </tr>
                   {expandedPago===p.id&&p.tipoReferencia&&(
-                    <tr key={`${p.id}-d`}>
-                      <td colSpan={9} style={{background:'var(--bg-card)',padding:'12px 20px'}}>
+                    <tr key={`${p.id}-d`} style={{ background: 'rgba(0,212,255,0.02)' }}>
+                      <td colSpan={8} style={{padding:'20px 32px', borderLeft: '4px solid var(--primary)' }}>
                         <DesgloseBar monto={p.monto} tipoReferencia={p.tipoReferencia} fmt={fmt}/>
-                        <div style={{display:'flex',gap:'18px',marginTop:'6px',fontSize:'0.78rem'}}>
-                          {p.referidorNombre&&<div style={{color:'var(--text-secondary)'}}>Referidor: <strong>{p.referidorNombre}</strong></div>}
-                          {p.doctorNombre&&<div style={{color:'var(--text-secondary)'}}>Doctor: <strong>{p.doctorNombre}</strong> · Honorario: <strong style={{color:'var(--success)'}}>
+                        <div style={{display:'flex',gap:'24px',marginTop:'12px',fontSize:'0.82rem', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-light)'}}>
+                          {p.referidorNombre&&<div><span style={{color:'var(--text-muted)'}}>Referidor:</span> <strong style={{color: 'var(--warning)'}}>{p.referidorNombre}</strong></div>}
+                          {p.doctorNombre&&<div><span style={{color:'var(--text-muted)'}}>Honorario Doctor:</span> <strong style={{color:'var(--success)'}}>
                             {fmt(calcularComision(p.monto,p.tipoReferencia).profesional)}
                           </strong></div>}
+                          {p.notas && <div><span style={{color:'var(--text-muted)'}}>Notas:</span> <span>{p.notas}</span></div>}
                         </div>
                       </td>
                     </tr>
                   )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

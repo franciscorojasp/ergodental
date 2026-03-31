@@ -71,60 +71,78 @@ export default function Citas() {
         </div>
       </div>
 
-      <div className="filter-glass">
-        <div className="filter-grid">
+      <div className="filter-glass" style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', paddingLeft: '8px' }}>
+          Estado de la Cita
+        </div>
+        <div className="filter-grid" style={{ background: 'rgba(255,255,255,0.02)', padding: '4px' }}>
           {(['Todos','Pendiente','Confirmada','Completada','Cancelada'] as const).map(e => (
-            <button key={e} onClick={() => setFiltroEstado(e)} className={`btn btn-sm ${filtroEstado === e ? 'btn-primary' : 'btn-ghost'}`}>
+            <button key={e} onClick={() => setFiltroEstado(e)} className={`btn btn-sm ${filtroEstado === e ? 'btn-primary' : 'btn-ghost'}`} style={{ borderRadius: '10px' }}>
               {e}
             </button>
           ))}
         </div>
       </div>
 
-      <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
+      <motion.div className="glass overflow-hidden" initial={{ opacity:0, y: 10 }} animate={{ opacity:1, y: 0 }}>
         <div className="table-wrap">
           <table className="table-fixed">
-            <thead><tr>
-              <th className="text-left" style={{ width: '15%' }}>Fecha/Hora</th>
-              <th className="text-left col-expand" style={{ width: '35%' }}>Paciente</th>
-              <th className="text-left hide-mobile" style={{ width: '20%' }}>Doctor</th>
-              <th className="text-left hide-mobile" style={{ width: '15%' }}>Motivo</th>
-              <th className="text-center" style={{ width: '10%' }}>Estado</th>
-              <th className="text-right" style={{ width: '5%' }}>Acciones</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th className="col-expand">Paciente y Horario</th>
+                <th className="hide-mobile" style={{ width: '180px' }}>Doctor</th>
+                <th className="hide-mobile" style={{ width: '200px' }}>Motivo</th>
+                <th className="text-center" style={{ width: '140px' }}>Estado</th>
+                <th className="text-right" style={{ width: '120px' }}>Acciones</th>
+              </tr>
+            </thead>
             <tbody>
               {filtradas.map((c, i) => (
-                <motion.tr key={c.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.03 }}>
+                <motion.tr 
+                  key={c.id} 
+                  initial={{ opacity:0, x: -10 }} 
+                  animate={{ opacity:1, x:0 }} 
+                  transition={{ delay:i*0.02 }}
+                >
                   <td className="col-expand" data-main="true" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                         <div style={{ 
-                            background:'var(--primary-dim)', color:'var(--primary)', 
-                            width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', fontWeight:800 
-                         }}>📅</div>
-                         <div>
-                            <div style={{ fontWeight:700, fontSize:'1rem', lineHeight:1.1 }}>{c.pacienteNombre}</div>
-                            <div style={{ fontSize:'0.72rem', color:'var(--primary)', fontWeight:700 }}>{c.fecha} · {c.hora}</div>
-                         </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+                      <div style={{ 
+                        width: 44, height: 44, borderRadius: '14px', 
+                        background: 'linear-gradient(135deg, var(--primary-dim), rgba(255,255,255,0.05))',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                      }}>
+                        📅
                       </div>
-                      <div style={{ display:'flex', gap:'2px' }}>
-                        <button className="btn btn-ghost btn-sm" style={{ width:28, height:28, padding:0, borderRadius:'50%' }} onClick={(e) => { e.stopPropagation(); openEdit(c); }}>✏️</button>
-                        <button className="btn btn-ghost btn-sm" style={{ width:28, height:28, padding:0, borderRadius:'50%', color:'var(--danger)' }} onClick={(e) => { e.stopPropagation(); setDeletingId(c.id); }}>🗑️</button>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>{c.pacienteNombre}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 700, marginTop: '2px' }}>
+                          {c.fecha} <span style={{ opacity: 0.5, margin: '0 4px' }}>•</span> {c.hora}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="text-left" style={{ padding: '0 !important' }}>
-                    <div className="clinical-row">
-                       <span style={{opacity:0.6}}>📝</span> {c.motivo}
-                       <span style={{opacity:0.2, margin:'0 6px'}}>|</span>
-                       <span className={`badge ${ESTADO_CLASE[c.estado]}`} style={{ transform:'scale(0.8)', transformOrigin:'left center' }}>{c.estado}</span>
+                  <td className="hide-mobile">
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{c.doctorNombre}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Especialista</div>
+                  </td>
+                  <td className="hide-mobile">
+                    <div style={{ fontSize: '0.88rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
+                      <span style={{ opacity: 0.5, marginRight: '6px' }}>📝</span>
+                      {c.motivo}
                     </div>
                   </td>
-                  <td className="text-left hide-mobile" data-label="Doctor">{c.doctorNombre}</td>
-                  <td className="text-right hide-mobile">
-                    <div style={{ display:'flex', gap:'8px', justifyContent: 'flex-end' }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>
-                      <button className="btn btn-ghost btn-sm" style={{ color:'var(--danger)' }} onClick={() => setDeletingId(c.id)}>🗑️</button>
+                  <td className="text-center">
+                    <span className={`badge ${ESTADO_CLASE[c.estado]}`} style={{ padding: '4px 12px', minWidth: '100px', justifyContent: 'center' }}>
+                      {c.estado.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="text-right">
+                    <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={(e) => { e.stopPropagation(); setDetalleId(c.id); }} title="Ver Detalle">👁️</button>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={(e) => { e.stopPropagation(); openEdit(c); }} title="Editar">✏️</button>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={(e) => { e.stopPropagation(); setDeletingId(c.id); }} title="Eliminar">🗑️</button>
                     </div>
                   </td>
                 </motion.tr>

@@ -58,57 +58,92 @@ export default function Laboratorios() {
   };
 
   return (
-    <div>
+    <div className="page-container animate-fade-in">
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Laboratorios</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="is-mobile-inline">Laboratorios</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Seguimiento de prótesis y trabajos externos</p>
+        </div>
         <div className="action-grid">
-          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Registrar</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Registrar Envío</button>
         </div>
       </div>
 
-      <div className="glass" style={{ padding: '0', overflow: 'hidden' }}>
+      <motion.div className="glass overflow-hidden" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="table-wrap">
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="text-left col-expand" style={{ width: '20%' }}>Paciente</th>
-                <th className="text-left col-expand" style={{ width: '25%' }}>Trabajo / Prótesis</th>
-                <th style={{ width: '15%' }} className="text-left hide-mobile">Laboratorio</th>
-                <th style={{ width: '15%' }} className="text-left hide-mobile">Envío / Entrega</th>
-                <th style={{ width: '10%' }} className="text-center">Estado</th>
-                <th style={{ width: '10%' }} className="text-left">Costo</th>
-                <th style={{ width: '5%', textAlign: 'right' }}>Acciones</th>
+                <th className="col-expand">Paciente y Trabajo</th>
+                <th className="hide-mobile" style={{ width: '180px' }}>Laboratorio</th>
+                <th className="hide-mobile" style={{ width: '200px' }}>Envío / Entrega</th>
+                <th className="text-center" style={{ width: '140px' }}>Estado</th>
+                <th style={{ width: '140px' }}>Costo</th>
+                <th className="text-right" style={{ width: '100px' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {labs.map(l => (
-                <tr key={l.id}>
-                  <td className="text-left col-expand" data-main="true"><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
-                  <td className="text-left col-expand" data-label="Trabajo">{l.trabajo}</td>
-                  <td className="text-left hide-mobile" data-label="Laboratorio">{l.laboratorioNombre}</td>
-                  <td className="text-left hide-mobile" data-label="Envío/Entrega">
-                    <div style={{fontSize:'0.8rem',color:'var(--text-muted)'}}>{l.fechaEnvio}</div>
-                    <div style={{fontSize:'0.82rem',color:'var(--text-secondary)'}}>Est: {l.fechaEntregaPrevista}</div>
-                  </td>
-                  <td className="text-center" data-label="Estado">
-                    <span className={`badge ${l.estado === 'Recibido' ? 'badge-success' : (l.estado === 'Atrasado' ? 'badge-danger' : 'badge-warning')}`}>
-                      {l.estado}
-                    </span>
-                  </td>
-                  <td className="text-left" data-label="Costo"><div style={{fontWeight:700}}>{fmt(l.costo)}</div></td>
-                  <td className="text-right">
-                    <div style={{display:'flex', gap:'8px', justifyContent: 'flex-end'}}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditingId(l.id); setForm(l as any); setModal(true); }}>✏️</button>
-                      <button className="btn btn-ghost btn-sm" style={{color:'var(--danger)'}} onClick={() => setDeletingId(l.id)}>🗑️</button>
+              {labs.map((l, i) => (
+                <motion.tr 
+                  key={l.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                >
+                  <td className="col-expand" data-main="true">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ 
+                        width: 44, height: 44, borderRadius: '14px', 
+                        background: 'linear-gradient(135deg, var(--primary-dim), rgba(255,255,255,0.05))',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                      }}>
+                        🦷
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '1.02rem', letterSpacing: '-0.3px' }}>{l.pacienteNombre}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', fontWeight: 600 }}>{l.trabajo}</div>
+                      </div>
                     </div>
                   </td>
-                </tr>
+                  <td className="hide-mobile">
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{l.laboratorioNombre}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Proveedor Externo</div>
+                  </td>
+                  <td className="hide-mobile">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                        <span style={{ opacity: 0.5, marginRight: '4px' }}>📤</span> {l.fechaEnvio}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                        <span style={{ opacity: 0.5, marginRight: '4px' }}>📥</span> Est: {l.fechaEntregaPrevista || '—'}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="text-center">
+                    <span className={`badge ${l.estado === 'Recibido' ? 'badge-success' : (l.estado === 'Atrasado' ? 'badge-danger' : 'badge-warning')}`} style={{ padding: '4px 12px', minWidth: '100px', justifyContent: 'center' }}>
+                      {l.estado.toUpperCase()}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--success)' }}>{fmt(l.costo)}</div>
+                  </td>
+                  <td className="text-right">
+                    <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => { setEditingId(l.id); setForm(l as any); setModal(true); }} title="Editar">✏️</button>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => setDeletingId(l.id)} title="Eliminar">🗑️</button>
+                    </div>
+                  </td>
+                </motion.tr>
               ))}
-              {labs.length === 0 && <tr><td colSpan={8} className="table-empty">No hay trabajos de laboratorio registrados</td></tr>}
+              {labs.length === 0 && (
+                <tr><td colSpan={6} className="table-empty">No hay trabajos de laboratorio registrados</td></tr>
+              )}
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
       <AnimatePresence>
         {modal && (
           <div className="modal-overlay" onClick={e => e.target === e.currentTarget && closeModal()}>

@@ -52,11 +52,6 @@ export default function Presupuestos() {
     });
   }, [clinica.id]);
 
-  const duplicadosPac = form.pacienteId ? pacientes.filter(p => p.id === form.pacienteId) : [];
-  if (duplicadosPac.length > 1) {
-    console.error("CRÍTICO: ID de paciente duplicado detectado en Presupuestos:", form.pacienteId);
-  }
-
   const total = form.items.reduce((acc, curr) => acc + curr.subtotal, 0);
 
   const addItem = () => {
@@ -106,7 +101,6 @@ export default function Presupuestos() {
       const pac = pacientes.find(p => p.id === form.pacienteId);
       
       if (editingPresupuesto) {
-        // ACTUALIZAR
         await updatePresupuesto({
           id: editingPresupuesto.id,
           pacienteId: form.pacienteId,
@@ -114,9 +108,6 @@ export default function Presupuestos() {
           items: form.items,
           total: total,
           notas: form.notas,
-          // No cambiamos el estado ni la fecha original al editar, 
-          // a menos que sea necesario volver a Borrador si estaba en Rechazado/Aprobado?
-          // Por ahora mantenemos el estado actual.
         });
         
         setPresupuestos(prev => prev.map(p => p.id === editingPresupuesto.id ? {
@@ -128,7 +119,6 @@ export default function Presupuestos() {
           notas: form.notas
         } : p));
       } else {
-        // CREAR NUEVO
         const nuevo = await createPresupuesto({
           pacienteId: form.pacienteId,
           pacienteNombre: pac ? `${pac.nombre} ${pac.apellido}` : 'Desconocido',
@@ -144,7 +134,6 @@ export default function Presupuestos() {
       
       setModal(false);
       setEditingPresupuesto(null);
-      setForm({ pacienteId: '', notas: '', items: [{ id: Math.random().toString(), descripcion: '', cantidad: 1, precio: 0, subtotal: 0 }] });
     } catch (e) {
       alert('Error al guardar presupuesto: ' + e);
     } finally {
@@ -153,12 +142,11 @@ export default function Presupuestos() {
   };
 
   const handleGenerarRecibo = async (p: Presupuesto) => {
-    const metodoInput = prompt('Ingrese el método de pago (Efectivo USD/BS, Pago Móvil, Zelle, etc.):', 'Efectivo USD');
+    const metodoInput = prompt('Ingrese el método de pago:', 'Efectivo USD');
     if (!metodoInput) return;
 
     setSaving(true);
     try {
-      // 1. Crear Recibo
       await createRecibo({
         presupuestoId: p.id,
         pacienteId: p.pacienteId,
@@ -170,7 +158,6 @@ export default function Presupuestos() {
         nroRecibo: `REC-${Date.now().toString().slice(-6)}`
       });
 
-      // 2. Crear Pago (Ingreso en Finanzas)
       await createPago({
         clinicaId: p.clinicaId,
         pacienteId: p.pacienteId,
@@ -187,13 +174,10 @@ export default function Presupuestos() {
         estado: 'Pagado'
       });
 
-      // 3. Actualizar estado del presupuesto
       await updatePresupuesto({ id: p.id, estado: 'Recibido' });
-
-      // 4. Refrescar lista
       const data = await getPresupuestos();
       setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id));
-      alert('Presupuesto cobrado y recibo generado con éxito.');
+      alert('Pago procesado con éxito.');
     } catch (e) {
       alert('Error al generar recibo: ' + e);
     } finally {
@@ -203,19 +187,16 @@ export default function Presupuestos() {
 
   const imprimirPresupuesto = async (p: Presupuesto) => {
     const sedeNombre = CLINICAS.find(c => c.id === p.clinicaId)?.nombre || clinica.nombre;
+    const itemsPDF = p.items.map(i => [i.descripcion, i.cantidad, fmt(i.precio), fmt(i.subtotal)]);
     await generarReportePDF({
       titulo: 'PRESUPUESTO ODONTOLÓGICO',
       clinica: sedeNombre,
       subtitulo: `Nro: ${p.id} · Fecha: ${p.fecha}`,
       usuario: 'Administración',
       columnas: ['Descripción', 'Cant.', 'Precio Unit.', 'Subtotal'],
-      filas: p.items.map(i => [i.descripcion, i.cantidad, fmt(i.precio), fmt(i.subtotal)]),
+      filas: itemsPDF,
       totales: [{ label: 'TOTAL ESTIMADO:', valor: fmt(p.total) }],
-      notas: [
-        'Este presupuesto tiene una validez de 15 días.',
-        'Los precios pueden variar según la complejidad del caso.',
-        p.notas || ''
-      ]
+      notas: ['Validez: 15 días.', p.notas || '']
     });
   };
 
@@ -230,177 +211,155 @@ export default function Presupuestos() {
     setSaving(true);
     try {
       await deletePresupuesto(deletingId);
-      setPresupuestos(prev => prev.filter(p => (p.id || `idx-${prev.indexOf(p)}`) !== deletingId));
-    } catch (e) {
-      alert('Error al eliminar presupuesto: ' + e);
-    } finally {
-      setSaving(false);
-      setDeletingId(null);
-    }
+      setPresupuestos(prev => prev.filter(p => p.id !== deletingId));
+    } catch (e) { alert('Error: ' + e); }
+    finally { setSaving(false); setDeletingId(null); }
   };
 
   const filtrados = presupuestos.filter(p => filtro === 'Todos' || p.estado === filtro);
 
   return (
-    <div className="page-container" style={{ animation: 'fadeIn 0.5s ease' }}>
+    <div className="page-container animate-fade-in">
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Presupuestos</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="is-mobile-inline">Presupuestos</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Control de planes de tratamiento y cobros</p>
+        </div>
         <div className="action-grid">
-          <button className="btn btn-primary btn-sm" onClick={openNew} disabled={loading}>+ Nuevo</button>
+          <button className="btn btn-primary btn-sm" onClick={openNew}>+ Nuevo Presupuesto</button>
         </div>
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(255,107,107,0.1)', color: 'var(--error)', padding: '12px', borderRadius: '8px', marginBottom: '20px', border: '1px solid var(--error)' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.05)', color: 'var(--danger)', padding: '16px', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '0.85rem' }}>
           <strong>⚠ Error:</strong> {error}
         </div>
       )}
 
-      {loading && (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-          <div className="spinner" style={{ marginBottom: '10px' }}></div>
-          Cargando información clínica...
+      <div className="filter-glass" style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '-8px', paddingLeft: '8px' }}>
+          Estado del Presupuesto
         </div>
-      )}
-
-      <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '12px', borderBottom: '1px solid var(--border-light)' }}>
-         {(['Todos', 'Borrador', 'Enviado', 'Aprobado', 'Recibido'] as const).map(e => (
-           <button key={e} onClick={() => setFiltro(e)} className={`btn btn-sm ${filtro===e?'btn-primary':'btn-ghost'}`}>
+        <div className="filter-grid" style={{ background: 'rgba(255,255,255,0.02)', padding: '4px' }}>
+          {(['Todos', 'Borrador', 'Enviado', 'Aprobado', 'Recibido'] as const).map(e => (
+            <button key={e} onClick={() => setFiltro(e)} className={`btn btn-sm ${filtro === e ? 'btn-primary' : 'btn-ghost'}`} style={{ borderRadius: '10px', minWidth: '110px' }}>
               {e}
-           </button>
-         ))}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="glass table-wrap" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Paciente</th>
-              <th>Estado</th>
-              <th>Total</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtrados.map((p, i) => (
-              <tr key={p.id || `idx-${i}`}>
-                <td><span style={{ fontSize: '0.75rem', fontWeight: 800 }}>#{p.id ? p.id.slice(-6) : 'S/ID'}</span></td>
-                <td>{p.fecha}</td>
-                <td style={{ fontWeight: 700 }}>{p.pacienteNombre}</td>
-                <td>
-                   <span className={`badge badge-${p.estado.toLowerCase()}`} style={{ fontSize: '0.7rem' }}>{p.estado}</span>
-                </td>
-                <td style={{ color: 'var(--primary)', fontWeight: 800 }}>{fmt(p.total)}</td>
-                <td>
-                   <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => imprimirPresupuesto(p)} title="Imprimir PDF">📄</button>
-                       <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)} title="Editar Presupuesto">✏️</button>
-                       <RoleGuard modulo="presupuestos" accion="eliminar">
-                         <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id || `idx-${i}`)} title="Eliminar" style={{ color:'var(--danger)' }}>🗑️</button>
-                       </RoleGuard>
-                       {p.estado === 'Borrador' && (
-                         <button className="btn btn-ghost btn-sm" onClick={() => {
-                           updatePresupuesto({ id: p.id, estado: 'Aprobado' }).then(() => {
-                              getPresupuestos().then(data => setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id)));
-                           });
-                         }} title="Aprobar">✅</button>
-                       )}
-                       {p.estado === 'Aprobado' && (
-                         <button className="btn btn-ghost btn-sm" onClick={() => handleGenerarRecibo(p)} title="Cobrar y Recibo" style={{ color:'var(--accent)' }}>💳</button>
-                       )}
-                   </div>
-                </td>
+      <motion.div className="glass overflow-hidden" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="table-wrap">
+          <table className="table-fixed">
+            <thead>
+              <tr>
+                <th style={{ width: '120px' }}>ID</th>
+                <th style={{ width: '140px' }}>Fecha</th>
+                <th className="col-expand">Paciente</th>
+                <th className="text-center" style={{ width: '140px' }}>Estado</th>
+                <th style={{ width: '160px' }}>Total</th>
+                <th className="text-right" style={{ width: '180px' }}>Acciones</th>
               </tr>
-            ))}
-            {filtrados.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No se encontraron presupuestos.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtrados.map((p, i) => (
+                <motion.tr key={p.id || `idx-${i}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
+                  <td><div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'monospace' }}>#{p.id ? p.id.slice(-6).toUpperCase() : 'S/ID'}</div></td>
+                  <td><div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.fecha}</div></td>
+                  <td className="col-expand" data-main="true">
+                    <div style={{ fontWeight: 800, fontSize: '1.02rem' }}>{p.pacienteNombre}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {p.pacienteId.slice(-6)}</div>
+                  </td>
+                  <td className="text-center">
+                    <span className={`badge badge-${p.estado.toLowerCase()}`} style={{ padding: '4px 12px', minWidth: '100px', justifyContent: 'center', fontSize: '0.65rem' }}>{p.estado.toUpperCase()}</span>
+                  </td>
+                  <td><div style={{ color: 'var(--success)', fontWeight: 900, fontSize: '1.1rem' }}>{fmt(p.total)}</div></td>
+                  <td className="text-right">
+                    <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => imprimirPresupuesto(p)} title="Imprimir PDF">📄</button>
+                      <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)} title="Editar">✏️</button>
+                      {p.estado === 'Borrador' && (
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--success)' }} onClick={() => {
+                          updatePresupuesto({ id: p.id, estado: 'Aprobado' }).then(() => {
+                            getPresupuestos().then(data => setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id)));
+                          });
+                        }} title="Aprobar">✅</button>
+                      )}
+                      {p.estado === 'Aprobado' && (
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--accent)' }} onClick={() => handleGenerarRecibo(p)} title="Procesar Pago">💳</button>
+                      )}
+                      <RoleGuard modulo="presupuestos" accion="eliminar">
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => handleDelete(p.id)} title="Eliminar">🗑️</button>
+                      </RoleGuard>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+              {filtrados.length === 0 && (
+                <tr><td colSpan={6} className="table-empty">No hay registros en esta categoría.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
 
       <AnimatePresence>
         {modal && (
           <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModal(false)}>
-            <motion.div 
-               initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
-               animate={{ opacity: 1, scale: 1, y: 0 }}
-               exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
-               transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-               className="modal" style={{ maxWidth: '800px' }}
-            >
+            <motion.div initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }} transition={{ type: 'spring', damping: 28, stiffness: 220 }} className="modal" style={{ maxWidth: '800px' }}>
               <div className="modal-handle" />
               <div className="modal-header">
-                <h3>{editingPresupuesto ? `✏️ Editar Presupuesto #${editingPresupuesto.id.slice(-6)}` : '🛠️ Crear Nuevo Plan de Tratamiento'}</h3>
+                <h3>{editingPresupuesto ? `✏️ Editar Presupuesto #${editingPresupuesto.id.slice(-6)}` : '🛠️ Nuevo Presupuesto'}</h3>
                 <button className="btn-close" onClick={() => setModal(false)}>✕</button>
               </div>
               <div className="modal-body">
                 <div className="input-group">
                   <label className="label">Paciente</label>
                   <select className="input" value={form.pacienteId} onChange={e => setForm({ ...form, pacienteId: e.target.value })}>
-                    <option value="">{pacientes.length === 0 ? 'Cargando pacientes...' : 'Seleccionar paciente...'}</option>
+                    <option value="">Seleccionar paciente...</option>
                     {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>)}
                   </select>
-                  {form.pacienteId && (
-                    <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(0,198,255,0.05)', borderRadius: '8px', fontSize: '0.85rem' }}>
-                      {(() => {
-                        const pFound = pacientes.find(px => px.id === form.pacienteId);
-                        return pFound ? (
-                          <p>👤 <strong>{pFound.nombre} {pFound.apellido}</strong> — C.I: {pFound.cedula} <br/> 📞 {pFound.telefono}</p>
-                        ) : <p style={{ color: 'var(--error)' }}>⚠ Paciente no encontrado en la lista actual.</p>;
-                      })()}
-                    </div>
-                  )}
-                  {pacientes.length === 0 && (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--warning)', marginTop: '4px' }}>
-                      No se encontraron pacientes para la sede {clinica.nombreCorto}. Verifica que tengan asignada esta sede en el módulo de Pacientes.
-                    </p>
-                  )}
                 </div>
-
                 <div style={{ marginTop: '20px' }}>
-                  <label className="label">Ítems del Presupuesto</label>
-                  <table className="table" style={{ marginTop: '8px' }}>
-                    <thead>
-                      <tr>
-                        <th>Descripción</th>
-                        <th style={{ width: '80px' }}>Cant.</th>
-                        <th style={{ width: '120px' }}>Precio Unit.</th>
-                        <th style={{ width: '120px' }}>Subtotal</th>
-                        <th style={{ width: '40px' }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {form.items.map(item => (
-                        <tr key={item.id}>
-                          <td><input className="input" placeholder="Ej: Resina Simple" value={item.descripcion} onChange={e => updateItem(item.id, 'descripcion', e.target.value)} /></td>
-                          <td><input className="input" type="number" value={item.cantidad} onChange={e => updateItem(item.id, 'cantidad', Number(e.target.value))} /></td>
-                          <td><input className="input" type="number" value={item.precio} onChange={e => updateItem(item.id, 'precio', Number(e.target.value))} /></td>
-                          <td style={{ fontWeight: 700 }}>{fmt(item.subtotal)}</td>
-                          <td><button onClick={() => removeItem(item.id)} style={{ color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button></td>
+                  <label className="label">Ítems</label>
+                  <div className="table-wrap" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <table className="table" style={{ marginTop: '8px' }}>
+                      <thead>
+                        <tr>
+                          <th>Descripción</th>
+                          <th style={{ width: '80px' }}>Cant.</th>
+                          <th style={{ width: '120px' }}>Precio</th>
+                          <th style={{ width: '120px' }}>Total</th>
+                          <th style={{ width: '40px' }}></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {form.items.map(item => (
+                          <tr key={item.id}>
+                            <td><input className="input" placeholder="Servicio" value={item.descripcion} onChange={e => updateItem(item.id, 'descripcion', e.target.value)} /></td>
+                            <td><input className="input" type="number" value={item.cantidad} onChange={e => updateItem(item.id, 'cantidad', Number(e.target.value))} /></td>
+                            <td><input className="input" type="number" value={item.precio} onChange={e => updateItem(item.id, 'precio', Number(e.target.value))} /></td>
+                            <td style={{ fontWeight: 700 }}>{fmt(item.subtotal)}</td>
+                            <td><button onClick={() => removeItem(item.id)} style={{ color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                   <button className="btn btn-ghost btn-sm" onClick={addItem}>+ Añadir Línea</button>
                 </div>
-
                 <div style={{ marginTop: '20px', textAlign: 'right', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
                   <div style={{ fontSize: '1.2rem', fontWeight: 900 }}>Total: <span style={{ color: 'var(--primary)' }}>{fmt(total)}</span></div>
                 </div>
-
                 <div className="input-group" style={{ marginTop: '20px' }}>
-                  <label className="label">Notas Adicionales</label>
-                  <textarea className="input" rows={2} value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} placeholder="Observaciones, validez, etc." />
+                  <label className="label">Notas</label>
+                  <textarea className="input" rows={2} value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} placeholder="Validez, garantía, etc." />
                 </div>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={() => setModal(false)}>Cancelar</button>
-                <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                   {saving ? 'Guardando...' : editingPresupuesto ? '💾 Guardar Cambios' : '💾 Generar Presupuesto'}
-                </button>
+                <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : '💾 Guardar'}</button>
               </div>
             </motion.div>
           </div>
@@ -412,18 +371,9 @@ export default function Presupuestos() {
         .badge-borrador { background: rgba(255,107,107,0.1); color: var(--error); }
         .badge-enviado { background: rgba(0,198,255,0.1); color: var(--primary); }
         .badge-aprobado { background: rgba(0,224,150,0.1); color: var(--success); }
-        .badge-rechazado { background: rgba(100,100,100,0.1); color: #888; }
         .badge-recibido { background: rgba(123,97,255,0.1); color: #7b61ff; }
       `}</style>
-      <ConfirmDialog
-        isOpen={confirmDeleteOpen}
-        title="Eliminar Presupuesto"
-        message="¿Está seguro que desea eliminar este presupuesto? Esta acción no se puede deshacer."
-        type="danger"
-        confirmText={saving ? "Eliminando..." : "Sí, Eliminar"}
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmDeleteOpen(false)}
-      />
+      <ConfirmDialog isOpen={confirmDeleteOpen} title="Eliminar Presupuesto" message="¿Está seguro?" type="danger" confirmText="Eliminar" onConfirm={confirmDelete} onCancel={() => setConfirmDeleteOpen(false)} />
     </div>
   );
 }

@@ -106,61 +106,74 @@ export default function Personal() {
   const detalle = personal.find(p => p.id === detalleId);
 
   return (
-    <div>
+    <div className="page-container animate-fade-in">
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Personal</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="is-mobile-inline">Personal Clínico</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Gestión de profesionales, especialistas y equipo administrativo</p>
+        </div>
         <div className="action-grid">
-          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setEditingId(null); setModal(true); }}>+ Nuevo Personal</button>
         </div>
       </div>
 
-      <div className="filter-glass" style={{ padding: '8px 12px', marginBottom: '8px' }}>
-        <div className="search-wrap" style={{ width:'100%', marginBottom:'8px' }}>
+      <div className="filter-glass" style={{ marginBottom: '24px' }}>
+        <div className="search-wrap">
           <span className="search-icon">🔍</span>
-          <input className="input input-sm" placeholder="Buscar por nombre o especialidad..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+          <input className="input" placeholder="Buscar por nombre o especialidad..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div className="filter-grid mobile-scroll" style={{ width:'100%', gap:'8px' }}>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '-8px', paddingLeft: '8px' }}>
+          Categoría Profesional
+        </div>
+        <div className="filter-grid" style={{ background: 'rgba(255,255,255,0.02)', padding: '4px' }}>
           {tipos.map(t => (
-            <button key={t} onClick={() => setFiltroTipo(t)} className={`btn btn-sm ${filtroTipo===t?'btn-primary':'btn-ghost'}`}>
+            <button key={t} onClick={() => setFiltroTipo(t)} className={`btn btn-sm ${filtroTipo===t?'btn-primary':'btn-ghost'}`} style={{ borderRadius: '10px' }}>
               {t}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid-responsive" style={{ gap: '16px' }}>
+      <div className="grid-responsive" style={{ gap: '24px', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
         {filtrado.map((p, i) => (
           <motion.div
             key={p.id}
-            className="glass"
+            className="stat-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            style={{ padding: '20px', position: 'relative' }}
-            whileHover={{ scale: 1.01 }}
+            style={{ padding: '24px', position: 'relative', minHeight: 'unset', background: 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '12px', cursor: 'pointer' }} onClick={() => setDetalleId(p.id)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px', cursor: 'pointer' }} onClick={() => setDetalleId(p.id)}>
               <div style={{
-                width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
+                width: 64, height: 64, borderRadius: '18px', flexShrink: 0,
                 background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-                display: 'flex', alignItems:'center', justifyContent:'center', color: '#fff', fontWeight: 800, fontSize: '1.1rem',
+                display: 'flex', alignItems:'center', justifyContent:'center', color: '#fff', fontWeight: 900, fontSize: '1.4rem',
+                boxShadow: '0 8px 15px var(--primary-dim)',
+                border: '1px solid rgba(255,255,255,0.1)'
               }}>{p.nombre.charAt(0)}{p.apellido.charAt(0)}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{p.nombre} {p.apellido}</div>
-                <span className={`badge ${ROL_BADGE[p.tipo] || 'badge-muted'}`} style={{ marginTop: '4px' }}>{p.tipo}</span>
+                <div style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>{p.nombre} {p.apellido}</div>
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                  <span className={`badge ${ROL_BADGE[p.tipo] || 'badge-muted'}`} style={{ fontWeight: 800, fontSize: '0.65rem' }}>{p.tipo.toUpperCase()}</span>
+                </div>
               </div>
             </div>
             
-            <div style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>
-              {p.especialidad && <div>🏥 {p.especialidad}</div>}
-              {p.telefono && <div>📞 {p.telefono}</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ opacity: 0.5 }}>🏥</span> {p.especialidad || 'General'}
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ opacity: 0.5 }}>📞</span> {p.telefono || 'Sin teléfono'}
+              </div>
             </div>
 
-            <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className={`badge ${p.activo ? 'badge-success' : 'badge-muted'}`}>{p.activo ? 'Activo' : 'Inactivo'}</span>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)}>✏️</button>
-                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => setDeletingId(p.id)}>🗑️</button>
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className={`badge ${p.activo ? 'badge-success' : 'badge-danger'}`} style={{ padding: '4px 12px' }}>{p.activo ? 'ACTIVO' : 'INACTIVO'}</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)}>✏️</button>
+                <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => setDeletingId(p.id)}>🗑️</button>
               </div>
             </div>
           </motion.div>

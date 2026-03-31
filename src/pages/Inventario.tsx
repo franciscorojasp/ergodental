@@ -56,67 +56,113 @@ export default function Inventario() {
   };
 
   return (
-    <div>
+    <div className="page-container animate-fade-in">
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Stock</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="is-mobile-inline">Inventario & Stock</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Control de suministros y materiales clínicos</p>
+        </div>
         <div className="action-grid">
-          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo Producto</button>
         </div>
       </div>
 
       {bajoStock > 0 && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: 'var(--warning-dim)', border: '1px solid var(--warning)', borderRadius: '12px', padding: '8px 12px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--warning)', fontSize: '0.75rem' }}>
-          <span style={{ fontSize: '1rem' }}>⚠️</span>
-          <span><strong>{bajoStock} en stock bajo.</strong> reabastecer pronto.</span>
+          style={{ 
+            background: 'rgba(239, 68, 68, 0.05)', 
+            border: '1px solid rgba(239, 68, 68, 0.2)', 
+            borderRadius: '16px', padding: '12px 20px', marginBottom: '24px', 
+            display: 'flex', alignItems: 'center', gap: '14px', color: 'var(--danger)', 
+            fontSize: '0.82rem', fontWeight: 600,
+            backdropFilter: 'blur(10px)'
+          }}>
+          <span style={{ fontSize: '1.2rem' }}>🚨</span>
+          <span><strong>Alerta de Reabastecimiento:</strong> Hay {bajoStock} artículos con stock crítico. Se recomienda generar orden de compra.</span>
         </motion.div>
       )}
 
-      <div className="filter-glass" style={{ padding: '8px 12px', marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+      <div className="filter-glass" style={{ marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center', padding: '12px' }}>
         <div className="search-wrap" style={{ flex: 1, margin: 0 }}>
           <span className="search-icon">🔍</span>
-          <input className="input input-sm" placeholder="Buscar..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+          <input className="input" placeholder="Buscar por nombre o categoría..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <button className={`btn btn-sm ${filtroAlerta ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFiltroAlerta(!filtroAlerta)}
-          style={{ padding: '8px 12px', minWidth:'unset' }}>
-          {filtroAlerta ? 'Todo' : '⚠️ Alertas'}
+        <button className={`btn ${filtroAlerta ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFiltroAlerta(!filtroAlerta)}
+          style={{ borderRadius: '12px', minWidth:'140px', fontWeight: 700 }}>
+          {filtroAlerta ? 'Ver Todo' : '⚠️ Ver Alertas'}
         </button>
       </div>
 
-      {/* Tabla */}
-      <motion.div className="glass" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div className="glass overflow-hidden" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="table-wrap">
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="text-left col-expand" style={{ width: '35%' }}>Producto</th>
-                <th className="text-left hide-mobile" style={{ width: '15%' }}>Categoría</th>
-                <th className="text-left hide-mobile" style={{ width: '10%' }}>Unidad</th>
-                <th className="text-left" style={{ width: '15%' }}>Stock actual</th>
-                <th className="text-left hide-mobile" style={{ width: '10%' }}>Stock mín.</th>
-                <th className="text-left" style={{ width: '10%' }}>Precio ({moneda})</th>
-                <th className="text-right" style={{ width: '5%' }}>Estado</th>
+                <th className="col-expand">Producto y Categoría</th>
+                <th className="hide-mobile" style={{ width: '140px' }}>Unidad</th>
+                <th style={{ width: '180px' }}>Stock Actual</th>
+                <th className="hide-mobile" style={{ width: '140px' }}>Mínimo</th>
+                <th style={{ width: '160px' }}>Precio ({moneda})</th>
+                <th className="text-center" style={{ width: '120px' }}>Estado</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.map((item, i) => {
                 const badge = stockBadge(item);
                 return (
-                  <motion.tr key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                    <td className="text-left col-expand" data-main="true" style={{ fontWeight: 600 }}>{item.nombre}</td>
-                    <td className="text-left hide-mobile" data-label="Categoría"><span className="badge badge-muted">{item.categoria}</span></td>
-                    <td className="text-left hide-mobile" data-label="Unidad" style={{ color: 'var(--text-secondary)' }}>{item.unidad}</td>
-                    <td className="text-left" data-label="Stock">
-                      <span style={{ fontWeight: 700, color: stockColor(item), fontSize: '1rem' }}>{item.stock}</span>
+                  <motion.tr 
+                    key={item.id} 
+                    initial={{ opacity: 0, x: -10 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: i * 0.02 }}
+                  >
+                    <td className="col-expand" data-main="true">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ 
+                          width: 44, height: 44, borderRadius: '14px', 
+                          background: 'linear-gradient(135deg, var(--primary-dim), rgba(255,255,255,0.05))',
+                          border: '1px solid var(--border-light)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                        }}>
+                          📦
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '1.02rem', letterSpacing: '-0.3px' }}>{item.nombre}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 700 }}>{item.categoria.toUpperCase()}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="text-left hide-mobile" data-label="Mínimo" style={{ color: 'var(--text-muted)' }}>{item.stockMinimo}</td>
-                    <td className="text-left" data-label="Precio" style={{ color: 'var(--text-secondary)' }}>{fmt(item.precio)}</td>
-                    <td className="text-right" data-label="Estado"><span className={`badge ${badge.cls}`}>{badge.label}</span></td>
+                    <td className="hide-mobile">
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{item.unidad}</div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ fontWeight: 800, color: stockColor(item), fontSize: '1.2rem' }}>{item.stock}</div>
+                        <div style={{ width: '60px', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: `${Math.min(100, (item.stock / (item.stockMinimo * 2)) * 100)}%`, 
+                            height: '100%', 
+                            background: stockColor(item),
+                            boxShadow: `0 0 10px ${stockColor(item)}80`
+                          }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="hide-mobile" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{item.stockMinimo} units</td>
+                    <td>
+                      <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>{fmt(item.precio)}</div>
+                    </td>
+                    <td className="text-center">
+                      <span className={`badge ${badge.cls}`} style={{ padding: '4px 12px', minWidth: '90px', justifyContent: 'center' }}>
+                        {badge.label.toUpperCase()}
+                      </span>
+                    </td>
                   </motion.tr>
                 );
               })}
               {filtrados.length === 0 && (
-                <tr><td colSpan={7} className="table-empty">Sin resultados</td></tr>
+                <tr><td colSpan={6} className="table-empty">Sin artículos registrados en inventario</td></tr>
               )}
             </tbody>
           </table>

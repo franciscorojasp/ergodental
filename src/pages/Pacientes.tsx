@@ -185,78 +185,103 @@ export default function Pacientes() {
   const detalle = pacientes.find(p => p.id === detalleId);
 
   return (
-    <div>
+    <div className="page-container animate-fade-in">
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Pacientes</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="is-mobile-inline">Pacientes</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Gestión de historial clínico y datos personales</p>
+        </div>
         <div className="action-grid">
           <RoleGuard modulo="pacientes" accion="crear">
-            <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo</button>
+            <button className="btn btn-primary btn-sm" onClick={() => { setEditingId(null); setModal(true); }}>+ Nuevo Paciente</button>
           </RoleGuard>
         </div>
       </div>
 
-      <div className="filter-glass">
+      <div className="filter-glass" style={{ marginBottom: '24px' }}>
         <div className="search-wrap">
           <span className="search-icon">🔍</span>
           <input className="input" placeholder="Buscar por nombre, cédula o correo..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div className="filter-grid">
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '-8px', paddingLeft: '8px' }}>
+          Filtrar por segmentación
+        </div>
+        <div className="filter-grid" style={{ background: 'rgba(255,255,255,0.02)', padding: '4px' }}>
           {filtros.map(f => (
-            <button key={f} onClick={() => setFiltroRef(f)} className={`btn btn-sm ${filtroRef === f ? 'btn-primary' : 'btn-ghost'}`}>
+            <button key={f} onClick={() => setFiltroRef(f)} className={`btn btn-sm ${filtroRef === f ? 'btn-primary' : 'btn-ghost'}`} style={{ borderRadius: '10px' }}>
               {f}
             </button>
           ))}
         </div>
       </div>
 
-      <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
+      <motion.div className="glass overflow-hidden" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="table-wrap">
           <table className="table-fixed">
-            <thead><tr>
-              <th className="text-left col-expand" style={{ width: '35%' }}>Paciente</th>
-              <th style={{ width: '15%' }} className="text-left hide-mobile">Cédula</th>
-              <th style={{ width: '10%' }} className="text-left hide-mobile">Edad</th>
-              <th style={{ width: '15%' }} className="text-left">Teléfono</th>
-              <th style={{ width: '15%' }} className="text-left hide-mobile">Referido por</th>
-              <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th className="col-expand">Paciente</th>
+                <th className="hide-mobile" style={{ width: '180px' }}>Identificación</th>
+                <th className="hide-mobile" style={{ width: '180px' }}>Contacto</th>
+                <th className="hide-mobile" style={{ width: '160px' }}>Segmento</th>
+                <th className="text-center" style={{ width: '120px' }}>Estado</th>
+                <th className="text-right" style={{ width: '120px' }}>Acciones</th>
+              </tr>
+            </thead>
             <tbody>
               {filtrado.map((p, i) => {
                 const regla = TABLA_REFERENCIAS.find(r => r.tipo === p.tipoReferencia);
                 return (
-                  <motion.tr key={`${p.id}-${i}`} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}>
-                    <td className="col-expand" data-main="true" onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:'12px', justifyContent:'space-between' }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                          <div style={{
-                            width:32, height:32, borderRadius:'50%', flexShrink:0,
-                            background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-                            display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'0.75rem',
-                            color: '#fff', border:'1px solid rgba(255,255,255,0.1)'
-                          }}>{p.nombre.charAt(0)}{p.apellido.charAt(0)}</div>
-                          <div>
-                            <div style={{ fontWeight:700, fontSize:'1rem', lineHeight:1.1 }}>{p.nombre} {p.apellido}</div>
-                            <div style={{ fontSize:'0.7rem', color:'var(--text-muted)' }}>{p.email}</div>
-                          </div>
+                  <motion.tr 
+                    key={p.id} 
+                    initial={{ opacity: 0, x: -10 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: i * 0.02 }}
+                  >
+                    <td className="col-expand" data-main="true" onClick={() => setDetalleId(p.id)} style={{ cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ 
+                          width: 44, height: 44, borderRadius: '14px', 
+                          background: 'linear-gradient(135deg, var(--primary-dim), rgba(255,255,255,0.05))',
+                          border: '1px solid var(--border-light)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '1rem', fontWeight: 900, color: 'var(--primary)',
+                          boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                        }}>
+                          {p.nombre.charAt(0)}{p.apellido.charAt(0)}
                         </div>
-                        <div style={{ display:'flex', gap:'2px' }}>
-                          <button className="btn btn-ghost btn-sm" style={{ width:32, height:32, padding:0, borderRadius:'50%' }} onClick={(e) => { e.stopPropagation(); openEdit(p); }}>✏️</button>
-                          <button className="btn btn-ghost btn-sm" style={{ width:32, height:32, padding:0, borderRadius:'50%', color:'var(--danger)' }} onClick={(e) => { e.stopPropagation(); setDeletingId(p.id); }}>🗑️</button>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>{p.nombre} {p.apellido}</div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>{p.email || 'Sin correo registrado'}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="text-left" style={{ padding: '0 !important' }}>
-                      <div className="clinical-row">
-                        <span style={{opacity:0.6}}>📞</span> {p.telefono}
-                        <span style={{opacity:0.2, margin:'0 4px'}}>|</span>
-                        <span style={{opacity:0.6}}>🆔</span> {p.cedula}
+                    <td className="hide-mobile" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                        <span style={{ opacity: 0.4 }}>🆔</span>
+                        <span>V-{p.cedula}</span>
                       </div>
-                      <div className="clinical-row" style={{ marginTop:2 }}>
-                        <span style={{opacity:0.6}}>🎂</span> {calcularEdad(p.fechaNacimiento)} años
-                        {regla && <>
-                          <span style={{opacity:0.2, margin:'0 4px'}}>|</span>
-                          <span className={`badge ${REF_BADGE[p.tipoReferencia!]}`} style={{ transform:'scale(0.85)', transformOrigin:'left center' }}>{regla.label}</span>
-                        </>}
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{calcularEdad(p.fechaNacimiento)} Años</div>
+                    </td>
+                    <td className="hide-mobile">
+                      <div style={{ fontSize: '0.88rem', fontWeight: 500 }}>{p.telefono || '—'}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Móvil</div>
+                    </td>
+                    <td className="hide-mobile">
+                      {regla && (
+                        <div className={`badge ${REF_BADGE[p.tipoReferencia!]}`} style={{ fontWeight: 700, fontSize: '0.72rem' }}>
+                          {regla.label}
+                        </div>
+                      )}
+                    </td>
+                    <td className="text-center">
+                      <span className="badge badge-success" style={{ padding: '4px 12px' }}>ACTIVO</span>
+                    </td>
+                    <td className="text-right">
+                      <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => setDetalleId(p.id)} title="Ver Ficha">👁️</button>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)} title="Editar">✏️</button>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => setDeletingId(p.id)} title="Eliminar">🗑️</button>
                       </div>
                     </td>
                   </motion.tr>
