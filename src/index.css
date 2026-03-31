@@ -693,44 +693,60 @@ tbody td {
   table tr { 
     display: flex !important; 
     flex-direction: column !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 24px !important;
     background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 16px !important;
-    padding: 16px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border: 1.5px solid var(--border) !important;
+    border-radius: 20px !important;
+    padding: 24px !important;
+    box-shadow: var(--shadow-sm) !important;
     position: relative;
+    overflow: hidden;
   }
 
   table td {
     display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding: 8px 0 !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 10px 0 !important;
     border: none !important;
+    border-bottom: 1px solid var(--border-light) !important;
     width: 100% !important;
     white-space: normal !important;
     overflow: visible !important;
   }
 
+  table td:last-child { border-bottom: none !important; }
+
   table td::before {
     content: attr(data-label);
-    font-size: 0.75rem;
-    font-weight: 800;
+    font-size: 0.7rem;
+    font-weight: 900;
     text-transform: uppercase;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
+    color: var(--primary); /* Use primary color for labels on mobile for clarity */
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    opacity: 0.8;
   }
 
   /* Priority names / titles in cards */
   table td[data-main="true"] {
-    font-size: 1.1rem !important;
-    font-weight: 800 !important;
-    margin-bottom: 4px;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    margin-bottom: 12px;
     color: var(--text-primary);
+    border-bottom: 2px solid var(--primary-dim) !important;
+    padding-bottom: 12px !important;
   }
 
-  .text-right { text-align: left !important; } /* Center actions on mobile cards */
-  .action-grid { width: 100%; justify-content: space-around !important; margin-top: 8px; }
+  table td[data-main="true"]::before { display: none; }
+
+  .text-right { text-align: left !important; } 
+  .action-grid { 
+    width: 100%; 
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-top: 16px; 
+  }
 }
 
