@@ -22,6 +22,7 @@ export default function Proveedores() {
   const [modal, setModal] = useState(false);
   const [detalleId, setDetalleId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isMobile] = useState(window.innerWidth < 768);
   const [form, setForm] = useState<Omit<Proveedor,'id'>>({
     clinicaId: clinica.id,
     nombre:'', tipo:'Farmacia', rif:'', telefono:'', email:'', contacto:'', direccion:'', activo:true,
@@ -132,7 +133,13 @@ export default function Proveedores() {
         {detalle && (
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e => e.target===e.currentTarget && setDetalleId(null)}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>{TIPO_ICON[detalle.tipo]} {detalle.nombre}</h3>
                 <button className="btn-close" onClick={()=>setDetalleId(null)}>✕</button>
@@ -169,7 +176,13 @@ export default function Proveedores() {
         {modal && (
           <motion.div className="modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
             onClick={e=>e.target===e.currentTarget&&setModal(false)}>
-            <motion.div className="modal" initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>🏢 Nuevo Proveedor</h3>
                 <button className="btn-close" onClick={()=>setModal(false)}>✕</button>

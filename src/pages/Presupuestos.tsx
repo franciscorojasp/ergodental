@@ -24,6 +24,7 @@ export default function Presupuestos() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingPresupuesto, setEditingPresupuesto] = useState<Presupuesto | null>(null);
+  const [isMobile] = useState(window.innerWidth < 768);
 
   const [form, setForm] = useState<{
     pacienteId: string;
@@ -274,7 +275,7 @@ export default function Presupuestos() {
          ))}
       </div>
 
-      <div className="glass" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="glass table-wrap" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="table">
           <thead>
             <tr>
@@ -326,8 +327,15 @@ export default function Presupuestos() {
 
       <AnimatePresence>
         {modal && (
-          <div className="modal-overlay">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="modal" style={{ maxWidth: '800px' }}>
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModal(false)}>
+            <motion.div 
+               initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+               transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+               className="modal" style={{ maxWidth: '800px' }}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>{editingPresupuesto ? `✏️ Editar Presupuesto #${editingPresupuesto.id.slice(-6)}` : '🛠️ Crear Nuevo Plan de Tratamiento'}</h3>
                 <button className="btn-close" onClick={() => setModal(false)}>✕</button>

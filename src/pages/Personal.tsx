@@ -26,6 +26,7 @@ export default function Personal() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isMobile] = useState(window.innerWidth < 768);
 
   const initForm: Omit<Personal,'id'> = {
     clinicaId: clinica.id,
@@ -179,7 +180,13 @@ export default function Personal() {
           <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={e => e.target === e.currentTarget && setDetalleId(null)}
           >
-            <motion.div className="modal" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>👨‍⚕️ Ficha de Personal</h3>
                 <button className="btn-close" onClick={() => setDetalleId(null)}>✕</button>
@@ -220,7 +227,14 @@ export default function Personal() {
           <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={e => e.target === e.currentTarget && closeModal()}
           >
-            <motion.div className="modal" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={{ maxWidth: 600 }}>
+            <motion.div className="modal" 
+              initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              style={{ maxWidth: 600 }}
+            >
+              <div className="modal-handle" />
               <div className="modal-header">
                 <h3>{editingId ? '✏️ Editar Personal' : '👨‍⚕️ Nuevo Miembro'}</h3>
                 <button className="btn-close" onClick={() => closeModal()}>✕</button>

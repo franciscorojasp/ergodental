@@ -74,7 +74,7 @@ export default function Recibos() {
         </div>
       </div>
 
-      <div className="glass" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="glass table-wrap" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="table">
           <thead>
             <tr>
