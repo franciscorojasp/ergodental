@@ -883,29 +883,61 @@ tbody td {
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 4px !important; /* Surgical-grade gap */
-    padding: 6px 10px !important;
+    padding: 10px 14px !important;
     margin-bottom: 4px !important;
-    width: 100% !important;
-    flex-wrap: nowrap !important;
+    min-height: 52px !important;
+    background: rgba(0,0,0,0.2) !important;
+    border-bottom: 1px solid var(--border-light) !important;
   }
 
   .page-header h1 {
-    font-size: 1.15rem !important; /* Professional compact title */
-    line-height: 1 !important;
+    font-size: 1.1rem !important; /* Elegant compact title */
+    font-weight: 800 !important;
+    text-transform: none !important;
+    letter-spacing: -0.2px !important;
     margin: 0 !important;
-    letter-spacing: -0.5px !important;
-    flex-shrink: 0;
+    max-width: 140px;
   }
 
-  .action-grid { 
+  .action-grid {
     display: flex !important;
-    flex-direction: row !important;
-    gap: 4px !important;
-    justify-content: flex-end;
+    gap: 6px !important;
     align-items: center !important;
-    flex: 1;
-    min-width: 0;
+    margin: 0 !important;
+  }
+
+  /* Native Mobile Card Engine (Zero Logic, Pure UI) */
+  .table-wrap table, .table-wrap tbody, .table-wrap tr, .table-wrap td {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .table-wrap tr {
+    padding: 12px 14px !important;
+    margin-bottom: 6px !important;
+    border-radius: 12px !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  }
+
+  .table-wrap td::before { display: none !important; } /* Eliminate bulky labels */
+
+  .table-wrap td[data-main="true"] {
+    padding: 0 0 8px 0 !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Multi-Row Layout for clinical data */
+  .clinical-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
   }
 
   .page-content { padding: 8px 12px !important; }

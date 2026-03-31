@@ -95,23 +95,32 @@ export default function Citas() {
             <tbody>
               {filtradas.map((c, i) => (
                 <motion.tr key={c.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.03 }}>
-                  <td className="text-left col-expand" data-main="true" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer', borderBottom:'1px solid var(--border-light) !important' }}>
+                  <td className="col-expand" data-main="true" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontWeight:700, fontSize:'1.05rem' }}>{c.pacienteNombre}</div>
-                        <div style={{ fontSize:'0.75rem', color:'var(--primary)', fontWeight:600 }}>{c.fecha} · {c.hora}</div>
+                      <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                         <div style={{ 
+                            background:'var(--primary-dim)', color:'var(--primary)', 
+                            width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', fontWeight:800 
+                         }}>📅</div>
+                         <div>
+                            <div style={{ fontWeight:700, fontSize:'1rem', lineHeight:1.1 }}>{c.pacienteNombre}</div>
+                            <div style={{ fontSize:'0.72rem', color:'var(--primary)', fontWeight:700 }}>{c.fecha} · {c.hora}</div>
+                         </div>
                       </div>
-                      {/* Integrated mobile actions */}
-                      <div className="show-mobile" style={{ display:'flex', gap:'4px' }}>
-                         <button className="btn btn-ghost btn-sm" style={{ width:28, height:28, padding:0 }} onClick={(e) => { e.stopPropagation(); openEdit(c); }}>✏️</button>
+                      <div style={{ display:'flex', gap:'2px' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width:28, height:28, padding:0, borderRadius:'50%' }} onClick={(e) => { e.stopPropagation(); openEdit(c); }}>✏️</button>
+                        <button className="btn btn-ghost btn-sm" style={{ width:28, height:28, padding:0, borderRadius:'50%', color:'var(--danger)' }} onClick={(e) => { e.stopPropagation(); setDeletingId(c.id); }}>🗑️</button>
                       </div>
                     </div>
                   </td>
-                  <td className="text-left hide-mobile" data-label="Paciente">{c.pacienteNombre}</td>
-                  <td className="text-left hide-mobile" data-label="Fecha/Hora">{c.fecha} {c.hora}</td>
+                  <td className="text-left" style={{ padding: '0 !important' }}>
+                    <div className="clinical-row">
+                       <span style={{opacity:0.6}}>📝</span> {c.motivo}
+                       <span style={{opacity:0.2, margin:'0 6px'}}>|</span>
+                       <span className={`badge ${ESTADO_CLASE[c.estado]}`} style={{ transform:'scale(0.8)', transformOrigin:'left center' }}>{c.estado}</span>
+                    </div>
+                  </td>
                   <td className="text-left hide-mobile" data-label="Doctor">{c.doctorNombre}</td>
-                  <td className="text-left" data-label="Motivo" style={{ fontSize:'0.82rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
-                  <td className="text-center" data-label="Estado"><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
                   <td className="text-right hide-mobile">
                     <div style={{ display:'flex', gap:'8px', justifyContent: 'flex-end' }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>

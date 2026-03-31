@@ -135,15 +135,15 @@ export default function Odontograma() {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div className="page-header condensed">
-        <h1 className="is-mobile-inline">Odon<span>t</span></h1>
-        <div className="action-grid mobile-scroll">
-          <select className="input input-sm" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: isMobile ? '160px' : '220px' }}>
+        <h1 className="is-mobile-inline">Odontograma</h1>
+        <div className="action-grid">
+          <select className="input input-sm" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: isMobile ? '130px' : '220px' }}>
             <option value="">Paciente...</option>
             {pacientes.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+              <option key={p.id} value={p.id}>{p.nombre}</option>
             ))}
           </select>
-          <button className="btn btn-ghost btn-sm" onClick={() => confirm('¿Reiniciar?') && setPiezas(initPiezas())}>↺ Limpiar</button>
+          <button className="btn btn-ghost btn-sm" style={{ width: 32, padding:0 }} onClick={() => confirm('¿Reiniciar?') && setPiezas(initPiezas())}>↺</button>
         </div>
       </div>
 
@@ -157,19 +157,19 @@ export default function Odontograma() {
         <>
           {loading && <div style={{ marginBottom: 20, color: 'var(--primary)', textAlign:'center' }}>Cargando datos históricos...</div>}
           
-          <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
+          <div className="filter-grid mobile-scroll" style={{ padding:'6px 10px', marginBottom: '4px', borderBottom: '1px solid var(--border-light)', gap:'6px' }}>
             {ESTADOS.map(e => (
-              <button key={e.key} onClick={() => setHerramienta(e.key)} 
+              <button key={e.key} onClick={() => setHerramienta(e.key)}
                 className={`btn btn-sm ${herramienta === e.key ? 'btn-primary' : 'btn-ghost'}`}
                 style={{ 
-                  justifyContent: 'center',
-                  padding: '6px 12px',
-                  borderColor: herramienta === e.key ? e.color : 'var(--border)',
-                  borderRadius: '10px',
-                  minWidth: '100px'
+                  borderRadius:'20px', 
+                  padding: isMobile ? '0 12px' : '0 16px', 
+                  height:32,
+                  fontSize: isMobile ? '0.7rem' : '0.8rem',
+                  border: herramienta === e.key ? `1px solid ${e.color}` : '1px solid var(--border)'
                 }}>
                 <span>{e.emoji}</span>
-                <span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>{e.label}</span>
+                {!isMobile && <span style={{ marginLeft: '6px' }}>{e.label}</span>}
               </button>
             ))}
           </div>
