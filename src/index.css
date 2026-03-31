@@ -35,9 +35,9 @@
   --danger:         #ef4444;
   
   /* Tipografía y Bordes */
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #475569;
+  --text-primary:   #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted:     #94a3b8;
   --border:         rgba(255, 255, 255, 0.06);
   --border-light:   rgba(255, 255, 255, 0.03);
   --border-active:  rgba(0, 212, 255, 0.4);
@@ -256,6 +256,22 @@ body::before {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-dim), 0 0 20px var(--primary-glow);
+}
+
+/* Fix for Select and Dropdown Legibility */
+select.input {
+  cursor: pointer;
+  color-scheme: dark; /* Helps browser native UI adapt to dark mode */
+}
+
+.light-mode select.input {
+  color-scheme: light;
+}
+
+select option {
+  background-color: var(--bg-modal);
+  color: var(--text-primary);
+  padding: 12px;
 }
 
 /* ── Estadísticas e Indicadores (Avanzado) ───────── */
