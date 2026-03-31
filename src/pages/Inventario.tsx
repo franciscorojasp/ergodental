@@ -57,16 +57,10 @@ export default function Inventario() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>Inventario</h1>
-          <p style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-            <span className="badge badge-primary" style={{ fontSize:'0.7rem' }}>{clinica.nombreCorto}</span>
-            {items.length} productos · {bajoStock > 0 ? `⚠️ ${bajoStock} con stock bajo` : '✅ Stock en regla'}
-          </p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Stock</h1>
         <div className="action-grid">
-          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => setModal(true)}>+ Nuevo Producto</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo</button>
         </div>
       </div>
 
@@ -78,18 +72,15 @@ export default function Inventario() {
         </motion.div>
       )}
 
-      {/* Filtros */}
-      <div className="glass" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div className="search-wrap" style={{ flex: '1 1 300px' }}>
+      <div className="filter-glass" style={{ padding: '8px 12px', marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="search-wrap" style={{ flex: 1, margin: 0 }}>
           <span className="search-icon">🔍</span>
-          <input className="input" placeholder="Buscar producto o categoría..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+          <input className="input input-sm" placeholder="Buscar..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         </div>
-        <div className="filter-grid" style={{ flex:'1 1 100%' }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setFiltroAlerta(!filtroAlerta)}
-            style={filtroAlerta ? { borderColor: 'var(--warning)', color: 'var(--warning)', background: 'var(--warning-dim)', justifyContent: 'center' } : { justifyContent: 'center' }}>
-            {filtroAlerta ? '✅ Mostrar Todo' : '⚠️ Solo Alertas'}
-          </button>
-        </div>
+        <button className={`btn btn-sm ${filtroAlerta ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFiltroAlerta(!filtroAlerta)}
+          style={{ padding: '8px 12px', minWidth:'unset' }}>
+          {filtroAlerta ? 'Todo' : '⚠️ Alertas'}
+        </button>
       </div>
 
       {/* Tabla */}

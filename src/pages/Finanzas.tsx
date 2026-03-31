@@ -301,34 +301,38 @@ export default function Finanzas(){
   return(
     <div>
       {/* Header */}
-      <div className="page-header">
-        <div><h1>Finanzas</h1><p>Ingresos · Egresos · Honorarios · Comisiones</p></div>
-        <div className="action-grid">
-          <button className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }} onClick={generarPDF}>📄 PDF</button>
-          <button className="btn btn-ghost btn-sm" style={{ justifyContent: 'center' }} onClick={()=>setModalEgreso(true)}>+ Egreso</button>
-          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={()=>setModalPago(true)}>+ Ingreso</button>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Finanzas</h1>
+        <div className="action-grid mobile-scroll">
+          <button className="btn btn-ghost btn-sm" onClick={generarPDF}>📄 PDF</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setModalEgreso(true)}>+ Egreso</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>setModalPago(true)}>+ Ingreso</button>
         </div>
       </div>
 
       {/* Selector periodo */}
-      <div className="filter-grid" style={{ marginBottom:'20px' }}>
+      <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
         {PERIODOS.map(p=>(
-          <button key={p} onClick={()=>setPeriodo(p)} className="btn btn-ghost btn-sm"
-            style={periodo===p?{background:'var(--active-bg)',color:'var(--active-text)', borderColor:'var(--active-bg)', justifyContent:'center'}:{justifyContent:'center'}}>
+          <button key={p} onClick={()=>setPeriodo(p)} className={`btn btn-sm ${periodo===p?'btn-primary':'btn-ghost'}`}>
             {p}
           </button>
         ))}
       </div>
 
       {/* Stat cards - Optimized for Executive View */}
-      <div className="grid-responsive" style={{ marginBottom:'22px', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+      <div className="executive-stats-hub" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '12px',
+        marginBottom: '16px'
+      }}>
         {[
-          {label:`Ingresos (${periodo})`,  value: fmt(totalIngresos, 0),          icon:'💰',color:'var(--success)'},
-          {label:`Egresos (${periodo})`,   value: fmt(totalEgresos, 0),            icon:'💸',color:'var(--danger)'},
-          {label:'Balance neto',            value: fmt(balance, 0),                icon:'📊',color:balance>=0?'var(--success)':'var(--danger)'},
-          {label:'Créditos pendientes',     value: fmt(totalCreditos, 0),          icon:'⏳',color:'var(--warning)'},
-          {label:'Honorarios doctores',     value: fmt(totalHonorarios, 0),        icon:'👨‍⚕️',color:'var(--accent)'},
-          {label:'Comisión foráneos',       value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
+          {label:`Ingresos`,  value: fmt(totalIngresos, 0),          icon:'💰',color:'var(--success)'},
+          {label:`Egresos`,   value: fmt(totalEgresos, 0),            icon:'💸',color:'var(--danger)'},
+          {label:'Balance',   value: fmt(balance, 0),                icon:'📊',color:balance>=0?'var(--success)':'var(--danger)'},
+          {label:'Créditos',  value: fmt(totalCreditos, 0),          icon:'⏳',color:'var(--warning)'},
+          {label:'Honorarios',value: fmt(totalHonorarios, 0),        icon:'👨‍⚕️',color:'var(--accent)'},
+          {label:'Foráneos',  value: fmt(comisionesData.totalesForaneo, 0),icon:'🌍',color:'var(--primary)'},
         ].map((s,i)=>(
           <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}} style={{ minHeight: isMobile ? '110px' : '160px' }}>
             <div className="stat-icon" style={{background:`rgba(255,255,255,0.05)`, color: s.color, fontSize: '1.8rem'}}>{s.icon}</div>
@@ -339,10 +343,9 @@ export default function Finanzas(){
       </div>
 
       {/* Tabs */}
-      <div className="filter-grid" style={{ marginBottom:'18px' }}>
+      <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '12px' }}>
         {TABS.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)} className="btn btn-ghost btn-sm"
-            style={tab===t.key?{background:'var(--active-bg)',color:'var(--active-text)', borderColor:'var(--active-bg)', justifyContent:'center'}:{justifyContent:'center'}}>
+          <button key={t.key} onClick={()=>setTab(t.key)} className={`btn btn-sm ${tab===t.key?'btn-primary':'btn-ghost'}`}>
             {t.label}
           </button>
         ))}

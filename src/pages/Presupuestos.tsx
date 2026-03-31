@@ -243,13 +243,10 @@ export default function Presupuestos() {
 
   return (
     <div className="page-container" style={{ animation: 'fadeIn 0.5s ease' }}>
-      <div className="page-header">
-        <div>
-          <h1>Presupuestos</h1>
-          <p>Planes de tratamiento y estimaciones — {clinica.nombreCorto}</p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Presupuestos</h1>
         <div className="action-grid">
-          <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={openNew} disabled={loading}>+ Nuevo Presupuesto</button>
+          <button className="btn btn-primary btn-sm" onClick={openNew} disabled={loading}>+ Nuevo</button>
         </div>
       </div>
 
@@ -266,10 +263,9 @@ export default function Presupuestos() {
         </div>
       )}
 
-      <div className="filter-grid" style={{ marginBottom: '20px' }}>
+      <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '12px', borderBottom: '1px solid var(--border-light)' }}>
          {(['Todos', 'Borrador', 'Enviado', 'Aprobado', 'Recibido'] as const).map(e => (
-           <button key={e} onClick={() => setFiltro(e)} className="btn btn-ghost btn-sm"
-             style={filtro === e ? { borderColor:'var(--primary)', color:'var(--primary)', background:'var(--primary-dim)', justifyContent:'center' } : { justifyContent:'center' }}>
+           <button key={e} onClick={() => setFiltro(e)} className={`btn btn-sm ${filtro===e?'btn-primary':'btn-ghost'}`}>
               {e}
            </button>
          ))}
