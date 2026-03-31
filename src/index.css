@@ -497,6 +497,18 @@ tbody td {
   flex-direction: column;
   transition: width var(--transition), transform var(--transition);
   z-index: 1000;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 32px 24px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  transition: padding var(--transition);
+}
+
+.sidebar.collapsed .sidebar-header {
+  padding: 24px 0;
 }
 
 .sidebar.collapsed {
@@ -504,43 +516,80 @@ tbody td {
 }
 
 .nav-link {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  margin: 4px 12px;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
-  white-space: nowrap;
-  overflow: hidden;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 14px 20px !important;
+  margin: 4px 12px !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-secondary) !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid transparent !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  position: relative !important;
 }
 
 .sidebar.collapsed .nav-link {
-  padding: 14px 0;
-  justify-content: center;
-  margin: 4px 8px;
-  gap: 0;
+  padding: 14px 0 !important;
+  justify-content: center !important;
+  margin: 4px 8px !important;
+  gap: 0 !important;
 }
 
 .sidebar.collapsed .nav-link span {
-  display: none;
+  display: none !important;
 }
 
 .nav-link:hover {
-  background: rgba(255,255,255,0.03);
-  color: var(--text-primary);
-  transform: translateX(4px);
+  background: rgba(255,255,255,0.03) !important;
+  color: var(--text-primary) !important;
+  transform: translateX(4px) !important;
 }
 
 .nav-link.active {
-  background: var(--active-grad);
-  color: var(--primary);
-  border-color: var(--border-active);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  background: var(--active-grad) !important;
+  color: var(--primary) !important;
+  border-color: var(--border-active) !important;
+  box-shadow: 0 8px 25px rgba(0, 212, 255, 0.15) !important;
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 4px;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 4px;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.sidebar-footer {
+  padding: 24px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.1);
+  margin-top: auto;
+  transition: padding var(--transition);
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 24px 8px;
 }
 
 /* ── Modales de Clase Mundial ──────────────────── */

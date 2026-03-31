@@ -18,17 +18,17 @@ export default function ClinicaBadge() {
         whileHover={esAutorizado ? { background: 'rgba(255,255,255,0.06)', borderColor: 'var(--primary)' } : {}}
         whileTap={esAutorizado ? { scale: 0.98 } : {}}
         style={{
-          display: 'flex', alignItems: 'center', gap: '14px',
-          padding: '12px 14px',
+          display: 'flex', alignItems: 'center', gap: '12px',
+          padding: '10px 12px',
           background: 'rgba(255,255,255,0.02)',
           border: '1px solid var(--border)',
-          borderRadius: '16px',
+          borderRadius: '14px',
           cursor: esAutorizado ? 'pointer' : 'default',
           width: '100%',
           textAlign: 'left',
           color: 'var(--text-primary)',
           transition: 'all 0.3s ease',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
         }}
       >
         <div style={{

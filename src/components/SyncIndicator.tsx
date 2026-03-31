@@ -46,17 +46,17 @@ export default function SyncIndicator({ isPinned }: { isPinned: boolean }) {
   }
 
   return (
-    <div style={{ padding: isPinned ? '12px' : '8px 0', marginBottom: '12px' }}>
+    <div style={{ marginBottom: '12px', width: '100%' }}>
       <div style={{ 
         background: 'rgba(255,255,255,0.02)', 
-        borderRadius: isPinned ? '16px' : '10px', 
-        padding: isPinned ? '12px 14px' : '10px',
+        borderRadius: isPinned ? '12px' : '10px', 
+        padding: isPinned ? '8px 12px' : '10px',
         border: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '4px',
         alignItems: isPinned ? 'flex-start' : 'center',
-        boxShadow: online ? '0 4px 15px rgba(0,0,0,0.1)' : 'none'
+        boxShadow: online ? '0 4px 15px rgba(0,0,0,0.05)' : 'none'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div 
