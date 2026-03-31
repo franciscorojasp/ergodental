@@ -856,3 +856,30 @@ tbody td {
   background: var(--primary-dim) !important;
 }
 
+@media (max-width: 640px) {
+  .tasa-history-box table tbody {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .tasa-history-box table tr {
+    margin-bottom: 0 !important;
+    padding: 12px !important;
+    min-height: 120px !important;
+    justify-content: space-between !important;
+  }
+
+  .tasa-history-box table td {
+    padding: 4px 0 !important;
+    font-size: 0.8rem !important;
+  }
+
+  .tasa-history-box table td[data-main="true"] {
+    font-size: 0.95rem !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 6px !important;
+  }
+}
+

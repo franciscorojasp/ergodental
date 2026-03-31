@@ -243,7 +243,7 @@ export default function TasaBCV() {
               <p>Esperando datos oficiales...</p>
            </div>
         ) : (
-          <div className="table-wrap">
+          <div className="table-wrap tasa-history-box">
             <table className="table-fixed">
               <thead>
                 <tr>
