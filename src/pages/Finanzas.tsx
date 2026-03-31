@@ -382,12 +382,12 @@ export default function Finanzas(){
           <div className="table-wrap">
             <table className="table-fixed">
               <thead><tr>
-                <th style={{ width: '10%' }}>Fecha</th>
-                <th className="col-expand" style={{ width: '22%' }}>Paciente</th>
-                <th style={{ width: '18%' }}>Doctor</th>
-                <th style={{ width: '15%' }}>Concepto</th>
-                <th style={{ width: '10%' }}>Monto</th>
-                <th style={{ width: '10%' }}>Método</th>
+                <th style={{ width: '15%' }}>Fecha</th>
+                <th className="col-expand" style={{ width: '25%' }}>Paciente</th>
+                <th style={{ width: '20%' }} className="hide-mobile">Doctor</th>
+                <th style={{ width: '20%' }} className="hide-mobile">Concepto</th>
+                <th style={{ width: '15%' }}>Monto</th>
+                <th style={{ width: '10%' }} className="hide-mobile">Método</th>
                 <th style={{ width: '10%' }}>Estado</th>
                 <th style={{ width: '5%' }}></th>
               </tr></thead>
@@ -397,10 +397,10 @@ export default function Finanzas(){
                   <tr key={p.id} style={{cursor:'pointer'}} onClick={()=>setExpandedPago(expandedPago===p.id?null:p.id)}>
                     <td style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{p.fecha}</td>
                     <td className="col-expand" style={{fontWeight:600}}>{p.pacienteNombre}</td>
-                    <td style={{color:'var(--text-secondary)',fontSize:'0.84rem'}}>{p.doctorNombre||'—'}</td>
-                    <td>{p.concepto}</td>
+                    <td style={{color:'var(--text-secondary)',fontSize:'0.84rem'}} className="hide-mobile">{p.doctorNombre||'—'}</td>
+                    <td className="hide-mobile">{p.concepto}</td>
                     <td style={{fontWeight:700,color:'var(--success)'}}>{fmt(p.monto)}</td>
-                    <td>{METODO_ICON[p.metodoPago]} {p.metodoPago}</td>
+                    <td className="hide-mobile">{METODO_ICON[p.metodoPago]} {p.metodoPago}</td>
                     <td>
                       {p.tipoReferencia?(
                         <span style={{fontSize:'0.78rem',color:'var(--accent)'}}>
@@ -438,26 +438,26 @@ export default function Finanzas(){
           <div className="table-wrap">
             <table className="table-fixed">
               <thead><tr>
-                <th style={{ width: '10%' }}>Fecha</th>
-                <th className="col-expand" style={{ width: '25%' }}>Concepto</th>
-                <th style={{ width: '15%' }}>Categoría</th>
-                <th style={{ width: '12%' }}>Monto USD</th>
-                <th style={{ width: '12%' }}>Monto Bs</th>
-                <th style={{ width: '13%' }}>Método</th>
-                <th style={{ width: '13%' }}>Proveedor</th>
+                <th style={{ width: '15%' }}>Fecha</th>
+                <th className="col-expand" style={{ width: '35%' }}>Concepto</th>
+                <th style={{ width: '15%' }} className="hide-mobile">Categoría</th>
+                <th style={{ width: '15%' }}>Monto USD</th>
+                <th style={{ width: '12%' }} className="hide-mobile">Monto Bs</th>
+                <th style={{ width: '13%' }} className="hide-mobile">Método</th>
+                <th style={{ width: '13%' }} className="hide-mobile">Proveedor</th>
               </tr></thead>
               <tbody>
                 {egresos.map(e=>(
                   <tr key={e.id}>
                     <td style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{e.fecha}</td>
                     <td className="col-expand" style={{fontWeight:600}}>{e.concepto}</td>
-                    <td><span className="badge badge-muted">{e.categoria}</span></td>
+                    <td className="hide-mobile"><span className="badge badge-muted">{e.categoria}</span></td>
                     <td style={{fontWeight:700,color:'var(--danger)'}}>{fmt(e.monto)}</td>
-                    <td style={{color:'var(--text-secondary)',fontSize:'0.82rem'}}>
+                    <td style={{color:'var(--text-secondary)',fontSize:'0.82rem'}} className="hide-mobile">
                       {(e.monto * tasaBCV).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
                     </td>
-                    <td>{METODO_ICON[e.metodoPago]} {e.metodoPago}</td>
-                    <td style={{color:'var(--text-secondary)'}}>{e.proveedorNombre||'—'}</td>
+                    <td className="hide-mobile">{METODO_ICON[e.metodoPago]} {e.metodoPago}</td>
+                    <td style={{color:'var(--text-secondary)'}} className="hide-mobile">{e.proveedorNombre||'—'}</td>
                   </tr>
                 ))}
               </tbody>

@@ -158,10 +158,10 @@ export default function TasaBCV() {
           <div className="table-wrap">
             <table className="table-fixed">
               <thead><tr>
-                <th className="col-expand" style={{ width: '35%' }}>Fecha</th>
-                <th style={{ width: '25%' }}>Tasa (Bs/$1 USD)</th>
-                <th style={{ width: '15%' }}>Fuente</th>
-                <th style={{ width: '25%', textAlign: 'right' }}>Variación vs día anterior</th>
+                <th className="col-expand" style={{ width: '40%' }}>Fecha</th>
+                <th style={{ width: '30%' }}>Tasa (Bs/$1 USD)</th>
+                <th style={{ width: '10%' }} className="hide-mobile">Fuente</th>
+                <th style={{ width: '20%', textAlign: 'right' }}>Variación</th>
               </tr></thead>
               <tbody>
                 {histFiltrado.map((item, i) => {
@@ -176,7 +176,7 @@ export default function TasaBCV() {
                       <td style={{fontWeight:700, color:'var(--primary)', fontSize:'0.95rem'}}>
                         Bs {item.tasa.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <span className={`badge ${item.fuente==='Manual'?'badge-success':'badge-muted'}`}>{item.fuente}</span>
                       </td>
                       <td>

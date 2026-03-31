@@ -60,8 +60,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
       <motion.aside
         initial={{ x: -300 }} 
         animate={{ 
-          x: (isOpen || window.innerWidth > 768) ? 0 : -300,
-          width: isPinned ? 'var(--sidebar-w)' : 'var(--sidebar-mini-w)'
+          x: (isOpen || window.innerWidth > 768) ? 0 : -350,
+          width: (window.innerWidth <= 768) ? 'var(--sidebar-w)' : (isPinned ? 'var(--sidebar-w)' : 'var(--sidebar-mini-w)')
         }} 
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className="sidebar"

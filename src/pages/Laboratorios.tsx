@@ -73,13 +73,12 @@ export default function Laboratorios() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand" style={{ width: '18%' }}>Paciente</th>
-                <th className="col-expand" style={{ width: '18%' }}>Trabajo / Prótesis</th>
-                <th style={{ width: '15%' }}>Laboratorio</th>
-                <th style={{ width: '10%' }}>Envío</th>
-                <th style={{ width: '12%' }}>Entrega Est.</th>
+                <th className="col-expand" style={{ width: '25%' }}>Paciente</th>
+                <th className="col-expand" style={{ width: '25%' }}>Trabajo / Prótesis</th>
+                <th style={{ width: '20%' }} className="hide-mobile">Laboratorio</th>
+                <th style={{ width: '15%' }} className="hide-mobile">Envío / Entrega</th>
                 <th style={{ width: '10%' }}>Estado</th>
-                <th style={{ width: '7%' }}>Costo</th>
+                <th style={{ width: '10%' }}>Costo</th>
                 <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
               </tr>
             </thead>

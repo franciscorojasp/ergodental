@@ -400,12 +400,44 @@ tbody td {
 
 .table-fixed {
   table-layout: fixed !important;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .table-fixed { table-layout: auto !important; }
 }
 
 .table-fixed td {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.table-wrap::-webkit-scrollbar {
+  height: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: var(--primary-dim);
+  border-radius: 10px;
+}
+
+.hide-mobile { display: table-cell; }
+.hide-tablet { display: table-cell; }
+
+@media (max-width: 600px) {
+  .hide-mobile { display: none !important; }
+}
+
+@media (max-width: 900px) {
+  .hide-tablet { display: none !important; }
 }
 
 .table-empty {
@@ -429,7 +461,15 @@ tbody td {
   max-width: 2100px;
   margin: 0 auto;
   width: 100%;
-  transition: padding var(--transition);
+  transition: all var(--transition);
+}
+
+@media (max-width: 1024px) {
+  .page-content { padding: 16px 32px 40px; }
+}
+
+@media (max-width: 768px) {
+  .page-content { padding: 8px 12px 32px; }
 }
 
 .grid-responsive {

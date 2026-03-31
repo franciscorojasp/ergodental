@@ -218,11 +218,11 @@ export default function Pacientes() {
         <div className="table-wrap">
           <table className="table-fixed">
             <thead><tr>
-              <th className="col-expand" style={{ width: '30%' }}>Paciente</th>
-              <th style={{ width: '15%' }}>Cédula</th>
-              <th style={{ width: '10%' }}>Edad</th>
-              <th style={{ width: '15%' }}>Teléfono</th>
-              <th style={{ width: '15%' }}>Referido por</th>
+              <th className="col-expand" style={{ width: '40%' }}>Paciente</th>
+              <th style={{ width: '15%' }} className="hide-mobile">Cédula</th>
+              <th style={{ width: '10%' }} className="hide-mobile">Edad</th>
+              <th style={{ width: '25%' }}>Teléfono</th>
+              <th style={{ width: '20%' }} className="hide-mobile">Referido por</th>
               <th style={{ width: '15%', textAlign: 'right' }}>Acciones</th>
             </tr></thead>
             <tbody>
@@ -244,10 +244,10 @@ export default function Pacientes() {
                         </div>
                       </div>
                     </td>
-                    <td>{p.cedula}</td>
-                    <td>{calcularEdad(p.fechaNacimiento)}</td>
+                    <td className="hide-mobile">{p.cedula}</td>
+                    <td className="hide-mobile">{calcularEdad(p.fechaNacimiento)}</td>
                     <td>{p.telefono}</td>
-                    <td>
+                    <td className="hide-mobile">
                       {regla ? <span className={`badge ${REF_BADGE[p.tipoReferencia!]}`}>{regla.label}</span> : <span className="badge badge-muted">—</span>}
                     </td>
                     <td>

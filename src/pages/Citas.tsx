@@ -91,12 +91,12 @@ export default function Citas() {
         <div className="table-wrap">
           <table className="table-fixed">
             <thead><tr>
-              <th style={{ width: '15%' }}>Fecha/Hora</th>
-              <th className="col-expand" style={{ width: '25%' }}>Paciente</th>
-              <th style={{ width: '20%' }}>Doctor</th>
-              <th style={{ width: '20%' }}>Motivo</th>
-              <th style={{ width: '10%' }}>Estado</th>
-              <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
+              <th style={{ width: '20%' }}>Fecha/Hora</th>
+              <th className="col-expand" style={{ width: '40%' }}>Paciente</th>
+              <th style={{ width: '25%' }} className="hide-mobile">Doctor</th>
+              <th style={{ width: '20%' }} className="hide-mobile">Motivo</th>
+              <th style={{ width: '15%' }}>Estado</th>
+              <th style={{ width: '15%', textAlign: 'right' }}>Acciones</th>
             </tr></thead>
             <tbody>
               {filtradas.map((c, i) => (
@@ -106,8 +106,8 @@ export default function Citas() {
                     <div style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>{c.hora}</div>
                   </td>
                   <td className="col-expand">{c.pacienteNombre}</td>
-                  <td>{c.doctorNombre}</td>
-                  <td style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
+                  <td className="hide-mobile">{c.doctorNombre}</td>
+                  <td className="hide-mobile" style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
                   <td><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
                   <td>
                     <div style={{ display:'flex', gap:'6px' }}>
