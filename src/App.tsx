@@ -127,9 +127,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
               fontSize:'1.3rem', cursor:'pointer', padding:'8px'
             }}
           >
-            ☰ <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'1px' }}>MENÚ</span>
+            ☰
           </button>
-          {!sidebarOpen && <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodentalve</div>}
         </header>
 
         <main className={`page-content ${!sidebarPinned ? 'collapsed' : ''} ${!sidebarOpen ? 'full-width' : ''}`}>
