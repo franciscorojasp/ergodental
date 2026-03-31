@@ -822,5 +822,37 @@ tbody td {
     display: block !important;
     opacity: 0.8;
   }
+
+  /* Tasa Dashboard Mobile Optimization */
+  .stats-hub-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .premium-card {
+    grid-column: span 1 !important;
+    padding: 16px !important;
+  }
+
+  .action-card {
+    grid-column: span 1 !important;
+    padding: 16px !important;
+  }
+}
+
+/* ── Tasa Dashboard Utilities ────────── */
+.premium-card {
+  border: 1px solid var(--border-active) !important;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(0, 0, 0, 0.4)) !important;
+  box-shadow: 0 10px 40px rgba(0, 212, 255, 0.05) !important;
+}
+
+.action-card {
+  border: 1px solid var(--border) !important;
+  background: var(--bg-card);
+}
+
+.tasa-page-container table tbody tr:hover {
+  background: var(--primary-dim) !important;
 }
 

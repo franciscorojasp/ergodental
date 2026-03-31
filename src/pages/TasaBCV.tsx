@@ -1,6 +1,4 @@
 // src/pages/TasaBCV.tsx
-// Historial de tasas BCV con mini-gráfica de tendencia
-// + formulario para actualizar la tasa del día manualmente
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useMoneda } from '../contexts/MonedaContext';
@@ -55,136 +53,224 @@ export default function TasaBCV() {
   };
 
   return (
-    <div>
-      <div className="page-header">
+    <div className="tasa-page-container">
+      <div className="page-header" style={{ marginBottom: '24px' }}>
         <div>
           <h1>Tasa BCV</h1>
-          <p>Historial de tasas · Actualización manual diaria</p>
+          <p>Consola de Gestión y Tendencia Cambiaria</p>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={handlePDF}>📄 PDF</button>
+        <button className="btn btn-ghost btn-sm" onClick={handlePDF}>📄 Exportar Reporte</button>
       </div>
 
-      {/* Form para ingresar / actualizar tasa */}
-      <motion.div className="glass" style={{ padding:'20px', marginBottom:'20px' }}
-        initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }}>
-        <div style={{ fontWeight:700, marginBottom:'4px' }}>
-          {necesitaTasa ? '⚠️ Ingresa la tasa BCV oficial de hoy' : '✏️ Actualizar tasa del día'}
-        </div>
-        <div style={{ fontSize:'0.82rem', color:'var(--text-secondary)', marginBottom:'14px' }}>
-          Consulta la tasa oficial en{' '}
-          <a href="https://www.bcv.org.ve" target="_blank" rel="noreferrer"
-            style={{ color:'var(--primary)' }}>bcv.org.ve</a>
-          {' '}e ingrésala aquí.
-          {tasaBCV > 0 && <span style={{ marginLeft:'8px', color:'var(--accent)', fontWeight:600 }}>
-            Tasa actual: Bs {tasaBCV.toLocaleString('es-VE', {maximumFractionDigits:2})} / $1
-          </span>}
-        </div>
-        <div style={{ display:'flex', gap:'10px', maxWidth:'440px' }}>
-          <div style={{ position:'relative', flex:1 }}>
-            <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'0.9rem', fontWeight:800, color:'var(--primary)' }}>Bs</span>
-            <input
-              type="number" step="0.01" min="10"
-              className="input"
-              placeholder="Ej: 65890.25"
-              value={nuevaTasa}
-              onChange={e => setNuevaTasa(e.target.value)}
-              onKeyDown={e => e.key==='Enter' && handleActualizar()}
-              style={{ paddingLeft:'36px', fontWeight:700, fontSize:'1.05rem' }}
-            />
+      {/* DASHBOARD GRID SYSTEM */}
+      <div className="tasa-layout-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '24px',
+        marginBottom: '32px'
+      }}>
+        {/* LEFT COMPONENT: HERO HUB (CURRENT RATE + SPARKLINE) */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }} 
+          animate={{ opacity: 1, x: 0 }}
+          className="glass premium-card" 
+          style={{ 
+            gridColumn: 'span 2', 
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '220px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+                  💰 Tasa Oficial Hoy
+                </div>
+                <div style={{ fontSize: '2.8rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1 }}>
+                  <span style={{ fontSize: '1.2rem', opacity: 0.5, marginRight: '8px' }}>Bs</span>
+                  {tasaBCV > 0 ? tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 2 }) : '0,00'}
+                </div>
+              </div>
+              
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ 
+                  padding: '6px 12px', 
+                  borderRadius: '10px', 
+                  background: variacion > 0 ? 'var(--danger-dim)' : 'var(--success-dim)',
+                  color: variacion > 0 ? 'var(--danger)' : 'var(--success)',
+                  fontSize: '0.9rem',
+                  fontWeight: 900,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  {variacion > 0 ? '▲' : '▼'} {Math.abs(variacion).toFixed(2)}%
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 700 }}>
+                  VS. CIERRE AYER
+                </div>
+              </div>
+            </div>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={handleActualizar}
-            disabled={guardando || !nuevaTasa}
-            style={{ minWidth:'120px' }}
-          >
-            {guardado ? '✓ Guardado' : guardando ? 'Guardando...' : '✓ Guardar'}
-          </button>
-        </div>
-        {guardado && (
-          <motion.div initial={{opacity:0,y:4}} animate={{opacity:1,y:0}}
-            style={{ marginTop:'10px', color:'var(--success)', fontSize:'0.84rem', fontWeight:600 }}>
-            ✅ Tasa actualizada correctamente. Los montos en Bs ya reflejan la nueva tasa.
-          </motion.div>
-        )}
-      </motion.div>
 
-      {/* Stat cards */}
-      {histFiltrado.length > 0 && (
-        <div className="stats-grid" style={{ gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', marginBottom:'22px' }}>
-          {[
-            { label:'Tasa hoy',      value: tasaBCV > 0 ? `Bs ${tasaBCV.toLocaleString('es-VE',{maximumFractionDigits:0})}` : 'No ingresada', icon:'💱', color: tasaBCV > 0 ? 'var(--primary)' : 'var(--warning)' },
-            { label:'Variación',     value:`${variacion >= 0 ? '+' : ''}${variacion.toFixed(2)}%`,  icon: variacion >= 0 ? '📈' : '📉', color: variacion >= 0 ? 'var(--danger)' : 'var(--success)' },
-            { label:'Mín. período', value: minTasa > 0 ? `Bs ${minTasa.toLocaleString('es-VE',{maximumFractionDigits:0})}` : '—', icon:'⬇️', color:'var(--success)' },
-            { label:'Máx. período', value: maxTasa > 0 ? `Bs ${maxTasa.toLocaleString('es-VE',{maximumFractionDigits:0})}` : '—', icon:'⬆️', color:'var(--danger)' },
-            { label:'Registros',     value: String(histFiltrado.length), icon:'🗓️', color:'var(--accent)' },
-          ].map((s,i) => (
-            <motion.div key={s.label} className="stat-card" initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:i*0.07}}>
-              <div className="stat-icon" style={{background:`color-mix(in srgb,${s.color} 15%,transparent)`}}>{s.icon}</div>
-              <div className="stat-value" style={{color:s.color,fontSize:'1.15rem'}}>{s.value}</div>
-              <div className="stat-label">{s.label}</div>
+          {/* Integrated Sparkline */}
+          <div style={{ marginTop: '20px', width: '100%', opacity: 0.8 }}>
+            <TrendChart tasas={histFiltrado.map(t=>t.tasa).reverse()} height={80} />
+          </div>
+
+          <div style={{ 
+            position: 'absolute', top: '-10px', right: '-10px', 
+            fontSize: '8rem', opacity: 0.03, pointerEvents: 'none',
+            fontWeight: 900
+          }}>
+            $
+          </div>
+        </motion.div>
+
+        {/* RIGHT COMPONENT: ACTION WIDGET (UPDATE FORM) */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }} 
+          animate={{ opacity: 1, x: 0 }}
+          className="glass action-card" 
+          style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+        >
+          <div style={{ fontWeight: 800, fontSize: '0.95rem', marginBottom: '8px', color: 'var(--text-primary)' }}>
+            {necesitaTasa ? '⚠️ Acción Requerida' : '✏️ Ajuste de Tasa'}
+          </div>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.4 }}>
+            Consulte el valor oficial en <a href="https://bcv.org.ve" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 800 }}>bcv.org.ve</a> e ingréselo para recalcular el sistema.
+          </p>
+          
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+               <input
+                type="number" step="0.01"
+                className="input"
+                placeholder="Ex: 47,85"
+                value={nuevaTasa}
+                onChange={e => setNuevaTasa(e.target.value)}
+                style={{ paddingLeft: '12px', height: '44px', fontWeight: 800 }}
+              />
+            </div>
+            <button
+              className="btn btn-primary"
+              onClick={handleActualizar}
+              disabled={guardando || !nuevaTasa}
+              style={{ minWidth: '44px', height: '44px', padding: 0 }}
+              title="Guardar Tasa"
+            >
+              {guardando ? '...' : '✓'}
+            </button>
+          </div>
+          {guardado && (
+            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} style={{ marginTop: '12px', color: 'var(--success)', fontSize: '0.75rem', fontWeight: 800 }}>
+              ✓ Actualizado con éxito
             </motion.div>
-          ))}
-        </div>
-      )}
+          )}
+        </motion.div>
+      </div>
 
-      {/* Filtro de días */}
-      <div style={{ display:'flex', gap:'6px', marginBottom:'16px' }}>
-        {([7,30,90] as const).map(d => (
-          <button key={d} onClick={() => setFiltro(d)} className="btn btn-ghost btn-sm"
-            style={filtro===d ? {borderColor:'var(--primary)',color:'var(--primary)',background:'var(--primary-dim)'} : {}}>
-            Últimos {d} días
-          </button>
+      {/* SECONDARY STATS GRID: High-Density Symmetry */}
+      <div className="stats-hub-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        {[
+          { label: 'Mínimo Mensual', value: `Bs ${minTasa.toLocaleString('es-VE', { maximumFractionDigits: 2 })}`, icon: '📉', color: 'var(--success)' },
+          { label: 'Máximo Mensual', value: `Bs ${maxTasa.toLocaleString('es-VE', { maximumFractionDigits: 2 })}`, icon: '📈', color: 'var(--danger)' },
+          { label: 'Días Registrados', value: histFiltrado.length, icon: '📅', color: 'var(--accent)' },
+          { label: 'Estabilidad', value: Math.abs(variacion) < 0.5 ? 'Alta' : 'Volátil', icon: '⚖️', color: 'var(--primary)' }
+        ].map((s, i) => (
+          <motion.div 
+            key={s.label} 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="glass" 
+            style={{ 
+              padding: '16px', 
+              borderRadius: '16px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '15px' 
+            }}
+          >
+            <div style={{ fontSize: '1.5rem' }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                {s.value}
+              </div>
+            </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* Mini gráfica sparkline SVG */}
-      {histFiltrado.length > 1 && (
-        <motion.div className="glass" style={{padding:'20px',marginBottom:'18px'}} initial={{opacity:0}} animate={{opacity:1}}>
-          <div style={{fontWeight:700,marginBottom:'12px'}}>📊 Tendencia de la tasa</div>
-          <TrendChart tasas={histFiltrado.map(t=>t.tasa).reverse()} />
-        </motion.div>
-      )}
+      {/* FILTER & HISTORY SECTION */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 900 }}>Historial de Movimientos</h2>
+        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px' }}>
+          {([7, 30, 90] as const).map(d => (
+            <button 
+              key={d} 
+              onClick={() => setFiltro(d)} 
+              style={{
+                fontSize: '0.7rem', padding: '6px 12px', border: 'none', borderRadius: '7px', cursor: 'pointer',
+                background: filtro === d ? 'var(--primary)' : 'transparent',
+                color: filtro === d ? '#000' : 'var(--text-secondary)',
+                fontWeight: 800, transition: '0.2s'
+              }}
+            >
+              {d} Días
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* Tabla de historial */}
-      <motion.div className="glass" initial={{opacity:0}} animate={{opacity:1}}>
-        {histFiltrado.length === 0 ? (
-          <div style={{textAlign:'center',padding:'50px',color:'var(--text-muted)'}}>
-            <div style={{fontSize:'2.5rem',marginBottom:'12px'}}>💱</div>
-            <div style={{fontWeight:700,marginBottom:'6px'}}>No hay historial aún</div>
-            <div style={{fontSize:'0.85rem'}}>Ingresa la tasa del día en el formulario de arriba para comenzar.</div>
-          </div>
+      <motion.div className="glass" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        {!histFiltrado.length ? (
+           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>⏳</div>
+              <p>Esperando datos oficiales...</p>
+           </div>
         ) : (
           <div className="table-wrap">
             <table className="table-fixed">
-              <thead><tr>
-                <th className="text-left col-expand" style={{ width: '40%' }}>Fecha</th>
-                <th className="text-left" style={{ width: '30%' }}>Tasa (Bs/$1 USD)</th>
-                <th style={{ width: '15%' }} className="text-center hide-mobile">Fuente</th>
-                <th style={{ width: '15%', textAlign: 'right' }}>Variación</th>
-              </tr></thead>
+              <thead>
+                <tr>
+                  <th style={{ width: '40%' }}>Fecha de Publicación</th>
+                  <th style={{ width: '30%' }}>Valor Bs/$1</th>
+                  <th style={{ width: '15%' }} className="hide-mobile">Origen</th>
+                  <th style={{ width: '15%', textAlign: 'right' }}>Dinámica</th>
+                </tr>
+              </thead>
               <tbody>
                 {histFiltrado.map((item, i) => {
                   const prev = histFiltrado[i + 1];
                   const varPct = prev ? ((item.tasa - prev.tasa) / prev.tasa * 100) : null;
                   return (
-                    <motion.tr key={item.fecha} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:i*0.03}}>
-                      <td className="col-expand" style={{fontWeight:i===0?700:400}}>
+                    <motion.tr key={item.fecha} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}>
+                      <td style={{ fontWeight: 800 }}>
                         {item.fecha}
-                        {i===0 && <span style={{marginLeft:'6px',fontSize:'0.72rem',background:'var(--primary)',color:'#fff',borderRadius:'4px',padding:'1px 5px'}}>HOY</span>}
+                        {i === 0 && <span style={{ marginLeft: '10px', fontSize: '0.6rem', background: 'var(--primary)', color: '#000', padding: '2px 6px', borderRadius: '6px', verticalAlign: 'middle' }}>ACTUAL</span>}
                       </td>
-                      <td className="text-left" style={{fontWeight:700, color:'var(--primary)', fontSize:'0.95rem'}}>
-                        Bs {item.tasa.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <td style={{ color: 'var(--text-primary)', fontWeight: 900 }}>
+                        Bs {item.tasa.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="text-center hide-mobile">
-                        <span className={`badge ${item.fuente==='Manual'?'badge-success':'badge-muted'}`}>{item.fuente}</span>
+                      <td className="hide-mobile" style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                        {item.fuente}
                       </td>
-                      <td>
-                        {varPct !== null ? (
-                          <span style={{color: varPct > 0 ? 'var(--danger)' : varPct < 0 ? 'var(--success)' : 'var(--text-muted)', fontWeight:600}}>
-                            {varPct > 0 ? '▲' : varPct < 0 ? '▼' : '—'} {Math.abs(varPct).toFixed(2)}%
-                          </span>
-                        ) : '—'}
+                      <td style={{ textAlign: 'right', fontWeight: 800, color: !varPct ? 'var(--text-muted)' : (varPct > 0 ? 'var(--danger)' : 'var(--success)') }}>
+                        {varPct ? `${varPct > 0 ? '▲' : '▼'} ${Math.abs(varPct).toFixed(2)}%` : '—'}
                       </td>
                     </motion.tr>
                   );
@@ -198,30 +284,32 @@ export default function TasaBCV() {
   );
 }
 
-function TrendChart({ tasas }: { tasas: number[] }) {
+function TrendChart({ tasas, height = 80 }: { tasas: number[], height?: number }) {
   if (tasas.length < 2) return null;
-  const W = 600, H = 80, pad = 10;
-  const min = Math.min(...tasas) * 0.999;
-  const max = Math.max(...tasas) * 1.001;
+  const W = 1000, H = height, pad = 5;
+  const min = Math.min(...tasas);
+  const max = Math.max(...tasas);
+  const range = max - min || 1;
+  
   const pts = tasas.map((t, i) => {
-    const x = pad + (i / (tasas.length - 1)) * (W - pad * 2);
-    const y = H - pad - ((t - min) / (max - min)) * (H - pad * 2);
+    const x = (i / (tasas.length - 1)) * W;
+    const y = H - pad - ((t - min) / range) * (H - pad * 2);
     return `${x},${y}`;
   });
-  const lastPt  = pts[pts.length - 1].split(',');
-  const firstPt = pts[0].split(',');
-  const area = `${pts.join(' ')} ${lastPt[0]},${H - pad} ${firstPt[0]},${H - pad}`;
+
+  const areaPts = `0,${H} ${pts.join(' ')} ${W},${H}`;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:80 }}>
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, overflow: 'visible' }}>
       <defs>
-        <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#1e5ab4" stopOpacity="0.3"/>
-          <stop offset="100%" stopColor="#1e5ab4" stopOpacity="0"/>
+        <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon points={area} fill="url(#tg)"/>
-      <polyline points={pts.join(' ')} fill="none" stroke="#1e5ab4" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/>
-      <circle cx={lastPt[0]} cy={lastPt[1]} r="4" fill="#00d28c"/>
+      <path d={`M ${areaPts}`} fill="url(#glow)" />
+      <polyline points={pts.join(' ')} fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinejoin="round" />
+      <circle cx={W} cy={pts[pts.length-1].split(',')[1]} r="4" fill="var(--primary)" />
     </svg>
   );
 }
