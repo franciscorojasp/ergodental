@@ -486,6 +486,7 @@ tbody td {
 /* ── Sidebar de Élite (V2) ───────────────────── */
 .sidebar {
   width: var(--sidebar-w);
+  flex-shrink: 0;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -494,8 +495,12 @@ tbody td {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  transition: all var(--transition);
+  transition: width var(--transition), transform var(--transition);
   z-index: 1000;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-mini-w);
 }
 
 .nav-link {
@@ -510,6 +515,19 @@ tbody td {
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .nav-link {
+  padding: 14px 0;
+  justify-content: center;
+  margin: 4px 8px;
+  gap: 0;
+}
+
+.sidebar.collapsed .nav-link span {
+  display: none;
 }
 
 .nav-link:hover {

@@ -59,8 +59,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
 
       <aside className={`sidebar ${isOpen ? 'open' : ''} ${!isPinned ? 'collapsed' : ''}`}>
         {/* Header de Lujo con Toggle Retráctil */}
-        <div style={{ padding: isPinned ? '32px 24px' : '32px 10px', borderBottom: '1px solid var(--border)', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: isPinned ? '24px' : '0', justifyContent: isPinned ? 'flex-start' : 'center' }}>
+        <div style={{ padding: isPinned ? '32px 24px' : '24px 0', borderBottom: '1px solid var(--border)', position: 'relative', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: isPinned ? '0' : '0', justifyContent: isPinned ? 'flex-start' : 'center', width: '100%', paddingLeft: isPinned ? '0' : '0' }}>
             <motion.div 
               whileHover={{ rotate: 5, scale: 1.05 }}
               className="sidebar-logo"
@@ -155,16 +155,17 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
         </nav>
 
         {/* Footer / User Profile High-End */}
-        <div style={{ padding: '24px 16px', borderTop: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: isPinned ? '24px 16px' : '24px 8px', borderTop: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
           <SyncIndicator isPinned={isPinned} />
 
           <div style={{ 
             marginTop: '16px',
-            padding: isPinned ? '12px' : '6px',
+            padding: isPinned ? '12px' : '8px',
             borderRadius: '18px',
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid var(--border)',
             display: 'flex',
+            flexDirection: isPinned ? 'row' : 'column',
             alignItems: 'center',
             gap: '12px'
           }}>
@@ -189,21 +190,20 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               </div>
             )}
 
-            {isPinned && (
-              <motion.button 
-                whileHover={{ scale: 1.1, color: 'var(--danger)' }}
-                onClick={handleLogout}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
-              >
-                ⏻
-              </motion.button>
-            )}
+            <motion.button 
+              whileHover={{ scale: 1.1, color: 'var(--danger)' }}
+              onClick={handleLogout}
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+              title={!isPinned ? "Cerrar Sesión" : ""}
+            >
+              ⏻
+            </motion.button>
           </div>
 
           <button 
             onClick={toggleTheme}
             className="btn btn-ghost"
-            style={{ width: '100%', marginTop: '12px', minHeight: '44px', padding: '0 12px', justifyContent: isPinned ? 'flex-start' : 'center' }}
+            style={{ width: '100%', marginTop: '12px', minHeight: '44px', padding: '0', justifyContent: 'center', alignItems: 'center' }}
           >
             {theme === 'dark' ? '☀️' : '🌙'}
             {isPinned && <span style={{ fontSize: '0.85rem', fontWeight: 700, marginLeft: '10px' }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>}
