@@ -91,7 +91,7 @@ export default function Citas() {
         <div className="table-wrap">
           <table>
             <thead><tr>
-              <th>Fecha/Hora</th><th>Paciente</th><th>Doctor</th><th>Motivo</th><th>Estado</th><th>Acciones</th>
+              <th>Fecha/Hora</th><th className="col-expand">Paciente</th><th>Doctor</th><th>Motivo</th><th>Estado</th><th>Acciones</th>
             </tr></thead>
             <tbody>
               {filtradas.map((c, i) => (
@@ -100,7 +100,7 @@ export default function Citas() {
                     <div style={{ fontWeight:700 }}>{c.fecha}</div>
                     <div style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>{c.hora}</div>
                   </td>
-                  <td>{c.pacienteNombre}</td>
+                  <td className="col-expand">{c.pacienteNombre}</td>
                   <td>{c.doctorNombre}</td>
                   <td style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
                   <td><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>

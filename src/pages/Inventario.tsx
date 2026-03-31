@@ -98,7 +98,7 @@ export default function Inventario() {
           <table>
             <thead>
               <tr>
-                <th>Producto</th>
+                <th className="col-expand">Producto</th>
                 <th>Categoría</th>
                 <th>Unidad</th>
                 <th>Stock actual</th>
@@ -112,7 +112,7 @@ export default function Inventario() {
                 const badge = stockBadge(item);
                 return (
                   <motion.tr key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                    <td style={{ fontWeight: 600 }}>{item.nombre}</td>
+                    <td className="col-expand" style={{ fontWeight: 600 }}>{item.nombre}</td>
                     <td><span className="badge badge-muted">{item.categoria}</span></td>
                     <td style={{ color: 'var(--text-secondary)' }}>{item.unidad}</td>
                     <td>
@@ -125,7 +125,7 @@ export default function Inventario() {
                 );
               })}
               {filtrados.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Sin resultados</td></tr>
+                <tr><td colSpan={7} className="table-empty">Sin resultados</td></tr>
               )}
             </tbody>
           </table>

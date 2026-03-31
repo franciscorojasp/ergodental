@@ -157,14 +157,14 @@ export default function TasaBCV() {
         ) : (
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Fecha</th><th>Tasa (Bs/$1 USD)</th><th>Fuente</th><th>Variación vs día anterior</th></tr></thead>
+              <thead><tr><th className="col-expand">Fecha</th><th>Tasa (Bs/$1 USD)</th><th>Fuente</th><th>Variación vs día anterior</th></tr></thead>
               <tbody>
                 {histFiltrado.map((item, i) => {
                   const prev = histFiltrado[i + 1];
                   const varPct = prev ? ((item.tasa - prev.tasa) / prev.tasa * 100) : null;
                   return (
                     <motion.tr key={item.fecha} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:i*0.03}}>
-                      <td style={{fontWeight:i===0?700:400}}>
+                      <td className="col-expand" style={{fontWeight:i===0?700:400}}>
                         {item.fecha}
                         {i===0 && <span style={{marginLeft:'6px',fontSize:'0.72rem',background:'var(--primary)',color:'#fff',borderRadius:'4px',padding:'1px 5px'}}>HOY</span>}
                       </td>

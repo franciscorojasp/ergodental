@@ -361,15 +361,22 @@ select option {
   backdrop-filter: blur(10px);
 }
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
 thead th {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px 24px;
   font-weight: 800;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
 }
 
 tbody tr {
@@ -382,7 +389,22 @@ tbody tr:hover {
   transform: scale(0.998);
 }
 
-tbody td { padding: 20px 24px; font-weight: 500; font-size: 0.95rem; }
+tbody td { 
+  padding: 18px 24px; 
+  font-weight: 500; 
+  font-size: 0.95rem; 
+  vertical-align: middle;
+}
+
+.col-expand { width: 100%; }
+
+.table-empty {
+  text-align: center;
+  padding: 60px !important;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
 
 /* ── Layout Maestro ─────────────────────────── */
 .app-layout {

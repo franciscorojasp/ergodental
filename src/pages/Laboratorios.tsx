@@ -73,8 +73,8 @@ export default function Laboratorios() {
           <table>
             <thead>
               <tr>
-                <th>Paciente</th>
-                <th>Trabajo / Prótesis</th>
+                <th className="col-expand">Paciente</th>
+                <th className="col-expand">Trabajo / Prótesis</th>
                 <th>Laboratorio</th>
                 <th>Envío</th>
                 <th>Entrega Est.</th>
@@ -86,8 +86,8 @@ export default function Laboratorios() {
             <tbody>
               {labs.map(l => (
                 <tr key={l.id}>
-                  <td><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
-                  <td>{l.trabajo}</td>
+                  <td className="col-expand"><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
+                  <td className="col-expand">{l.trabajo}</td>
                   <td>{l.laboratorioNombre}</td>
                   <td>{l.fechaEnvio}</td>
                   <td>{l.fechaEntregaPrevista}</td>
@@ -105,7 +105,7 @@ export default function Laboratorios() {
                   </td>
                 </tr>
               ))}
-              {labs.length === 0 && <tr><td colSpan={8} style={{textAlign:'center', padding:'40px', color:'var(--text-muted)' }}>No hay trabajos de laboratorio registrados</td></tr>}
+              {labs.length === 0 && <tr><td colSpan={8} className="table-empty">No hay trabajos de laboratorio registrados</td></tr>}
             </tbody>
           </table>
         </div>

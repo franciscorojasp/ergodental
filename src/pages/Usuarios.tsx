@@ -96,8 +96,8 @@ export default function Usuarios() {
           <table>
             <thead>
               <tr>
-                <th>Usuario</th>
-                <th>Correo</th>
+                <th className="col-expand">Usuario</th>
+                <th className="col-expand">Correo</th>
                 <th>Rol Asignado</th>
                 <th>Estado</th>
                 <th style={{ textAlign: 'right' }}>Acciones</th>
@@ -112,7 +112,7 @@ export default function Usuarios() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <td>
+                    <td className="col-expand">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ 
                           width: 32, height: 32, borderRadius: '50%', 
@@ -125,7 +125,7 @@ export default function Usuarios() {
                         <span style={{ fontWeight: 600 }}>{u.nombre}</span>
                       </div>
                     </td>
-                    <td><span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{u.email}</span></td>
+                    <td className="col-expand"><span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{u.email}</span></td>
                     <td>
                       <select 
                         className="input" 
@@ -171,7 +171,7 @@ export default function Usuarios() {
             </tbody>
           </table>
           {filtrados.length === 0 && (
-            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div className="table-empty">
               No se encontraron usuarios que coincidan con la búsqueda.
             </div>
           )}

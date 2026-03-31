@@ -83,13 +83,13 @@ export default function Proveedores() {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Proveedor</th><th>Tipo</th><th>RIF</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Estado</th></tr>
+              <tr><th className="col-expand">Proveedor</th><th>Tipo</th><th>RIF</th><th className="col-expand">Contacto</th><th>Teléfono</th><th>Email</th><th>Estado</th></tr>
             </thead>
             <tbody>
               {filtrado.map((p, i) => (
                 <motion.tr key={p.id} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay: i*0.04 }}
                   style={{ cursor:'pointer' }} onClick={() => setDetalleId(p.id)}>
-                  <td>
+                  <td className="col-expand">
                     <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                       <div style={{
                         width:36, height:36, borderRadius:8, flexShrink:0,
@@ -101,14 +101,14 @@ export default function Proveedores() {
                   </td>
                   <td><span className={`badge ${TIPO_BADGE[p.tipo]}`}>{p.tipo}</span></td>
                   <td style={{ color:'var(--text-secondary)', fontSize:'0.82rem' }}>{p.rif}</td>
-                  <td>{p.contacto}</td>
+                  <td className="col-expand">{p.contacto}</td>
                   <td style={{ color:'var(--text-secondary)' }}>{p.telefono}</td>
                   <td style={{ color:'var(--text-muted)', fontSize:'0.82rem' }}>{p.email}</td>
                   <td><span className={`badge ${p.activo ? 'badge-success' : 'badge-muted'}`}>{p.activo ? 'Activo' : 'Inactivo'}</span></td>
                 </motion.tr>
               ))}
               {filtrado.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)' }}>Sin proveedores para este filtro</td></tr>
+                <tr><td colSpan={7} className="table-empty">Sin proveedores para este filtro</td></tr>
               )}
             </tbody>
           </table>

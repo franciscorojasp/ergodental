@@ -218,14 +218,14 @@ export default function Pacientes() {
         <div className="table-wrap">
           <table>
             <thead><tr>
-              <th>Paciente</th><th>Cédula</th><th>Edad</th><th>Teléfono</th><th>Referido por</th><th>Acciones</th>
+              <th className="col-expand">Paciente</th><th>Cédula</th><th>Edad</th><th>Teléfono</th><th>Referido por</th><th>Acciones</th>
             </tr></thead>
             <tbody>
               {filtrado.map((p, i) => {
                 const regla = TABLA_REFERENCIAS.find(r => r.tipo === p.tipoReferencia);
                 return (
                   <motion.tr key={`${p.id}-${i}`} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}>
-                    <td onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer' }}>
+                    <td className="col-expand" onClick={() => setDetalleId(p.id)} style={{ cursor:'pointer' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                         <div style={{
                           width:34, height:34, borderRadius:'50%', flexShrink:0,
@@ -254,6 +254,9 @@ export default function Pacientes() {
                   </motion.tr>
                 );
               })}
+              {filtrado.length === 0 && (
+                <tr><td colSpan={6} className="table-empty">Sin pacientes registrados</td></tr>
+              )}
             </tbody>
           </table>
         </div>

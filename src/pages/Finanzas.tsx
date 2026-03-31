@@ -381,13 +381,13 @@ export default function Finanzas(){
         <motion.div className="glass" initial={{opacity:0}} animate={{opacity:1}}>
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Fecha</th><th>Paciente</th><th>Doctor</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Referencia</th><th>Estado</th><th></th></tr></thead>
+              <thead><tr><th>Fecha</th><th className="col-expand">Paciente</th><th>Doctor</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Referencia</th><th>Estado</th><th></th></tr></thead>
               <tbody>
                 {pagos.map(p=>(
                   <>
                   <tr key={p.id} style={{cursor:'pointer'}} onClick={()=>setExpandedPago(expandedPago===p.id?null:p.id)}>
                     <td style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{p.fecha}</td>
-                    <td style={{fontWeight:600}}>{p.pacienteNombre}</td>
+                    <td className="col-expand" style={{fontWeight:600}}>{p.pacienteNombre}</td>
                     <td style={{color:'var(--text-secondary)',fontSize:'0.84rem'}}>{p.doctorNombre||'—'}</td>
                     <td>{p.concepto}</td>
                     <td style={{fontWeight:700,color:'var(--success)'}}>{fmt(p.monto)}</td>
@@ -428,12 +428,12 @@ export default function Finanzas(){
         <motion.div className="glass" initial={{opacity:0}} animate={{opacity:1}}>
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Monto USD</th><th>Monto Bs</th><th>Método</th><th>Proveedor</th></tr></thead>
+              <thead><tr><th>Fecha</th><th className="col-expand">Concepto</th><th>Categoría</th><th>Monto USD</th><th>Monto Bs</th><th>Método</th><th>Proveedor</th></tr></thead>
               <tbody>
                 {egresos.map(e=>(
                   <tr key={e.id}>
                     <td style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{e.fecha}</td>
-                    <td style={{fontWeight:600}}>{e.concepto}</td>
+                    <td className="col-expand" style={{fontWeight:600}}>{e.concepto}</td>
                     <td><span className="badge badge-muted">{e.categoria}</span></td>
                     <td style={{fontWeight:700,color:'var(--danger)'}}>{fmt(e.monto)}</td>
                     <td style={{color:'var(--text-secondary)',fontSize:'0.82rem'}}>
@@ -639,7 +639,7 @@ export default function Finanzas(){
               <table>
                 <thead>
                   <tr>
-                    <th>Referido por</th><th>Descripción</th>
+                    <th className="col-expand">Referido por</th><th>Descripción</th>
                     <th style={{color:'var(--primary)'}}>% Clínica</th>
                     <th style={{color:'var(--warning)'}}>% Foráneo</th>
                     <th style={{color:'var(--success)'}}>% Profesional</th>
@@ -648,7 +648,7 @@ export default function Finanzas(){
                 <tbody>
                   {TABLA_REFERENCIAS.map(r=>(
                     <tr key={r.tipo}>
-                      <td style={{fontWeight:700}}>{REF_ICON[r.tipo]} {r.label}</td>
+                      <td className="col-expand" style={{fontWeight:700}}>{REF_ICON[r.tipo]} {r.label}</td>
                       <td style={{color:'var(--text-secondary)',fontSize:'0.85rem'}}>{r.descripcion}</td>
                       <td><span style={{fontWeight:800,color:'var(--primary)'}}>{r.pctClinica}%</span></td>
                       <td><span style={{fontWeight:800,color:r.pctForaneo>0?'var(--warning)':'var(--text-muted)'}}>{r.pctForaneo>0?`${r.pctForaneo}%`:'—'}</span></td>
@@ -667,11 +667,11 @@ export default function Finanzas(){
             ):(
               <div className="table-wrap">
                 <table>
-                  <thead><tr><th>Referidor</th><th>Tipo</th><th># Pagos</th><th>Total generado</th><th>Comisión a pagar</th></tr></thead>
+                  <thead><tr><th className="col-expand">Referidor</th><th>Tipo</th><th># Pagos</th><th>Total generado</th><th>Comisión a pagar</th></tr></thead>
                   <tbody>
                     {Object.values(comisionesData.porRef).map(r=>(
                       <tr key={r.nombre}>
-                        <td style={{fontWeight:700}}>{r.nombre}</td>
+                        <td className="col-expand" style={{fontWeight:700}}>{r.nombre}</td>
                         <td><span className="badge badge-warning">{TABLA_REFERENCIAS.find(x=>x.tipo===r.tipo)?.label}</span></td>
                         <td>{r.pagos}</td>
                         <td style={{color:'var(--success)',fontWeight:700}}>{fmt(r.monto)}</td>
