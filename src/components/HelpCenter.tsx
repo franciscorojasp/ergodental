@@ -16,10 +16,10 @@ interface HelpTopic {
 const HELP_DATABASE: HelpTopic[] = [
   {
     id: 'general',
-    titulo: 'Bienvenida a ErgoDental',
+    titulo: 'Bienvenida a ErgoDentalve',
     tags: ['inicio', 'general', 'bienvenida'],
     puntos: [
-      'ErgoDental es una plataforma ágil, integral y en la nube para la gestión clínica.',
+      'ErgoDentalve es una plataforma ágil, integral y en la nube para la gestión clínica.',
       'Sedes: Puedes alternar entre distintas sucursales arriba a la izquierda. La data mostrada (Citas, Finanzas, Pacientes) corresponderá exclusivamente a la clínica en la que te encuentres.',
       'Vista Consolidada: Los perfiles administrativos pueden seleccionar "Consolidado Global" para ver métricas sumadas de todas las clínicas al mismo tiempo.',
       'Tasa BCV: Actualiza diariamente la tasa en Configuración. Así la app cotiza automáticamente todo lo que cobres en Bs.',
@@ -27,13 +27,13 @@ const HELP_DATABASE: HelpTopic[] = [
     ],
     contenido: () => (
       <div className="help-content">
-        <p><strong>ErgoDental</strong> es el ecosistema definitivo para el flujo de tu clínica. Hemos diseñado la interfaz para que sea predictiva y rápida de aprender.</p>
+        <p><strong>ErgoDentalve</strong> es el ecosistema definitivo para el flujo de tu clínica. Hemos diseñado la interfaz para que sea predictiva y rápida de aprender.</p>
         <div className="info-box">
           <h5>🔑 Puntos clave de filosofía de uso:</h5>
           <ul>
             <li><strong>Todo ocurre en la nube:</strong> Si haces un cambio en una computadora, tus compañeros lo verán al instante.</li>
             <li><strong>Sedes Separadas pero unidas:</strong> El selector superior izquierdo dicta qué datos ves. Si estás en "Sede Sur", no verás pacientes anotados en "Sede Norte". Para ver el panorama completo, selecciona "Consolidado Global".</li>
-            <li><strong>Tasa BCV:</strong> Ingresa el dólar de hoy apenas empiece el turno administrativo. ErgoDental convertirá automáticamente presupuestos y saldos pendientes.</li>
+            <li><strong>Tasa BCV:</strong> Ingresa el dólar de hoy apenas empiece el turno administrativo. ErgoDentalve convertirá automáticamente presupuestos y saldos pendientes.</li>
           </ul>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function HelpCenter() {
       );
       
       await generarAyudaPDF({
-        titulo: 'Manual Completo de Usuario ErgoDental',
+        titulo: 'Manual Completo de Usuario ErgoDentalve',
         puntos: puntosCombinados
       }, user?.nombre);
     } catch (e) {

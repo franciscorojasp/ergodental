@@ -29,7 +29,7 @@ const contentMap: Record<'es' | 'en', AppContent> = {
     configuracion: "Configuración Clínica",
     loading_session: "Restaurando sesión segura...",
     loading_app: "Iniciando plataforma médica...",
-    welcome: "Bienvenido a ErgoDental",
+    welcome: "Bienvenido a ErgoDentalve",
     logout: "Cerrar Sesión",
     language_label: "Idioma"
   },
@@ -44,7 +44,7 @@ const contentMap: Record<'es' | 'en', AppContent> = {
     configuracion: "Clinic Settings",
     loading_session: "Restoring secure session...",
     loading_app: "Starting medical platform...",
-    welcome: "Welcome to ErgoDental",
+    welcome: "Welcome to ErgoDentalve",
     logout: "Log Out",
     language_label: "Language"
   }

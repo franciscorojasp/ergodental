@@ -79,7 +79,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             
             {isPinned && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>ERGODENTAL</div>
+                <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>ERGODENTALVE</div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.8 }}>v2.0 Pro</div>
               </motion.div>
             )}

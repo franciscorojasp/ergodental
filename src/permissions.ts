@@ -1,6 +1,6 @@
 // src/permissions.ts
 // ─────────────────────────────────────────────────────────────────────────────
-// Módulo central de permisos – Ergodental RBAC
+// Módulo central de permisos – Ergodentalve RBAC
 // Basado en estándares de sistemas clínicos dentales (Dentrix, Dental Cloud,
 // Carestream Dental) y regulaciones HIPAA de acceso mínimo necesario.
 // ─────────────────────────────────────────────────────────────────────────────

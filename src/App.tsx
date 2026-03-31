@@ -51,7 +51,7 @@ function AppLoader({ subtitle }: { subtitle?: string }) {
       }}>
         <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '22px' }} />
       </div>
-      <h2 style={{ marginTop: '32px', fontSize: '2rem', fontWeight: 900, letterSpacing: '-1px', textTransform: 'uppercase', background: 'linear-gradient(to right, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Ergodental</h2>
+      <h2 style={{ marginTop: '32px', fontSize: '2rem', fontWeight: 900, letterSpacing: '-1px', textTransform: 'uppercase', background: 'linear-gradient(to right, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Ergodentalve</h2>
       <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '12px', letterSpacing: '0.5px', fontWeight: 600 }}>{subtitle || content.loading_app}</p>
     </div>
   );
@@ -129,7 +129,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
           >
             ☰ <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'1px' }}>MENÚ</span>
           </button>
-          {!sidebarOpen && <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodental</div>}
+          {!sidebarOpen && <div style={{ marginLeft:'12px', fontWeight:800, fontSize:'1.1rem' }}>Ergodentalve</div>}
         </header>
 
         <main className={`page-content ${!sidebarPinned ? 'collapsed' : ''} ${!sidebarOpen ? 'full-width' : ''}`}>

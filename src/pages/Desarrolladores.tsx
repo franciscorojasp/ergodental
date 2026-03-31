@@ -48,7 +48,7 @@ export default function Desarrolladores() {
         </div>
 
         <div style={{ marginTop: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          Escanea el código con tu teléfono o tablet para acceder rápidamente al ecosistema digital de ErgoDental.
+          Escanea el código con tu teléfono o tablet para acceder rápidamente al ecosistema digital de ErgoDentalve.
         </div>
       </motion.div>
     </div>

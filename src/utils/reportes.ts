@@ -8,7 +8,7 @@ import { getGlobalCorrelativo, logAuditoria } from '../api';
 export interface ConfigReporte {
   titulo: string;               // "Reporte de Ingresos"
   subtitulo?: string;           // "Periodo: Mensual | Moneda: USD"
-  clinica?: string;             // "Ergodental"
+  clinica?: string;             // "Ergodentalve"
   periodo?: string;
   usuario?: string;             // quien genera el reporte
   columnas: string[];           // headers
@@ -34,7 +34,7 @@ function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('ERGODENTAL', 16, 12);
+    doc.text('ERGODENTALVE', 16, 12);
   }
 
   doc.setTextColor(255, 255, 255);
@@ -94,7 +94,7 @@ function addFooter(doc: jsPDF) {
     doc.setFontSize(7.5);
     doc.setTextColor(130, 130, 130);
     doc.setFont('helvetica', 'normal');
-    doc.text('Ergodental · Sistema de Gestión Clínica Dental · Documento confidencial', 14, H - 5);
+    doc.text('Ergodentalve · Sistema de Gestión Clínica Dental · Documento confidencial', 14, H - 5);
     doc.text(`Página ${i} de ${totalPages}`, W - 14, H - 5, { align: 'right' });
   }
 }
@@ -243,7 +243,7 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
     // Reutilizamos el header con una config mínima
     addHeader(doc, { 
       titulo: topic.titulo, 
-      subtitulo: 'Guía de Ayuda ErgoDental',
+      subtitulo: 'Guía de Ayuda ErgoDentalve',
       usuario,
       columnas: [], filas: [] 
     }, correlativo);
@@ -262,7 +262,7 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
       // Verificar si necesitamos nueva página
       if (currentY + (lines.length * 6) > 260) {
         doc.addPage();
-        let newTblStartY = addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDental', columnas:[], filas:[] }, correlativo);
+        let newTblStartY = addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDentalve', columnas:[], filas:[] }, correlativo);
         currentY = newTblStartY;
       }
 

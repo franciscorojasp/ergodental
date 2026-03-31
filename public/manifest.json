@@ -1,6 +1,6 @@
 {
   "name": "ERGODENTALVE 1.0",
-  "short_name": "Ergodental",
+  "short_name": "Ergodentalve",
   "description": "Sistema de Gestión Dental Premium",
   "start_url": "/",
   "display": "standalone",
@@ -17,7 +17,7 @@
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://ergodental.vercel.app/manifest.json"
+      "url": "https://ergodentalve.vercel.app/manifest.json"
     }
   ]
 }

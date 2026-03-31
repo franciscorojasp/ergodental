@@ -2,7 +2,7 @@
 // Capa de acceso a datos.
 import { supabase, IS_SUPABASE_CONNECTED } from './lib/supabase';
 
-export const IS_DEMO_EMAILS = ['demo@ergodental.com']; // Only use a specific non-production email for demo
+export const IS_DEMO_EMAILS = ['demo@ergodentalve.com']; // Only use a specific non-production email for demo
 
 // Helper para detectar si estamos en modo Demo (por falta de conexión o por usuario Demo actualmente guardado)
 export const isDemoSession = () => {
@@ -14,7 +14,7 @@ export const isDemoSession = () => {
       // Francisco y Admins SUPER_ADMINS nunca son demo si hay conexión
       const SUPER_ADMINS = ['francisco.rojasp@gmail.com', 'blascojennifer47@gmail.com', 'vera.hugo712@gmail.com', 'carlosalejandroverablasco183@gmail.com'];
       if (SUPER_ADMINS.includes(u.email?.toLowerCase())) return false;
-      return u.email === 'demo@ergodental.com';
+      return u.email === 'demo@ergodentalve.com';
     } catch { return false; }
   }
   return false;
@@ -557,35 +557,35 @@ export interface Recibo {
 // ─── Datos Demo ────────────────────────────────────────────────────────────────
 
 export const DEMO_USUARIOS: Usuario[] = [
-  { id: 'u1', nombre: 'Francisco Rodríguez', email: 'admin@ergodental.com',     rol: 'ADMIN',     activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
-  { id: 'u2', nombre: 'Dr. Carlos Pérez',    email: 'doctor@ergodental.com',    rol: 'DOCTOR',    activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
-  { id: 'u3', nombre: 'Ana Martínez',        email: 'asistente@ergodental.com', rol: 'ASISTENTE', activo: true, clinicaId: 'la-vina', permisosMultiClinica: false },
-  { id: 'u4', nombre: 'Laura Sánchez',       email: 'recepcion@ergodental.com', rol: 'RECEPCION', activo: true, clinicaId: 'la-vina', permisosMultiClinica: false },
-  { id: 'u5', nombre: 'Asistente Pro',       email: 'pro@ergodental.com',       rol: 'ASISTENTE', activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
+  { id: 'u1', nombre: 'Francisco Rodríguez', email: 'admin@ergodentalve.com',     rol: 'ADMIN',     activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
+  { id: 'u2', nombre: 'Dr. Carlos Pérez',    email: 'doctor@ergodentalve.com',    rol: 'DOCTOR',    activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
+  { id: 'u3', nombre: 'Ana Martínez',        email: 'asistente@ergodentalve.com', rol: 'ASISTENTE', activo: true, clinicaId: 'la-vina', permisosMultiClinica: false },
+  { id: 'u4', nombre: 'Laura Sánchez',       email: 'recepcion@ergodentalve.com', rol: 'RECEPCION', activo: true, clinicaId: 'la-vina', permisosMultiClinica: false },
+  { id: 'u5', nombre: 'Asistente Pro',       email: 'pro@ergodentalve.com',       rol: 'ASISTENTE', activo: true, clinicaId: 'la-vina', permisosMultiClinica: true },
 ];
 
 export const DEMO_PERSONAL = getDemoStore<Personal>('personal', [
-  { id: 'p1', clinicaId: 'la-vina', nombre: 'Dra. María', apellido: 'González', tipo: 'Odontólogo', especialidad: 'Ortodoncia', matricula: 'ORT-1042', turno: 'Mañana (8am-12pm)', telefono: '0412-1234567', email: 'maria@ergodental.com', activo: true },
-  { id: 'p2', clinicaId: 'la-vina', nombre: 'Dr. Carlos', apellido: 'Pérez', tipo: 'Odontólogo', especialidad: 'Endodoncia', matricula: 'END-2301', turno: 'Tarde (1pm-5pm)', telefono: '0414-7654321', email: 'carlos@ergodental.com', activo: true },
-  { id: 'p3', clinicaId: 'la-vina', nombre: 'Ana', apellido: 'Martínez', tipo: 'Asistente', especialidad: '', matricula: '', turno: 'Completo (8am-5pm)', telefono: '0416-5551234', email: 'ana@ergodental.com', activo: true },
-  { id: 'p4', clinicaId: 'la-vina', nombre: 'Laura', apellido: 'Sánchez', tipo: 'Recepcionista', especialidad: '', matricula: '', turno: 'Mañana (8am-1pm)', telefono: '0424-9876543', email: 'laura@ergodental.com', activo: true },
-  { id: 'p5', clinicaId: 'la-vina', nombre: 'Pedro', apellido: 'Vargas', tipo: 'Administrativo', especialidad: '', matricula: '', turno: 'Tarde (1pm-6pm)', telefono: '0412-3334444', email: 'pedro@ergodental.com', activo: false },
+  { id: 'p1', clinicaId: 'la-vina', nombre: 'Dra. María', apellido: 'González', tipo: 'Odontólogo', especialidad: 'Ortodoncia', matricula: 'ORT-1042', turno: 'Mañana (8am-12pm)', telefono: '0412-1234567', email: 'maria@ergodentalve.com', activo: true },
+  { id: 'p2', clinicaId: 'la-vina', nombre: 'Dr. Carlos', apellido: 'Pérez', tipo: 'Odontólogo', especialidad: 'Endodoncia', matricula: 'END-2301', turno: 'Tarde (1pm-5pm)', telefono: '0414-7654321', email: 'carlos@ergodentalve.com', activo: true },
+  { id: 'p3', clinicaId: 'la-vina', nombre: 'Ana', apellido: 'Martínez', tipo: 'Asistente', especialidad: '', matricula: '', turno: 'Completo (8am-5pm)', telefono: '0416-5551234', email: 'ana@ergodentalve.com', activo: true },
+  { id: 'p4', clinicaId: 'la-vina', nombre: 'Laura', apellido: 'Sánchez', tipo: 'Recepcionista', especialidad: '', matricula: '', turno: 'Mañana (8am-1pm)', telefono: '0424-9876543', email: 'laura@ergodentalve.com', activo: true },
+  { id: 'p5', clinicaId: 'la-vina', nombre: 'Pedro', apellido: 'Vargas', tipo: 'Administrativo', especialidad: '', matricula: '', turno: 'Tarde (1pm-6pm)', telefono: '0412-3334444', email: 'pedro@ergodentalve.com', activo: false },
 ] as Personal[]);
 
 export const DEMO_PACIENTES = getDemoStore<Paciente>('pacientes', [
   { id: 'pac1', clinicaId: 'la-vina', nombre: 'José',      apellido: 'Hernández', cedula: 'V-12345678', fechaNacimiento: '1985-03-15', telefono: '0412-1112222', email: 'jose@gmail.com',       direccion: 'Av. Principal, Casa 5',    fechaRegistro: '2024-01-10', tipoReferencia: 'Profesional-Especialista', referidorNombre: 'Dr. Lugo (Cardiología)', referidorContacto: '0412-9990000', alergias: false, alergiasDetalle: '' },
-  { id: 'pac2', clinicaId: 'la-vina', nombre: 'Carmen',    apellido: 'López',     cedula: 'V-23456789', fechaNacimiento: '1992-07-22', telefono: '0414-2223333', email: 'carmen@gmail.com',     direccion: 'Calle 2, Apto 3B',         fechaRegistro: '2024-01-15', tipoReferencia: 'Paciente-Clinica',          referidorNombre: 'Clínica Ergodental', alergias: true, alergiasDetalle: 'Penicilina' },
+  { id: 'pac2', clinicaId: 'la-vina', nombre: 'Carmen',    apellido: 'López',     cedula: 'V-23456789', fechaNacimiento: '1992-07-22', telefono: '0414-2223333', email: 'carmen@gmail.com',     direccion: 'Calle 2, Apto 3B',         fechaRegistro: '2024-01-15', tipoReferencia: 'Paciente-Clinica',          referidorNombre: 'Clínica Ergodentalve', alergias: true, alergiasDetalle: 'Penicilina' },
   { id: 'pac3', clinicaId: 'la-vina', nombre: 'Roberto',   apellido: 'Díaz',      cedula: 'V-34567890', fechaNacimiento: '1978-11-08', telefono: '0416-3334444', email: 'roberto@gmail.com',    direccion: 'Urb. Las Flores, Casa 12', fechaRegistro: '2024-02-03', tipoReferencia: 'Foraneo-30',                referidorNombre: 'Clínica Dental Valencia',  referidorContacto: '0241-1234567', alergias: false, alergiasDetalle: '' },
   { id: 'pac4', clinicaId: 'la-vina', nombre: 'Valentina', apellido: 'Torres',    cedula: 'V-45678901', fechaNacimiento: '2001-05-30', telefono: '0424-4445555', email: 'valentina@gmail.com', direccion: 'Res. El Parque, Piso 4',   fechaRegistro: '2024-02-20', tipoReferencia: 'Foraneo-10',                referidorNombre: 'Casa Médica Caracas',       referidorContacto: '0212-5552222', alergias: false, alergiasDetalle: '' },
-  { id: 'pac5', clinicaId: 'la-vina', nombre: 'Miguel',    apellido: 'Ramírez',   cedula: 'V-56789012', fechaNacimiento: '1969-09-14', telefono: '0426-5556666', email: 'miguel@gmail.com',     direccion: 'Sector Norte, Mz 3 Casa 8', fechaRegistro: '2024-03-05', tipoReferencia: 'Paciente-Clinica',         referidorNombre: 'Clínica Ergodental', alergias: false, alergiasDetalle: '' },
+  { id: 'pac5', clinicaId: 'la-vina', nombre: 'Miguel',    apellido: 'Ramírez',   cedula: 'V-56789012', fechaNacimiento: '1969-09-14', telefono: '0426-5556666', email: 'miguel@gmail.com',     direccion: 'Sector Norte, Mz 3 Casa 8', fechaRegistro: '2024-03-05', tipoReferencia: 'Paciente-Clinica',         referidorNombre: 'Clínica Ergodentalve', alergias: false, alergiasDetalle: '' },
 ] as Paciente[]);
 
 export const DEMO_CITAS = getDemoStore<Cita>('citas', [
   { id:'c1', clinicaId: 'la-vina', pacienteId:'pac1', pacienteNombre:'José Hernández',    doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-18', hora:'09:00', motivo:'Limpieza dental',      estado:'Confirmada', tipoAtencion:'Tratamiento', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Profesional-Especialista', referidorNombre:'Dr. Lugo (Cardiología)',  referidorContacto:'0412-9990000' },
-  { id:'c2', clinicaId: 'la-vina', pacienteId:'pac2', pacienteNombre:'Carmen López',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    fecha:'2026-03-18', hora:'10:30', motivo:'Caries molar',          estado:'Pendiente',  tipoAtencion:'Tratamiento', condicion:'Evaluación', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental' },
+  { id:'c2', clinicaId: 'la-vina', pacienteId:'pac2', pacienteNombre:'Carmen López',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    fecha:'2026-03-18', hora:'10:30', motivo:'Caries molar',          estado:'Pendiente',  tipoAtencion:'Tratamiento', condicion:'Evaluación', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodentalve' },
   { id:'c3', clinicaId: 'la-vina', pacienteId:'pac3', pacienteNombre:'Roberto Díaz',       doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-18', hora:'11:00', motivo:'Revisión ortodoncia',   estado:'Completada', tipoAtencion:'Revisión', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Foraneo-30',               referidorNombre:'Clínica Dental Valencia', referidorContacto:'0241-1234567' },
   { id:'c4', clinicaId: 'la-vina', pacienteId:'pac4', pacienteNombre:'Valentina Torres',    doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    fecha:'2026-03-19', hora:'14:00', motivo:'Endodoncia pieza 36',   estado:'Pendiente',  tipoAtencion:'Tratamiento', condicion:'Evaluación', estadoFinanciero:'Paga Después', tipoReferencia:'Foraneo-10',               referidorNombre:'Casa Médica Caracas',      referidorContacto:'0212-5552222' },
-  { id:'c5', clinicaId: 'la-vina', pacienteId:'pac5', pacienteNombre:'Miguel Ramírez',     doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-19', hora:'15:30', motivo:'Extracción',            estado:'Confirmada', tipoAtencion:'Tratamiento', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental' },
+  { id:'c5', clinicaId: 'la-vina', pacienteId:'pac5', pacienteNombre:'Miguel Ramírez',     doctorId:'p1', doctorNombre:'Dra. María González', fecha:'2026-03-19', hora:'15:30', motivo:'Extracción',            estado:'Confirmada', tipoAtencion:'Tratamiento', condicion:'Control', estadoFinanciero:'Pago Inmediato', tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodentalve' },
 ] as Cita[]);
 
 export const DEMO_INVENTARIO = getDemoStore<ItemInventario>('inventario', [
@@ -599,10 +599,10 @@ export const DEMO_INVENTARIO = getDemoStore<ItemInventario>('inventario', [
 
 export const DEMO_PAGOS = getDemoStore<Pago>('pagos', [
   { id:'pg1', clinicaId: 'la-vina', pacienteId:'pac1', pacienteNombre:'José Hernández',  citaId:'c1', concepto:'Limpieza dental',           monto: 40, montoBs:1460000, tasaCambio:36500, metodoPago:'Pago Móvil',      tipoPago:'Contado', fecha:'2026-03-18', estado:'Pagado',   tipoReferencia:'Profesional-Especialista', referidorNombre:'Dr. Lugo (Cardiología)', doctorId:'p1', doctorNombre:'Dra. María González', bancoEmisor: 'Banesco', numeroReferencia: '123456789012' },
-  { id:'pg2', clinicaId: 'la-vina', pacienteId:'pac2', pacienteNombre:'Carmen López',      citaId:'c2', concepto:'Caries molar – abono 1',    monto: 25, montoBs: 912500, tasaCambio:36500, metodoPago:'Zelle',            tipoPago:'Abono',   fecha:'2026-03-18', estado:'Parcial',  tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    notas:'Saldo pendiente: $35' },
+  { id:'pg2', clinicaId: 'la-vina', pacienteId:'pac2', pacienteNombre:'Carmen López',      citaId:'c2', concepto:'Caries molar – abono 1',    monto: 25, montoBs: 912500, tasaCambio:36500, metodoPago:'Zelle',            tipoPago:'Abono',   fecha:'2026-03-18', estado:'Parcial',  tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodentalve',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez',    notas:'Saldo pendiente: $35' },
   { id:'pg3', clinicaId: 'la-vina', pacienteId:'pac3', pacienteNombre:'Roberto Díaz',      citaId:'c3', concepto:'Ortodoncia mensualidad',    monto: 80, montoBs:2920000, tasaCambio:36500, metodoPago:'Efectivo USD',    tipoPago:'Crédito', diasCredito:15, fechaVencimiento:'2026-04-02', fecha:'2026-03-18', estado:'Pendiente', tipoReferencia:'Foraneo-30', referidorNombre:'Clínica Dental Valencia', doctorId:'p1', doctorNombre:'Dra. María González' },
   { id:'pg4', clinicaId: 'la-vina', pacienteId:'pac4', pacienteNombre:'Valentina Torres',    concepto:'Endodoncia pieza 36',             monto:120, montoBs:      0, tasaCambio:36500, metodoPago:'Binance',           tipoPago:'Crédito', diasCredito:30, fechaVencimiento:'2026-04-17', fecha:'2026-03-15', estado:'Pendiente', tipoReferencia:'Foraneo-10', referidorNombre:'Casa Médica Caracas',       doctorId:'p2', doctorNombre:'Dr. Carlos Pérez' },
-  { id:'pg5', clinicaId: 'la-vina', pacienteId:'pac5', pacienteNombre:'Miguel Ramírez',    concepto:'Extracción',                    monto: 35, montoBs:1277500, tasaCambio:36500, metodoPago:'Efectivo BS',      tipoPago:'Contado', fecha:'2026-03-10', estado:'Pagado',   tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodental',       doctorId:'p1', doctorNombre:'Dra. María González' },
+  { id:'pg5', clinicaId: 'la-vina', pacienteId:'pac5', pacienteNombre:'Miguel Ramírez',    concepto:'Extracción',                    monto: 35, montoBs:1277500, tasaCambio:36500, metodoPago:'Efectivo BS',      tipoPago:'Contado', fecha:'2026-03-10', estado:'Pagado',   tipoReferencia:'Paciente-Clinica',         referidorNombre:'Clínica Ergodentalve',       doctorId:'p1', doctorNombre:'Dra. María González' },
 ] as Pago[]);
 
 export const DEMO_EGRESOS = getDemoStore<Egreso>('egresos', [
@@ -729,11 +729,11 @@ export async function verifyRecoveryCode(email: string, token: string) {
 export async function loginUser(email: string, password: string): Promise<Usuario> {
   // 1. Credenciales Demo (Local)
   const DEMO_CREDS: Record<string, string> = {
-    'admin@ergodental.com':     'Ergodental2024!',
-    'doctor@ergodental.com':    'Ergodental2024!',
-    'asistente@ergodental.com': 'Ergodental2024!',
-    'recepcion@ergodental.com': 'Ergodental2024!',
-    'pro@ergodental.com':       'Ergodental2024!',
+    'admin@ergodentalve.com':     'Ergodentalve2024!',
+    'doctor@ergodentalve.com':    'Ergodentalve2024!',
+    'asistente@ergodentalve.com': 'Ergodentalve2024!',
+    'recepcion@ergodentalve.com': 'Ergodentalve2024!',
+    'pro@ergodentalve.com':       'Ergodentalve2024!',
   };
 
   if (DEMO_CREDS[email] === password) {

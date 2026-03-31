@@ -116,7 +116,7 @@ export default function InstallAppPrompt() {
               🦷
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Instala ErgoDental</div>
+              <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Instala ErgoDentalve</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Accede más rápido y recibe notificaciones en tiempo real.</div>
             </div>
           </div>

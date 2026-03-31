@@ -54,7 +54,7 @@ export default function ClinicaModal() {
                 🏢
               </motion.div>
               <h2 style={{ fontSize: '2.4rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-2px', background: 'linear-gradient(to bottom, #fff, #cbd5e1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textTransform: 'lowercase' }}>
-                ergodental
+                ergodentalve
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 600, margin: '0 auto' }}>
                 Seleccione su Clínica

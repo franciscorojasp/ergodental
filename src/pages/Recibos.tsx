@@ -39,7 +39,7 @@ export default function Recibos() {
         { label: 'TOTAL COBRADO:', valor: fmt(r.monto) }
       ],
       notas: [
-        '¡Gracias por confiar en ErgoDental!',
+        '¡Gracias por confiar en ErgoDentalve!',
         'Documento emitido para fines administrativos.'
       ]
     });

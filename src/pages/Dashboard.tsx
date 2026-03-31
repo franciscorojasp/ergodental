@@ -76,7 +76,7 @@ export default function Dashboard() {
       totales: [
         { label:`Ingresos ${periodo}:`, valor: fmt(ingresosPeriodo) },
       ],
-      notas: [`Fuente de datos: ${IS_DEMO_MODE ? 'Ergodental Local (Demo)' : 'Ergodental Cloud (Producción)'} · Periodo seleccionado: ${periodo}`],
+      notas: [`Fuente de datos: ${IS_DEMO_MODE ? 'Ergodentalve Local (Demo)' : 'Ergodentalve Cloud (Producción)'} · Periodo seleccionado: ${periodo}`],
     });
   };
 

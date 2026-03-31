@@ -184,7 +184,7 @@ export default function Login() {
               <motion.form key="login" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
                 <div className="input-group">
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 600 }}>CORREO ELECTRÓNICO</label>
-                  <input id="login-email" name="email" className="premium-input" type="email" placeholder="ejemplo@ergodental.com" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
+                  <input id="login-email" name="email" className="premium-input" type="email" placeholder="ejemplo@ergodentalve.com" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} />
                 </div>
                 <div className="input-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
