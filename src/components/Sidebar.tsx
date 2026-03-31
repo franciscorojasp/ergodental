@@ -90,7 +90,6 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
                 display: 'flex', 
                 flexDirection: isMobile ? 'row' : 'column', 
                 gap: isMobile ? '8px' : '10px', 
-                overflow: 'hidden',
                 alignItems: isMobile ? 'center' : 'stretch'
               }}
             >

@@ -24,16 +24,46 @@ export default function CurrencyToggle({ variant = 'default' }: { variant?: 'def
         display: 'flex', alignItems: 'center', gap: '8px', 
         padding: '4px 6px', borderRadius: '12px',
         background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-        flexShrink: 0
+        flexShrink: 0, minHeight: '36px'
       }}>
-        {/* Compact Tasa Pill */}
-        <div style={{ 
-          fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', 
-          background: 'var(--primary-dim)', padding: '4px 8px', borderRadius: '8px',
-          whiteSpace: 'nowrap'
-        }}>
-          ${tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 1 })}
-        </div>
+        <AnimatePresence mode="wait">
+          {editando ? (
+            <motion.div 
+              key="edit-compact"
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+              style={{ display: 'flex', gap: '4px', alignItems: 'center' }}
+            >
+              <input
+                autoFocus
+                type="number"
+                step="0.01"
+                value={valor}
+                onChange={e => setValor(e.target.value)}
+                onKeyDown={e => { if(e.key === 'Enter') handleActualizar(); if(e.key === 'Escape') setEditando(false); }}
+                style={{
+                  width: '60px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--primary)',
+                  borderRadius: '6px', color: '#fff', padding: '2px 6px', fontSize: '0.7rem',
+                  outline: 'none', fontWeight: 700
+                }}
+              />
+              <button onClick={handleActualizar} style={{ background: 'var(--primary)', border: 'none', borderRadius: '6px', padding: '2px 6px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 900 }}>✓</button>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="display-compact"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              onClick={() => setEditando(true)}
+              style={{ 
+                fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', 
+                background: 'var(--primary-dim)', padding: '4px 8px', borderRadius: '8px',
+                whiteSpace: 'nowrap', cursor: 'pointer'
+              }}
+              title="Click para editar tasa"
+            >
+              ${tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 1 })}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dense Toggle */}
         <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '2px' }}>
@@ -43,7 +73,8 @@ export default function CurrencyToggle({ variant = 'default' }: { variant?: 'def
               fontSize: '0.65rem', fontWeight: 900,
               background: moneda === m ? 'var(--primary)' : 'transparent',
               color: moneda === m ? '#000' : 'var(--text-secondary)',
-              transition: '0.2s'
+              transition: '0.2s',
+              zIndex: 1
             }}>
               {m}
             </button>

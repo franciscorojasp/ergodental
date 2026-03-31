@@ -79,11 +79,12 @@ export default function ClinicaBadge({ variant = 'default' }: { variant?: 'defau
             exit={{    opacity: 0, y: 8, scale: 0.96 }}
             className="glass"
             style={{
-              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px',
-              padding: '8px', zIndex: 1000,
+              position: 'absolute', top: '100%', left: isCompact ? -20 : 0, right: isCompact ? -20 : 0, marginTop: '8px',
+              padding: '8px', zIndex: 2000,
               background: 'var(--bg-modal)',
               border: '1px solid var(--border)',
               boxShadow: 'var(--shadow-lg)',
+              minWidth: isCompact ? '200px' : 'none'
             }}
           >
             <div style={{ padding: '8px 12px 4px', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -108,7 +109,7 @@ export default function ClinicaBadge({ variant = 'default' }: { variant?: 'defau
                   background: clinica.id === c.id ? 'var(--primary)' : 'transparent',
                   boxShadow: clinica.id === c.id ? '0 0 8px var(--primary)' : 'none'
                 }} />
-                {c.nombreCorto}
+                {c.nombre || c.nombreCorto}
               </button>
             ))}
           </motion.div>
