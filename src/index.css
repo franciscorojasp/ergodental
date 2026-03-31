@@ -491,7 +491,7 @@ tbody td {
   position: sticky;
   top: 0;
   background: var(--bg-sidebar);
-  backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(25px);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -525,14 +525,15 @@ tbody td {
 .nav-link {
   display: flex !important;
   align-items: center !important;
-  gap: 16px !important;
-  padding: 14px 20px !important;
+  width: auto !important;
+  height: 48px !important;
+  padding: 0 20px !important;
   margin: 4px 12px !important;
-  border-radius: var(--radius-sm) !important;
+  border-radius: 12px !important;
   color: var(--text-secondary) !important;
   text-decoration: none !important;
   font-weight: 600 !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   border: 1px solid transparent !important;
   white-space: nowrap !important;
   overflow: hidden !important;
@@ -540,51 +541,41 @@ tbody td {
 }
 
 .sidebar.collapsed .nav-link {
-  padding: 14px 0 !important;
+  padding: 0 !important;
   justify-content: center !important;
-  margin: 4px 8px !important;
-  gap: 0 !important;
-}
-
-.sidebar.collapsed .nav-link span {
-  display: none !important;
+  margin: 6px 8px !important;
+  height: 44px !important;
+  width: 44px !important;
+  border-radius: 50% !important;
+  align-self: center !important;
 }
 
 .nav-link:hover {
-  background: rgba(255,255,255,0.03) !important;
+  background: rgba(255,255,255,0.04) !important;
   color: var(--text-primary) !important;
   transform: translateX(4px) !important;
 }
 
+.sidebar.collapsed .nav-link:hover {
+  transform: scale(1.1) !important;
+}
+
 .nav-link.active {
-  background: var(--active-grad) !important;
+  background: rgba(255,255,255,0.03) !important;
   color: var(--primary) !important;
   border-color: var(--border-active) !important;
-  box-shadow: 0 8px 25px rgba(0, 212, 255, 0.15) !important;
 }
 
 .nav-link.active::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 15%;
-  height: 70%;
-  width: 4px;
+  top: 20%;
+  height: 60%;
+  width: 3px;
   background: var(--primary);
   border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px var(--primary);
-}
-
-.nav-link.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 15%;
-  height: 70%;
-  width: 4px;
-  background: var(--primary);
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
 }
 
 .sidebar-footer {

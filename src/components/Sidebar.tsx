@@ -43,184 +43,122 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const isMobile = window.innerWidth <= 768;
-  const showFull = isPinned || isMobile;
+  const isMini = !isPinned && !isMobile;
+  const showFull = !isMini;
 
   return (
     <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="sidebar-overlay active" 
-            onClick={onClose}
-          />
-        )}
-      </AnimatePresence>
+      <div className={`mobile-overlay ${isOpen ? 'visible' : ''}`} onClick={onClose} />
 
-      <aside className={`sidebar ${isOpen ? 'open' : ''} ${!isPinned && !isMobile ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', minHeight: '44px', width: '100%' }}>
-            <motion.div 
-              whileHover={{ rotate: 5, scale: 1.05 }}
-              className="sidebar-logo" 
-              style={{ width: '44px', height: '44px', flexShrink: 0 }}
-            >
+      <aside className={`sidebar ${isOpen ? 'open' : ''} ${isMini ? 'collapsed' : ''}`}>
+        {/* HEADER AREA */}
+        <div className="sidebar-header" style={{ padding: isMini ? '24px 0' : '32px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMini ? 'center' : 'flex-start', gap: '15px', position: 'relative' }}>
+            <motion.div whileHover={{ scale: 1.05 }} className="sidebar-logo" style={{ width: isMini ? '38px' : '44px', height: isMini ? '38px' : '44px' }}>
               <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </motion.div>
             
-            <AnimatePresence>
-              {showFull && (
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }} 
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}
-                >
-                  <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.5px' }}>
-                    ERGODENTALVE
-                  </div>
-                  <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '3px', opacity: 0.8 }}>
-                    Professional v2.0
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showFull && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+                  ERGODENTALVE
+                </div>
+                <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '3px' }}>
+                  Professional v2.0
+                </div>
+              </motion.div>
+            )}
 
             {!isMobile && (
-              <button
-                onClick={onTogglePinned}
-                className="sidebar-toggle-btn"
-                style={{
-                  position: 'absolute', right: '-12px', top: '38px',
-                  width: '24px', height: '24px', borderRadius: '50%',
-                  background: 'var(--bg-sidebar)', border: '1px solid var(--border-active)',
-                  color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', zIndex: 100, boxShadow: 'var(--shadow-sm)', fontSize: '0.7rem'
-                }}
-              >
+              <button onClick={onTogglePinned} className="sidebar-toggle-btn">
                 {isPinned ? '◀' : '▶'}
               </button>
             )}
           </div>
 
-          <AnimatePresence>
-            {showFull && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }} 
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '15px', overflow: 'hidden' }}
-              >
-                <ClinicaBadge />
-                <CurrencyToggle />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {!isMini && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <ClinicaBadge />
+              <CurrencyToggle />
+            </motion.div>
+          )}
         </div>
 
-        <nav style={{ flex: 1, padding: '20px 0', overflowY: 'auto' }} className="custom-scrollbar">
-          {navVisible.map((item, idx) => (
+        {/* NAVIGATION AREA */}
+        <nav className="custom-scrollbar" style={{ flex: 1, padding: isMini ? '10px 0' : '16px 0', overflowY: 'auto' }}>
+          {navVisible.map((item) => (
             <NavLink 
               key={item.to} 
               to={item.to} 
               onClick={() => { if(isMobile) onClose(); }}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              title={!showFull ? item.label : ''}
-              style={{ justifyContent: showFull ? 'flex-start' : 'center' }}
+              title={isMini ? item.label : ''}
+              style={{ justifyContent: isMini ? 'center' : 'flex-start', padding: isMini ? '14px 0' : '12px 24px' }}
             >
-              <motion.span 
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: idx * 0.02 }}
-                style={{ fontSize: '1.4rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                {item.icon}
-              </motion.span>
-              <AnimatePresence>
-                {showFull && (
-                  <motion.span 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    style={{ fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'nowrap' }}
-                  >
-                    {item.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <span style={{ fontSize: '1.4rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
+              {showFull && (
+                <span style={{ fontSize: '0.925rem', fontWeight: 600, whiteSpace: 'nowrap', marginLeft: '12px' }}>{item.label}</span>
+              )}
             </NavLink>
           ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <SyncIndicator isPinned={showFull} />
+        {/* FOOTER CONSOLE */}
+        <div className="sidebar-footer" style={{ padding: isMini ? '20px 0' : '24px' }}>
+          <SyncIndicator isPinned={!isMini} />
 
           <div style={{ 
-            marginTop: '20px', padding: '12px', borderRadius: '18px',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
-            display: 'flex', flexDirection: showFull ? 'row' : 'column',
-            alignItems: 'center', gap: '12px', width: '100%', position: 'relative'
+            marginTop: '16px', 
+            padding: isMini ? '0' : '12px', 
+            borderRadius: '16px',
+            background: isMini ? 'transparent' : 'rgba(255,255,255,0.03)',
+            border: isMini ? 'none' : '1px solid var(--border)',
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center', 
+            gap: '12px',
+            width: '100%'
           }}>
-            <motion.div 
-               whileHover={{ scale: 1.1 }}
-               style={{ 
-                width: 38, height: 38, borderRadius: '12px', flexShrink: 0,
-                background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 900, color: '#fff', fontSize: '1rem',
-                boxShadow: '0 4px 15px var(--primary-glow)'
+            <motion.div whileHover={{ scale: 1.1 }} style={{ 
+              width: isMini ? '42px' : '38px', height: isMini ? '42px' : '38px', borderRadius: '12px',
+              background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 900, color: '#fff', fontSize: '1rem',
+              boxShadow: '0 4px 15px var(--primary-glow)'
             }}>
               {user?.nombre?.charAt(0) || 'U'}
             </motion.div>
             
-            <AnimatePresence>
-              {showFull && (
-                <motion.div 
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}
-                >
-                  <div style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
-                    {user?.nombre}
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
-                    {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showFull && (
+              <div style={{ textAlign: 'center', width: '100%' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user?.nombre}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
+                  {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
+                </div>
+              </div>
+            )}
 
-            <motion.button 
-              whileHover={{ scale: 1.1, color: 'var(--danger)' }}
-              onClick={handleLogout}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.25rem', padding: '4px' }}
-            >
-              ⏻
-            </motion.button>
+            <div style={{ display: 'flex', width: '100%', gap: '8px', justifyContent: 'center' }}>
+              <button 
+                onClick={toggleTheme} 
+                className="btn btn-ghost" 
+                style={{ flex: 1, height: '40px', padding: 0, borderRadius: '10px' }}
+                title="Cambiar Tema"
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="btn btn-ghost" 
+                style={{ flex: 1, height: '40px', padding: 0, borderRadius: '10px', color: 'var(--danger)' }}
+                title="Cerrar Sesión"
+              >
+                ⏻
+              </button>
+            </div>
           </div>
-
-          <motion.button 
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleTheme}
-            className="btn btn-ghost"
-            style={{ width: '100%', marginTop: '12px', height: '44px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '1px solid var(--border-light)' }}
-          >
-            <span style={{ fontSize: '1.1rem' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
-            <AnimatePresence>
-              {showFull && (
-                <motion.span 
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  style={{ fontSize: '0.75rem', fontWeight: 800, marginLeft: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}
-                >
-                  {theme === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
         </div>
       </aside>
     </>
