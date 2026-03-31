@@ -84,30 +84,23 @@ export default function Dashboard() {
   return (
     <div className="animate-fade-in">
       {/* Header Level World-Class */}
-      <div className="page-header">
-        <div>
-          <h1>Resumen Ejecutivo</h1>
-          <p className="text-muted" style={{ marginTop: '4px' }}>
-            <span style={{ color: 'var(--success)', marginRight: '6px' }}>●</span>
-            Sistema en Línea · <span style={{ fontWeight: 700 }}>{new Date().toLocaleDateString('es-VE', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</span>
-          </p>
-        </div>
-        <div className="action-grid">
-          <div style={{ position: 'relative', width: '100%' }}>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Resumen</h1>
+        <div className="action-grid mobile-scroll">
+          <div style={{ position: 'relative', width: isMobile ? '120px' : '200px' }}>
              <select
-              className="input"
+              className="input input-sm"
               value={periodo}
               onChange={e => setPeriodo(e.target.value as Periodo)}
-              style={{ width: '100%', padding:'10px 40px 10px 16px', fontSize:'0.88rem', appearance: 'none', background: 'rgba(255,255,255,0.05)' }}
+              style={{ width: '100%', appearance: 'none' }}
             >
               {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
-            <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5 }}>▼</div>
+            <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5, fontSize:'0.7rem' }}>▼</div>
           </div>
           
-          <button className="btn btn-primary" onClick={generarPDF}>
-            <span style={{ fontSize: '1.2rem' }}>📄</span>
-            <span>Reporte PDF</span>
+          <button className="btn btn-primary btn-sm" onClick={generarPDF}>
+            <span>📄 Reporte</span>
           </button>
         </div>
       </div>

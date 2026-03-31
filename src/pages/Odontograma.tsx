@@ -134,19 +134,16 @@ export default function Odontograma() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-      <div className="page-header">
-        <div>
-          <h1>Odontograma</h1>
-          <p>Mapa clínico dental interactivo</p>
-        </div>
-        <div className="action-grid">
-          <select className="input" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: '280px' }}>
-            <option value="">Seleccionar paciente...</option>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Odon<span>t</span></h1>
+        <div className="action-grid mobile-scroll">
+          <select className="input input-sm" value={pacienteId} onChange={e => setPacienteId(e.target.value)} style={{ width: isMobile ? '160px' : '220px' }}>
+            <option value="">Paciente...</option>
             {pacientes.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre} {p.apellido} - {p.cedula}</option>
+              <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
             ))}
           </select>
-          <button className="btn btn-ghost btn-sm" onClick={() => confirm('¿Reiniciar mapa?') && setPiezas(initPiezas())} title="Reiniciar Odontograma">↺ Limpiar</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => confirm('¿Reiniciar?') && setPiezas(initPiezas())}>↺ Limpiar</button>
         </div>
       </div>
 
@@ -160,27 +157,21 @@ export default function Odontograma() {
         <>
           {loading && <div style={{ marginBottom: 20, color: 'var(--primary)', textAlign:'center' }}>Cargando datos históricos...</div>}
           
-          <div className="filter-glass">
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', width: '100%', marginBottom: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Herramienta Activa</div>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(130px, 1fr))' : 'repeat(auto-fit, minmax(110px, 1fr))', 
-              gap: '8px',
-              width: '100%'
-            }}>
-              {ESTADOS.map(e => (
-                <button key={e.key} onClick={() => setHerramienta(e.key)} className={`btn btn-sm ${herramienta === e.key ? 'btn-primary' : 'btn-ghost'}`}
-                  style={{ 
-                    justifyContent: 'center',
-                    padding: '12px 8px',
-                    borderColor: herramienta === e.key ? e.color : 'var(--border)',
-                    boxShadow: herramienta === e.key ? `0 0 15px ${e.color}44` : 'none'
-                  }}>
-                  <span style={{ fontSize: '1.2rem' }}>{e.emoji}</span>
-                  <span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>{e.label}</span>
-                </button>
-              ))}
-            </div>
+          <div className="filter-grid mobile-scroll" style={{ padding:'8px 12px', marginBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
+            {ESTADOS.map(e => (
+              <button key={e.key} onClick={() => setHerramienta(e.key)} 
+                className={`btn btn-sm ${herramienta === e.key ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ 
+                  justifyContent: 'center',
+                  padding: '6px 12px',
+                  borderColor: herramienta === e.key ? e.color : 'var(--border)',
+                  borderRadius: '10px',
+                  minWidth: '100px'
+                }}>
+                <span>{e.emoji}</span>
+                <span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>{e.label}</span>
+              </button>
+            ))}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '20px' }}>

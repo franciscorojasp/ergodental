@@ -73,54 +73,43 @@ export default function Agenda() {
 
   return (
     <div className="agenda-container" style={{ animation: 'fadeIn 0.5s ease' }}>
-      <div className="page-header" style={{ marginBottom: isMobile ? '12px' : '48px', paddingBottom: isMobile ? '16px' : '32px' }}>
-        <div>
-          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2.8rem' }}>Agenda Visual</h1>
-          {!isMobile && <p>Planificación semanal de citas — {clinica.nombreCorto}</p>}
-        </div>
-        <div className="action-grid" style={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'row' : 'row', 
-          flexWrap: isMobile ? 'wrap' : 'nowrap',
-          gap: isMobile ? '8px' : '16px',
-          width: isMobile ? '100%' : 'auto'
-        }}>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Agenda</h1>
+        <div className="action-grid mobile-scroll">
           <select 
-            className="input" 
-            style={{ flex: isMobile ? '1 1 100%' : '0 0 220px', height: isMobile ? '44px' : '52px' }}
+            className="input input-sm" 
+            style={{ width: isMobile ? '160px' : '220px' }}
             value={doctorId}
             onChange={e => setDoctorId(e.target.value)}
           >
-            <option value="Todos">Todos los Doctores</option>
+            <option value="Todos">Doctores (Todos)</option>
             {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
           </select>
           <div className="filter-grid" style={{ 
-            width: isMobile ? '1fr' : 'auto', 
-            flex: isMobile ? '1' : 'none',
-            gap: '4px',
             background: 'rgba(255,255,255,0.03)',
-            borderRadius: '12px',
-            padding: '2px 8px'
+            borderRadius: '8px',
+            padding: '2px 4px',
+            margin: 0
           }}>
-            <button className="btn btn-ghost btn-sm" style={{ minWidth:'40px', padding:0 }} onClick={() => navWeek(-1)}>◀</button>
-            <div style={{ fontWeight: 800, fontSize: isMobile ? '0.75rem' : '0.9rem', minWidth: isMobile ? '60px' : '100px', textAlign: 'center', whiteSpace:'nowrap' }}>
+            <button className="btn btn-ghost btn-sm" style={{ padding:0, width:32 }} onClick={() => navWeek(-1)}>◀</button>
+            <div style={{ fontWeight: 800, fontSize: '0.75rem', minWidth: '60px', textAlign: 'center' }}>
               {isMobile ? weekDates[selectedDayIdx].toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }) : `${weekDates[0].getDate()}/${weekDates[0].getMonth()+1} - ${weekDates[6].getDate()}/${weekDates[6].getMonth()+1}`}
             </div>
-            <button className="btn btn-ghost btn-sm" style={{ minWidth:'40px', padding:0 }} onClick={() => navWeek(1)}>▶</button>
+            <button className="btn btn-ghost btn-sm" style={{ padding:0, width:32 }} onClick={() => navWeek(1)}>▶</button>
           </div>
-          <button className="btn btn-primary btn-sm" style={{ flex: isMobile ? 'none' : 'none', minWidth: isMobile ? '60px' : 'auto' }} onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
         </div>
       </div>
 
       {isMobile && (
-        <div className="filter-glass" style={{ padding:'8px', marginBottom: '12px', justifyContent:'center' }}>
-          <div className="filter-grid" style={{ width:'100%', justifyContent:'space-between' }}>
-            {DAYS.map((d, i) => (
-              <button key={d} onClick={() => setSelectedDayIdx(i)} className={`btn btn-sm ${selectedDayIdx === i ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1, padding: '8px 4px', fontSize:'0.75rem' }}>
-                {d.substring(0, 3)}
-              </button>
-            ))}
-          </div>
+        <div className="filter-grid mobile-scroll" style={{ padding:'4px 8px', marginBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
+          {DAYS.map((d, i) => (
+            <button key={d} onClick={() => setSelectedDayIdx(i)} 
+              className={`btn btn-sm ${selectedDayIdx === i ? 'btn-primary' : 'btn-ghost'}`} 
+              style={{ flex: 1, padding: '6px 0', minWidth: '42px', fontSize:'0.7rem', borderRadius:'6px' }}>
+              {d.substring(0, 3)}
+            </button>
+          ))}
         </div>
       )}
 

@@ -186,17 +186,11 @@ export default function Pacientes() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>Pacientes</h1>
-          <p>
-            <span className="badge badge-primary" style={{ fontSize:'0.7rem' }}>{clinica.nombreCorto}</span>
-            <span style={{ fontSize:'0.85rem', color:'var(--text-secondary)', marginLeft:'8px' }}>{pacientes.length} pacientes registrados</span>
-          </p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Pacientes</h1>
         <div className="action-grid">
           <RoleGuard modulo="pacientes" accion="crear">
-            <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Paciente</button>
+            <button className="btn btn-primary btn-sm" onClick={() => setModal(true)}>+ Nuevo</button>
           </RoleGuard>
         </div>
       </div>

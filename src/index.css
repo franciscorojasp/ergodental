@@ -853,38 +853,69 @@ tbody td {
 
   .text-right { text-align: left !important; } 
 
-  .action-grid { 
-    width: 100%; 
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 12px !important;
-    margin-top: 16px; 
-  }
-
   .page-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     gap: 12px !important;
-    margin-bottom: 16px !important;
-    padding-bottom: 16px !important;
+    padding: 12px 16px !important;
+    margin-bottom: 8px !important;
     width: 100% !important;
+    flex-wrap: nowrap !important;
+    border-bottom: 1px solid var(--border-light);
   }
 
-  .page-header > div {
-    width: 100% !important;
-    max-width: 100% !important;
+  .page-header > div:first-child {
+    flex: 1;
+    min-width: 0;
   }
 
   .page-header h1 {
-    font-size: 1.8rem !important;
-    line-height: 1 !important;
-    margin-bottom: 4px !important;
-    white-space: normal !important;
-    letter-spacing: -1.2px !important;
+    font-size: 1.4rem !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.8px !important;
   }
 
   .page-header .text-muted, .page-header p {
-    display: none !important; /* RECLAIM SPACE */
+    display: none !important;
+  }
+
+  .action-grid { 
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    margin-top: 0 !important;
+    justify-content: flex-end;
+  }
+
+  .page-content { padding: 8px 12px !important; }
+
+  /* High-density Scrollable Filter Ribbons */
+  .filter-grid, .filter-glass, .action-grid.mobile-scroll {
+    padding: 8px !important;
+    margin-bottom: 12px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 8px !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    mask-image: linear-gradient(to right, black 90%, transparent 100%);
+  }
+  .filter-grid::-webkit-scrollbar, .filter-glass::-webkit-scrollbar { display: none; }
+  .filter-grid > *, .filter-glass > * { flex: 0 0 auto !important; }
+
+  .btn {
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+    height: 38px !important;
+    min-width: unset !important;
   }
 
   /* Tasa Dashboard Mobile Optimization */

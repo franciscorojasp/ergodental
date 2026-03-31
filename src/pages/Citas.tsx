@@ -62,17 +62,11 @@ export default function Citas() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1>Citas</h1>
-          <p style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-            <span className="badge badge-primary" style={{ fontSize:'0.7rem' }}>{clinica.nombreCorto}</span>
-            {filtradas.length} citas encontradas
-          </p>
-        </div>
+      <div className="page-header condensed">
+        <h1 className="is-mobile-inline">Citas</h1>
         <div className="action-grid">
           <RoleGuard modulo="citas" accion="crear">
-            <button className="btn btn-primary" onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva Cita</button>
+            <button className="btn btn-primary btn-sm" onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva</button>
           </RoleGuard>
         </div>
       </div>
