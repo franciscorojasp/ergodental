@@ -52,9 +52,11 @@
   --glass-blur:     30px;
   --transition:     0.5s cubic-bezier(0.16, 1, 0.3, 1); 
   
-  /* Estados Activos (Surgical contrast) */
+  /* Estados Activos y Capas (Surgical) */
   --active-bg:      var(--primary);
   --active-text:    #000000;
+  --active-grad:    linear-gradient(135deg, var(--primary-dim), rgba(0, 0, 0, 0.2));
+  --modal-overlay:  rgba(2, 4, 12, 0.85);
 }
 
 .light-mode {
@@ -75,9 +77,11 @@
   --shadow-lg:      0 10px 30px rgba(15, 23, 42, 0.05);
   --shadow-sm:      0 4px 12px rgba(15, 23, 42, 0.03);
   
-  /* Estados Activos (Surgical contrast) */
+  /* Estados Activos y Capas (Surgical) */
   --active-bg:      var(--primary);
   --active-text:    #000000;
+  --active-grad:    linear-gradient(135deg, var(--primary-dim), rgba(0, 212, 255, 0.05));
+  --modal-overlay:  rgba(15, 23, 42, 0.4);
 }
 
 .light-mode .stat-value,
@@ -94,13 +98,17 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
-.light-mode .modal-overlay {
-  background: rgba(15, 23, 42, 0.4);
-}
-
 .light-mode .modal {
   background: #ffffff;
   box-shadow: 0 50px 100px -20px rgba(15, 23, 42, 0.2);
+}
+
+.light-mode thead th {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-mode tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
 }
 
 /* ── Reset y Estructura ──────────────────── */
@@ -333,12 +341,12 @@ body::before {
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
-  background: rgba(4, 6, 16, 0.6);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 thead th {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
   padding: 24px;
   font-weight: 800;
   font-size: 0.7rem;
@@ -418,7 +426,7 @@ tbody td { padding: 20px 24px; font-weight: 500; font-size: 0.95rem; }
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, var(--primary-dim), rgba(0,0,0,0.2));
+  background: var(--active-grad);
   color: var(--primary);
   border-color: var(--border-active);
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
@@ -428,7 +436,7 @@ tbody td { padding: 20px 24px; font-weight: 500; font-size: 0.95rem; }
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2, 4, 12, 0.85);
+  background: var(--modal-overlay);
   backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
@@ -440,7 +448,7 @@ tbody td { padding: 20px 24px; font-weight: 500; font-size: 0.95rem; }
 .modal {
   width: 100%;
   max-width: 640px;
-  background: linear-gradient(165deg, #0f172a 0%, #040610 100%);
+  background: var(--bg-modal);
   border: 1px solid var(--border-active);
   border-radius: 32px;
   box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.9);
@@ -480,7 +488,7 @@ tbody td { padding: 20px 24px; font-weight: 500; font-size: 0.95rem; }
   display: flex;
   justify-content: flex-end;
   gap: 16px;
-  background: rgba(0,0,0,0.2);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 /* ── Cabecera de Página Pro ───────────────────── */
