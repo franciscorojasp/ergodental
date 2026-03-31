@@ -380,8 +380,17 @@ export default function Finanzas(){
       {tab==='ingresos'&&(
         <motion.div className="glass" initial={{opacity:0}} animate={{opacity:1}}>
           <div className="table-wrap">
-            <table>
-              <thead><tr><th>Fecha</th><th className="col-expand">Paciente</th><th>Doctor</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Referencia</th><th>Estado</th><th></th></tr></thead>
+            <table className="table-fixed">
+              <thead><tr>
+                <th style={{ width: '10%' }}>Fecha</th>
+                <th className="col-expand" style={{ width: '22%' }}>Paciente</th>
+                <th style={{ width: '18%' }}>Doctor</th>
+                <th style={{ width: '15%' }}>Concepto</th>
+                <th style={{ width: '10%' }}>Monto</th>
+                <th style={{ width: '10%' }}>Método</th>
+                <th style={{ width: '10%' }}>Estado</th>
+                <th style={{ width: '5%' }}></th>
+              </tr></thead>
               <tbody>
                 {pagos.map(p=>(
                   <>
@@ -427,8 +436,16 @@ export default function Finanzas(){
       {tab==='egresos'&&(
         <motion.div className="glass" initial={{opacity:0}} animate={{opacity:1}}>
           <div className="table-wrap">
-            <table>
-              <thead><tr><th>Fecha</th><th className="col-expand">Concepto</th><th>Categoría</th><th>Monto USD</th><th>Monto Bs</th><th>Método</th><th>Proveedor</th></tr></thead>
+            <table className="table-fixed">
+              <thead><tr>
+                <th style={{ width: '10%' }}>Fecha</th>
+                <th className="col-expand" style={{ width: '25%' }}>Concepto</th>
+                <th style={{ width: '15%' }}>Categoría</th>
+                <th style={{ width: '12%' }}>Monto USD</th>
+                <th style={{ width: '12%' }}>Monto Bs</th>
+                <th style={{ width: '13%' }}>Método</th>
+                <th style={{ width: '13%' }}>Proveedor</th>
+              </tr></thead>
               <tbody>
                 {egresos.map(e=>(
                   <tr key={e.id}>
@@ -636,13 +653,14 @@ export default function Finanzas(){
           <div className="glass" style={{padding:'20px',marginBottom:'18px'}}>
             <h3 style={{fontWeight:800,marginBottom:'14px'}}>📋 Tabla Referencias y Porcentajes</h3>
             <div className="table-wrap">
-              <table>
+              <table className="table-fixed">
                 <thead>
                   <tr>
-                    <th className="col-expand">Referido por</th><th>Descripción</th>
-                    <th style={{color:'var(--primary)'}}>% Clínica</th>
-                    <th style={{color:'var(--warning)'}}>% Foráneo</th>
-                    <th style={{color:'var(--success)'}}>% Profesional</th>
+                    <th className="col-expand" style={{ width: '30%' }}>Referido por</th>
+                    <th style={{ width: '40%' }}>Descripción</th>
+                    <th style={{ color:'var(--primary)', width: '10%' }}>% Clínica</th>
+                    <th style={{ color:'var(--warning)', width: '10%' }}>% Foráneo</th>
+                    <th style={{ color:'var(--success)', width: '10%' }}>% Prof.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -666,8 +684,14 @@ export default function Finanzas(){
               <div style={{color:'var(--text-muted)',textAlign:'center',padding:'30px'}}>Sin comisiones foráneas en este periodo</div>
             ):(
               <div className="table-wrap">
-                <table>
-                  <thead><tr><th className="col-expand">Referidor</th><th>Tipo</th><th># Pagos</th><th>Total generado</th><th>Comisión a pagar</th></tr></thead>
+                <table className="table-fixed">
+                  <thead><tr>
+                    <th className="col-expand" style={{ width: '30%' }}>Referidor</th>
+                    <th style={{ width: '20%' }}>Tipo</th>
+                    <th style={{ width: '10%' }}># Pagos</th>
+                    <th style={{ width: '20%' }}>Total generado</th>
+                    <th style={{ width: '20%' }}>Comisión</th>
+                  </tr></thead>
                   <tbody>
                     {Object.values(comisionesData.porRef).map(r=>(
                       <tr key={r.nombre}>

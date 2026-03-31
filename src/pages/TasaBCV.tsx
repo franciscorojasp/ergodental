@@ -156,8 +156,13 @@ export default function TasaBCV() {
           </div>
         ) : (
           <div className="table-wrap">
-            <table>
-              <thead><tr><th className="col-expand">Fecha</th><th>Tasa (Bs/$1 USD)</th><th>Fuente</th><th>Variación vs día anterior</th></tr></thead>
+            <table className="table-fixed">
+              <thead><tr>
+                <th className="col-expand" style={{ width: '35%' }}>Fecha</th>
+                <th style={{ width: '25%' }}>Tasa (Bs/$1 USD)</th>
+                <th style={{ width: '15%' }}>Fuente</th>
+                <th style={{ width: '25%', textAlign: 'right' }}>Variación vs día anterior</th>
+              </tr></thead>
               <tbody>
                 {histFiltrado.map((item, i) => {
                   const prev = histFiltrado[i + 1];

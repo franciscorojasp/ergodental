@@ -216,9 +216,14 @@ export default function Pacientes() {
 
       <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
         <div className="table-wrap">
-          <table>
+          <table className="table-fixed">
             <thead><tr>
-              <th className="col-expand">Paciente</th><th>Cédula</th><th>Edad</th><th>Teléfono</th><th>Referido por</th><th>Acciones</th>
+              <th className="col-expand" style={{ width: '30%' }}>Paciente</th>
+              <th style={{ width: '15%' }}>Cédula</th>
+              <th style={{ width: '10%' }}>Edad</th>
+              <th style={{ width: '15%' }}>Teléfono</th>
+              <th style={{ width: '15%' }}>Referido por</th>
+              <th style={{ width: '15%', textAlign: 'right' }}>Acciones</th>
             </tr></thead>
             <tbody>
               {filtrado.map((p, i) => {

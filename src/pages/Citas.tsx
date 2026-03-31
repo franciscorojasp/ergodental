@@ -89,9 +89,14 @@ export default function Citas() {
 
       <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
         <div className="table-wrap">
-          <table>
+          <table className="table-fixed">
             <thead><tr>
-              <th>Fecha/Hora</th><th className="col-expand">Paciente</th><th>Doctor</th><th>Motivo</th><th>Estado</th><th>Acciones</th>
+              <th style={{ width: '15%' }}>Fecha/Hora</th>
+              <th className="col-expand" style={{ width: '25%' }}>Paciente</th>
+              <th style={{ width: '20%' }}>Doctor</th>
+              <th style={{ width: '20%' }}>Motivo</th>
+              <th style={{ width: '10%' }}>Estado</th>
+              <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
             </tr></thead>
             <tbody>
               {filtradas.map((c, i) => (

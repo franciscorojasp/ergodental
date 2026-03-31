@@ -81,9 +81,17 @@ export default function Proveedores() {
       {/* Tabla */}
       <motion.div className="glass" initial={{ opacity:0 }} animate={{ opacity:1 }}>
         <div className="table-wrap">
-          <table>
+          <table className="table-fixed">
             <thead>
-              <tr><th className="col-expand">Proveedor</th><th>Tipo</th><th>RIF</th><th className="col-expand">Contacto</th><th>Teléfono</th><th>Email</th><th>Estado</th></tr>
+              <tr>
+                <th className="col-expand" style={{ width: '25%' }}>Proveedor</th>
+                <th style={{ width: '10%' }}>Tipo</th>
+                <th style={{ width: '10%' }}>RIF</th>
+                <th className="col-expand" style={{ width: '20%' }}>Contacto</th>
+                <th style={{ width: '15%' }}>Teléfono</th>
+                <th style={{ width: '10%' }}>Email</th>
+                <th style={{ width: '10%', textAlign: 'right' }}>Estado</th>
+              </tr>
             </thead>
             <tbody>
               {filtrado.map((p, i) => (

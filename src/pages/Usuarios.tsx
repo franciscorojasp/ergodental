@@ -93,14 +93,14 @@ export default function Usuarios() {
         <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-secondary)' }}>Cargando perfiles...</div>
       ) : (
         <div className="glass table-wrap animate-fade-in">
-          <table>
+          <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Usuario</th>
-                <th className="col-expand">Correo</th>
-                <th>Rol Asignado</th>
-                <th>Estado</th>
-                <th style={{ textAlign: 'right' }}>Acciones</th>
+                <th className="col-expand" style={{ width: '25%' }}>Usuario</th>
+                <th className="col-expand" style={{ width: '35%' }}>Correo</th>
+                <th style={{ width: '20%' }}>Rol Asignado</th>
+                <th style={{ width: '10%' }}>Estado</th>
+                <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>

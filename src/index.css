@@ -398,6 +398,16 @@ tbody td {
 
 .col-expand { width: 100%; }
 
+.table-fixed {
+  table-layout: fixed !important;
+}
+
+.table-fixed td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .table-empty {
   text-align: center;
   padding: 60px !important;

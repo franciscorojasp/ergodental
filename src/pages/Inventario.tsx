@@ -95,16 +95,16 @@ export default function Inventario() {
       {/* Tabla */}
       <motion.div className="glass" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="table-wrap">
-          <table>
+          <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Producto</th>
-                <th>Categoría</th>
-                <th>Unidad</th>
-                <th>Stock actual</th>
-                <th>Stock mín.</th>
-                <th>Precio ({moneda})</th>
-                <th>Estado</th>
+                <th className="col-expand" style={{ width: '30%' }}>Producto</th>
+                <th style={{ width: '15%' }}>Categoría</th>
+                <th style={{ width: '10%' }}>Unidad</th>
+                <th style={{ width: '15%' }}>Stock actual</th>
+                <th style={{ width: '10%' }}>Stock mín.</th>
+                <th style={{ width: '10%' }}>Precio ({moneda})</th>
+                <th style={{ width: '10%', textAlign: 'right' }}>Estado</th>
               </tr>
             </thead>
             <tbody>

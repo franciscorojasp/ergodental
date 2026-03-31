@@ -70,17 +70,17 @@ export default function Laboratorios() {
 
       <div className="glass" style={{ padding: '0', overflow: 'hidden' }}>
         <div className="table-wrap">
-          <table>
+          <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand">Paciente</th>
-                <th className="col-expand">Trabajo / Prótesis</th>
-                <th>Laboratorio</th>
-                <th>Envío</th>
-                <th>Entrega Est.</th>
-                <th>Estado</th>
-                <th>Costo</th>
-                <th>Acciones</th>
+                <th className="col-expand" style={{ width: '18%' }}>Paciente</th>
+                <th className="col-expand" style={{ width: '18%' }}>Trabajo / Prótesis</th>
+                <th style={{ width: '15%' }}>Laboratorio</th>
+                <th style={{ width: '10%' }}>Envío</th>
+                <th style={{ width: '12%' }}>Entrega Est.</th>
+                <th style={{ width: '10%' }}>Estado</th>
+                <th style={{ width: '7%' }}>Costo</th>
+                <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
