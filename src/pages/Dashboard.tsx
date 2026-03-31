@@ -85,7 +85,7 @@ export default function Dashboard() {
       {/* Header Level World-Class */}
       <div className="page-header">
         <div>
-          <h1 style={{ marginBottom: '8px' }}>Executive Dashboard</h1>
+          <h1 style={{ marginBottom: '8px' }}>Resumen Ejecutivo</h1>
           <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ color: 'var(--primary)' }}>●</span>
             Sistema en Línea · <span style={{ fontWeight: 700 }}>{new Date().toLocaleDateString('es-VE', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</span>

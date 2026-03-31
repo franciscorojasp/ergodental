@@ -180,7 +180,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             style={{ width: '100%', marginTop: '12px', minHeight: '44px', padding: '0 12px', justifyContent: isPinned ? 'flex-start' : 'center' }}
           >
             {theme === 'dark' ? '☀️' : '🌙'}
-            {isPinned && <span style={{ fontSize: '0.85rem', fontWeight: 700, marginLeft: '10px' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+            {isPinned && <span style={{ fontSize: '0.85rem', fontWeight: 700, marginLeft: '10px' }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>}
           </button>
         </div>
       </motion.aside>

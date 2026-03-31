@@ -51,15 +51,41 @@
 
 .light-mode {
   --bg-dark:        #f8fafc;
-  --bg-card:        rgba(255, 255, 255, 0.85);
+  --bg-card:        rgba(255, 255, 255, 0.9);
   --bg-card-hover:  #ffffff;
   --bg-sidebar:     #ffffff;
   --bg-modal:       #ffffff;
   --border:         rgba(0, 0, 0, 0.08);
+  --border-light:   rgba(0, 0, 0, 0.04);
   --text-primary:   #0f172a;
-  --text-secondary: #64748b;
+  --text-secondary: #475569;
   --text-muted:     #94a3b8;
+  --primary-dim:    rgba(0, 212, 255, 0.1);
+  --accent-dim:     rgba(139, 92, 246, 0.1);
   --shadow-lg:      0 20px 50px rgba(15, 23, 42, 0.08);
+  --shadow-sm:      0 8px 30px rgba(15, 23, 42, 0.04);
+}
+
+.light-mode .stat-value {
+  background: linear-gradient(to bottom, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.light-mode .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+.light-mode .modal-overlay {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.light-mode .modal {
+  background: #ffffff;
+  box-shadow: 0 50px 100px -20px rgba(15, 23, 42, 0.2);
 }
 
 /* ── Reset y Estructura ──────────────────── */

@@ -77,7 +77,7 @@ export default function SyncIndicator({ isPinned }: { isPinned: boolean }) {
               letterSpacing: '1.2px',
               opacity: online ? 1 : 0.6
             }}>
-              {IS_DEMO_MODE ? 'Local Mode' : (online ? 'Live System' : 'System Offline')}
+              {IS_DEMO_MODE ? 'Modo Local' : (online ? 'Sistema en Línea' : 'Sistema Offline')}
             </span>
           )}
         </div>
