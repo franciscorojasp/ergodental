@@ -73,29 +73,42 @@ export default function Agenda() {
 
   return (
     <div className="agenda-container" style={{ animation: 'fadeIn 0.5s ease' }}>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: isMobile ? '12px' : '48px', paddingBottom: isMobile ? '16px' : '32px' }}>
         <div>
-          <h1>Agenda Visual</h1>
-          <p>Planificación semanal de citas — {clinica.nombreCorto}</p>
+          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2.8rem' }}>Agenda Visual</h1>
+          {!isMobile && <p>Planificación semanal de citas — {clinica.nombreCorto}</p>}
         </div>
-        <div className="action-grid">
+        <div className="action-grid" style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'row' : 'row', 
+          flexWrap: isMobile ? 'wrap' : 'nowrap',
+          gap: isMobile ? '8px' : '16px',
+          width: isMobile ? '100%' : 'auto'
+        }}>
           <select 
             className="input" 
-            style={{ width: '220px' }}
+            style={{ flex: isMobile ? '1 1 100%' : '0 0 220px', height: isMobile ? '44px' : '52px' }}
             value={doctorId}
             onChange={e => setDoctorId(e.target.value)}
           >
             <option value="Todos">Todos los Doctores</option>
             {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
           </select>
-          <div className="filter-grid" style={{ width:'auto' }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => navWeek(-1)}>◀</button>
-            <div style={{ fontWeight: 800, fontSize: '0.9rem', minWidth: '100px', textAlign: 'center', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div className="filter-grid" style={{ 
+            width: isMobile ? '1fr' : 'auto', 
+            flex: isMobile ? '1' : 'none',
+            gap: '4px',
+            background: 'rgba(255,255,255,0.03)',
+            borderRadius: '12px',
+            padding: '2px 8px'
+          }}>
+            <button className="btn btn-ghost btn-sm" style={{ minWidth:'40px', padding:0 }} onClick={() => navWeek(-1)}>◀</button>
+            <div style={{ fontWeight: 800, fontSize: isMobile ? '0.75rem' : '0.9rem', minWidth: isMobile ? '60px' : '100px', textAlign: 'center', whiteSpace:'nowrap' }}>
               {isMobile ? weekDates[selectedDayIdx].toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }) : `${weekDates[0].getDate()}/${weekDates[0].getMonth()+1} - ${weekDates[6].getDate()}/${weekDates[6].getMonth()+1}`}
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => navWeek(1)}>▶</button>
+            <button className="btn btn-ghost btn-sm" style={{ minWidth:'40px', padding:0 }} onClick={() => navWeek(1)}>▶</button>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
+          <button className="btn btn-primary btn-sm" style={{ flex: isMobile ? 'none' : 'none', minWidth: isMobile ? '60px' : 'auto' }} onClick={() => { setCurrentWeekStart(new Date()); setSelectedDayIdx(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1); }}>Hoy</button>
         </div>
       </div>
 

@@ -792,7 +792,7 @@ tbody td {
 
 @media (max-width: 768px) {
   .mobile-header { display: flex; }
-  .page-content { padding: 12px 16px 40px; }
+  .page-content { padding: 8px 12px 32px; }
   
   /* SUPREME TABLE-TO-CARD ENGINE */
   .table-wrap { overflow: visible !important; border:none; background:none; }
@@ -858,15 +858,15 @@ tbody td {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 12px !important;
-    margin-top: 20px; 
+    margin-top: 16px; 
   }
 
   .page-header {
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 16px !important;
-    margin-bottom: 32px !important;
-    padding-bottom: 24px !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 16px !important;
     width: 100% !important;
   }
 
@@ -876,18 +876,15 @@ tbody td {
   }
 
   .page-header h1 {
-    font-size: 2.2rem !important;
+    font-size: 1.8rem !important;
     line-height: 1 !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 4px !important;
     white-space: normal !important;
-    letter-spacing: -1.5px !important;
+    letter-spacing: -1.2px !important;
   }
 
   .page-header .text-muted, .page-header p {
-    font-size: 0.85rem !important;
-    width: 100% !important;
-    display: block !important;
-    opacity: 0.8;
+    display: none !important; /* RECLAIM SPACE */
   }
 
   /* Tasa Dashboard Mobile Optimization */
