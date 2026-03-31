@@ -85,19 +85,19 @@ export default function Dashboard() {
       {/* Header Level World-Class */}
       <div className="page-header">
         <div>
-          <h1 style={{ marginBottom: '8px' }}>Resumen Ejecutivo</h1>
-          <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--primary)' }}>●</span>
+          <h1>Resumen Ejecutivo</h1>
+          <p className="text-muted" style={{ marginTop: '4px' }}>
+            <span style={{ color: 'var(--success)', marginRight: '6px' }}>●</span>
             Sistema en Línea · <span style={{ fontWeight: 700 }}>{new Date().toLocaleDateString('es-VE', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}</span>
           </p>
         </div>
         <div className="action-grid">
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', width: '100%' }}>
              <select
               className="input"
               value={periodo}
               onChange={e => setPeriodo(e.target.value as Periodo)}
-              style={{ padding:'10px 40px 10px 16px', fontSize:'0.88rem', minWidth:'160px', appearance: 'none', background: 'rgba(255,255,255,0.05)' }}
+              style={{ width: '100%', padding:'10px 40px 10px 16px', fontSize:'0.88rem', appearance: 'none', background: 'rgba(255,255,255,0.05)' }}
             >
               {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>

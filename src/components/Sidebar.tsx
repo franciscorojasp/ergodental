@@ -42,8 +42,14 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
   const navVisible = NAV.filter(item => canAccess(user?.rol, item.modulo));
   const handleLogout = () => { logout(); navigate('/login'); };
 
+  // On mobile (window width < 768), we always show full content if the sidebar is "open"
+  // but we ignore the "pinned" animation logic to prevent layout glitches.
+  const isMobile = window.innerWidth <= 768;
+  const showFull = isPinned || isMobile;
+
   return (
     <>
+      {/* Mobile Backdrop - Simple & Reliable */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -56,51 +62,34 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
         )}
       </AnimatePresence>
 
-      <aside className={`sidebar ${isOpen ? 'open' : ''} ${!isPinned ? 'collapsed' : ''}`}>
-        {/* Header Arquitectónico Consolidado */}
+      <aside className={`sidebar ${isOpen ? 'open' : ''} ${!isPinned && !isMobile ? 'collapsed' : ''}`}>
+        {/* Header: Solid & Non-Glitchy */}
         <div className="sidebar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <motion.div 
-              whileHover={{ rotate: 5, scale: 1.05 }}
-              className="sidebar-logo"
-              style={{ width: isPinned ? '44px' : '40px', height: isPinned ? '44px' : '40px' }}
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minHeight: '44px' }}>
+            <div className="sidebar-logo" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
               <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </motion.div>
+            </div>
             
-            {isPinned && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                <div style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '-0.3px', color: 'var(--text-primary)', lineHeight: 1 }}>
+            {showFull && (
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--text-primary)', lineHeight: 1.1 }}>
                   ERGODENTALVE
                 </div>
                 <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '2px' }}>
                   Professional v2.0
                 </div>
-              </motion.div>
+              </div>
             )}
 
-            {/* Toggle Button: Alineación Estructural */}
-            {window.innerWidth > 768 && (
+            {!isMobile && (
               <button
                 onClick={onTogglePinned}
                 style={{
-                  position: 'absolute',
-                  right: '-12px',
-                  top: '38px',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: 'var(--bg-sidebar)',
-                  border: '1px solid var(--border-active)',
-                  color: 'var(--primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  zIndex: 100,
-                  boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-                  fontSize: '0.7rem',
-                  padding: 0
+                  position: 'absolute', right: '-12px', top: '38px',
+                  width: '24px', height: '24px', borderRadius: '50%',
+                  background: 'var(--bg-sidebar)', border: '1px solid var(--border-active)',
+                  color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', zIndex: 100, boxShadow: 'var(--shadow-sm)', fontSize: '0.7rem'
                 }}
               >
                 {isPinned ? '◀' : '▶'}
@@ -108,76 +97,53 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             )}
           </div>
 
-          <AnimatePresence>
-            {isPinned && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginTop: '20px' }}>
-                <ClinicaBadge />
-                <div style={{ marginTop: '12px' }}>
-                  <CurrencyToggle />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {showFull && (
+            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <ClinicaBadge />
+              <CurrencyToggle />
+            </div>
+          )}
         </div>
 
-        {/* Navegación Refinada (Estilos controlados por CSS) */}
+        {/* Navigation */}
         <nav style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }} className="custom-scrollbar">
-          {navVisible.map((item, idx) => (
+          {navVisible.map((item) => (
             <NavLink 
               key={item.to} 
               to={item.to} 
-              onClick={() => { if(window.innerWidth <= 768) onClose(); }}
+              onClick={() => { if(isMobile) onClose(); }}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              title={!isPinned ? item.label : ''}
+              title={!showFull ? item.label : ''}
+              style={{ justifyContent: showFull ? 'flex-start' : 'center' }}
             >
-              <motion.span 
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: idx * 0.01 }}
-                style={{ fontSize: '1.4rem', flexShrink: 0 }}
-              >
-                {item.icon}
-              </motion.span>
-              {isPinned && (
-                <motion.span 
-                  initial={{ opacity: 0, x: -5 }} 
-                  animate={{ opacity: 1, x: 0 }}
-                  style={{ fontSize: '0.9rem', fontWeight: 600 }}
-                >
-                  {item.label}
-                </motion.span>
+              <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{item.icon}</span>
+              {showFull && (
+                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.label}</span>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {/* Footer: Consola Quirúrgica Integrada */}
+        {/* Footer */}
         <div className="sidebar-footer">
-          <SyncIndicator isPinned={isPinned} />
+          <SyncIndicator isPinned={showFull} />
 
           <div style={{ 
-            marginTop: '16px',
-            padding: '10px',
-            borderRadius: '16px',
-            background: 'var(--bg-dark)',
-            border: '1px solid var(--border)',
-            display: 'flex',
-            flexDirection: isPinned ? 'row' : 'column',
-            alignItems: 'center',
-            gap: '10px',
-            position: 'relative'
+            marginTop: '16px', padding: '10px', borderRadius: '16px',
+            background: 'var(--bg-dark)', border: '1px solid var(--border)',
+            display: 'flex', flexDirection: showFull ? 'row' : 'column',
+            alignItems: 'center', gap: '10px'
           }}>
             <div style={{ 
               width: 34, height: 34, borderRadius: '10px', flexShrink: 0,
               background: 'linear-gradient(135deg, var(--primary), var(--accent))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 900, color: '#fff', fontSize: '0.9rem',
-              boxShadow: '0 4px 10px var(--primary-glow)'
+              fontWeight: 900, color: '#fff', fontSize: '0.9rem'
             }}>
               {user?.nombre?.charAt(0) || 'U'}
             </div>
             
-            {isPinned && (
+            {showFull && (
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.8rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
                   {user?.nombre}
@@ -188,32 +154,21 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               </div>
             )}
 
-            <motion.button 
-              whileHover={{ scale: 1.1, color: 'var(--danger)' }}
+            <button 
               onClick={handleLogout}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem', padding: '4px' }}
-              title="Cerrar Sesión"
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
             >
               ⏻
-            </motion.button>
+            </button>
           </div>
 
           <button 
             onClick={toggleTheme}
             className="btn btn-ghost"
-            style={{ 
-              width: '100%', 
-              marginTop: '10px', 
-              height: '40px', 
-              padding: 0, 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              borderRadius: '12px'
-            }}
+            style={{ width: '100%', marginTop: '10px', height: '40px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
           >
             {theme === 'dark' ? '☀️' : '🌙'}
-            {isPinned && <span style={{ fontSize: '0.8rem', fontWeight: 700, marginLeft: '8px' }}>{theme === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}</span>}
+            {showFull && <span style={{ fontSize: '0.75rem', fontWeight: 800, marginLeft: '8px' }}>{theme === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}</span>}
           </button>
         </div>
       </aside>

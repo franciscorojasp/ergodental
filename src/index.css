@@ -794,8 +794,35 @@ tbody td {
     width: 100%; 
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-    margin-top: 16px; 
+    gap: 12px !important;
+    margin-top: 20px; 
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    margin-bottom: 32px !important;
+    padding-bottom: 24px !important;
+    width: 100% !important;
+  }
+
+  .page-header > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem !important;
+    line-height: 1.1 !important;
+    margin-bottom: 8px !important;
+    white-space: normal !important;
+  }
+
+  .page-header .text-muted, .page-header p {
+    font-size: 0.82rem !important;
+    width: 100% !important;
+    display: block !important;
   }
 }
 
