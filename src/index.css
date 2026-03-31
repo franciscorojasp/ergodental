@@ -579,15 +579,9 @@ tbody td {
 }
 
 .sidebar-footer {
-  padding: 24px 16px;
   border-top: 1px solid var(--border);
-  background: rgba(0,0,0,0.1);
   margin-top: auto;
-  transition: padding var(--transition);
-}
-
-.sidebar.collapsed .sidebar-footer {
-  padding: 24px 8px;
+  transition: all var(--transition);
 }
 
 /* ── Modales de Clase Mundial ──────────────────── */

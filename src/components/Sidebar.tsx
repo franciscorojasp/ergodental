@@ -51,21 +51,25 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
       <div className={`mobile-overlay ${isOpen ? 'visible' : ''}`} onClick={onClose} />
 
       <aside className={`sidebar ${isOpen ? 'open' : ''} ${isMini ? 'collapsed' : ''}`}>
-        {/* HEADER AREA */}
-        <div className="sidebar-header" style={{ padding: isMini ? '24px 0' : '32px 24px' }}>
+        {/* HEADER AREA: Compacted for Mobile */}
+        <div className="sidebar-header" style={{ 
+          padding: isMini ? '24px 0' : (isMobile ? '20px 16px' : '32px 24px') 
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMini ? 'center' : 'flex-start', gap: '15px', position: 'relative' }}>
-            <motion.div whileHover={{ scale: 1.05 }} className="sidebar-logo" style={{ width: isMini ? '38px' : '44px', height: isMini ? '38px' : '44px' }}>
+            <motion.div whileHover={{ scale: 1.05 }} className="sidebar-logo" style={{ width: (isMini || isMobile) ? '38px' : '44px', height: (isMini || isMobile) ? '38px' : '44px' }}>
               <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </motion.div>
             
             {showFull && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+                <div style={{ fontWeight: 900, fontSize: isMobile ? '0.9rem' : '1.05rem', color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.5px' }}>
                   ERGODENTALVE
                 </div>
-                <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '3px' }}>
-                  Professional v2.0
-                </div>
+                {!isMobile && (
+                  <div style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '3px' }}>
+                    Professional v2.0
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -76,7 +80,8 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             )}
           </div>
 
-          {!isMini && (
+          {/* Hide heavy blocks on mobile to prioritize navigation */}
+          {showFull && !isMobile && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <ClinicaBadge />
               <CurrencyToggle />
@@ -84,8 +89,12 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
           )}
         </div>
 
-        {/* NAVIGATION AREA */}
-        <nav className="custom-scrollbar" style={{ flex: 1, padding: isMini ? '10px 0' : '16px 0', overflowY: 'auto' }}>
+        {/* NAVIGATION AREA: Optimized for scrolling */}
+        <nav className="custom-scrollbar" style={{ 
+          flex: 1, 
+          padding: isMini ? '10px 0' : '16px 0', 
+          overflowY: 'auto' 
+        }}>
           {navVisible.map((item) => (
             <NavLink 
               key={item.to} 
@@ -93,67 +102,83 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               onClick={() => { if(isMobile) onClose(); }}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               title={isMini ? item.label : ''}
-              style={{ justifyContent: isMini ? 'center' : 'flex-start', padding: isMini ? '14px 0' : '12px 24px' }}
+              style={{ 
+                justifyContent: isMini ? 'center' : 'flex-start', 
+                padding: isMini ? '14px 0' : (isMobile ? '12px 16px' : '12px 24px'),
+                minHeight: isMobile ? '44px' : '48px'
+              }}
             >
               <span style={{ fontSize: '1.4rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
               {showFull && (
-                <span style={{ fontSize: '0.925rem', fontWeight: 600, whiteSpace: 'nowrap', marginLeft: '12px' }}>{item.label}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'nowrap', marginLeft: '12px' }}>{item.label}</span>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {/* FOOTER CONSOLE */}
-        <div className="sidebar-footer" style={{ padding: isMini ? '20px 0' : '24px' }}>
-          <SyncIndicator isPinned={!isMini} />
+        {/* FOOTER CONSOLE: Horizontal and Slim on Mobile */}
+        <div className="sidebar-footer" style={{ 
+          padding: isMini ? '20px 0' : (isMobile ? '12px 16px' : '24px'),
+          borderTop: '1px solid var(--border)'
+        }}>
+          {!isMobile && <SyncIndicator isPinned={!isMini} />}
 
           <div style={{ 
-            marginTop: '16px', 
-            padding: isMini ? '0' : '12px', 
-            borderRadius: '16px',
-            background: isMini ? 'transparent' : 'rgba(255,255,255,0.03)',
-            border: isMini ? 'none' : '1px solid var(--border)',
+            marginTop: isMobile ? '0' : '16px', 
+            padding: isMini ? '0' : (isMobile ? '4px' : '12px'), 
+            borderRadius: isMobile ? '0' : '16px',
+            background: (isMini || isMobile) ? 'transparent' : 'rgba(255,255,255,0.03)',
+            border: (isMini || isMobile) ? 'none' : '1px solid var(--border)',
             display: 'flex', 
-            flexDirection: 'column',
+            flexDirection: (isMobile && !isMini) ? 'row' : 'column',
             alignItems: 'center', 
-            gap: '12px',
-            width: '100%'
+            gap: isMobile ? '10px' : '12px',
+            width: '100%',
+            justifyContent: 'space-between'
           }}>
-            <motion.div whileHover={{ scale: 1.1 }} style={{ 
-              width: isMini ? '42px' : '38px', height: isMini ? '42px' : '38px', borderRadius: '12px',
-              background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 900, color: '#fff', fontSize: '1rem',
-              boxShadow: '0 4px 15px var(--primary-glow)'
-            }}>
-              {user?.nombre?.charAt(0) || 'U'}
-            </motion.div>
-            
-            {showFull && (
-              <div style={{ textAlign: 'center', width: '100%' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user?.nombre}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+              <motion.div whileHover={{ scale: 1.1 }} style={{ 
+                width: isMobile ? '34px' : (isMini ? '42px' : '38px'), 
+                height: isMobile ? '34px' : (isMini ? '42px' : '38px'), 
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 900, color: '#fff', fontSize: '0.9rem',
+                boxShadow: isMobile ? 'none' : '0 4px 15px var(--primary-glow)',
+                flexShrink: 0
+              }}>
+                {user?.nombre?.charAt(0) || 'U'}
+              </motion.div>
+              
+              {showFull && (
+                <div style={{ textAlign: 'left', minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user?.nombre?.split(' ')[0]}
+                  </div>
+                  {!isMobile && (
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
+                      {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
-                  {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            <div style={{ display: 'flex', width: '100%', gap: '8px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {isMobile && <SyncIndicator isPinned={false} />}
               <button 
                 onClick={toggleTheme} 
                 className="btn btn-ghost" 
-                style={{ flex: 1, height: '40px', padding: 0, borderRadius: '10px' }}
-                title="Cambiar Tema"
+                style={{ width: '36px', height: '36px', padding: 0, borderRadius: '10px' }}
+                title="Color"
               >
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
               <button 
                 onClick={handleLogout} 
                 className="btn btn-ghost" 
-                style={{ flex: 1, height: '40px', padding: 0, borderRadius: '10px', color: 'var(--danger)' }}
-                title="Cerrar Sesión"
+                style={{ width: '36px', height: '36px', padding: 0, borderRadius: '10px', color: 'var(--danger)' }}
+                title="Salir"
               >
                 ⏻
               </button>
