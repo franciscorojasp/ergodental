@@ -112,7 +112,7 @@ export default function Usuarios() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <td className="text-left">
+                    <td className="text-left" data-main="true">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ 
                           width: 32, height: 32, borderRadius: '50%', 
@@ -125,8 +125,8 @@ export default function Usuarios() {
                         <span style={{ fontWeight: 600 }}>{u.nombre}</span>
                       </div>
                     </td>
-                    <td className="text-left"><span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{u.email}</span></td>
-                    <td className="text-left">
+                    <td className="text-left" data-label="Correo"><span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{u.email}</span></td>
+                    <td className="text-left" data-label="Rol asignado">
                       <select 
                         className="input" 
                         style={{ padding: '6px 10px', fontSize: '0.85rem', width: 'auto', minWidth: '140px' }}
@@ -140,12 +140,12 @@ export default function Usuarios() {
                         ))}
                       </select>
                     </td>
-                    <td className="text-center">
+                    <td className="text-center" data-label="Estado">
                       <span className={`badge ${u.activo ? 'badge-success' : 'badge-danger'}`} style={{ minWidth: '80px', justifyContent: 'center' }}>
                         {u.activo ? 'ACTIVO' : 'INACTIVO'}
                       </span>
                     </td>
-                    <td className="text-right">
+                    <td className="text-right" data-label="Acciones">
                       <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '8px' }}>
                         <button 
                           className={`btn ${u.activo ? 'btn-ghost' : 'btn-primary'} btn-sm`}

@@ -246,7 +246,7 @@ body::before {
   padding: 16px 20px;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 16px !important;
   font-weight: 500;
   transition: all var(--transition);
   outline: none;
@@ -608,28 +608,111 @@ tbody td {
 @media (max-width: 1024px) {
   .page-content { padding: 32px; }
   .page-header h1 { font-size: 2.2rem; }
+  
+  /* Sidebar Drawer Style */
+  .sidebar {
+    position: fixed !important;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+  }
+
+  .sidebar.open {
+    transform: translateX(280px);
+  }
+
+  /* Layout doesn't shift on mobile */
+  .page-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }
 
-@media (max-width: 768px) {
-  .page-content { padding: 20px; }
-  .grid-responsive { gap: 20px; }
-  .modal-overlay { padding: 16px; }
-  .modal { border-radius: 24px; }
-  .modal-body { padding: 24px; }
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .mobile-header {
   display: none;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: 12px 16px;
   background: var(--bg-sidebar);
   border-bottom: 1px solid var(--border);
   z-index: 100;
+  backdrop-filter: blur(10px);
 }
 
 @media (max-width: 768px) {
   .mobile-header { display: flex; }
-  .page-content { padding: 12px 20px 40px; }
+  .page-content { padding: 12px 16px 40px; }
+  
+  /* ELITE TABLE-TO-CARD ENGINE (Surgical Responsiveness) */
+  .table-wrap { overflow: visible !important; border:none; background:none; }
+  .table-fixed { display: block !important; width: 100% !important; border:none; background:none; }
+  
+  table thead { display: none; } /* Surgical header removal for cards */
+  
+  table tr { 
+    display: flex !important; 
+    flex-direction: column !important;
+    margin-bottom: 16px !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    position: relative;
+  }
+
+  table td {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 0 !important;
+    border: none !important;
+    width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  /* Priority names / titles in cards */
+  table td[data-main="true"] {
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+  }
+
+  .text-right { text-align: left !important; } /* Center actions on mobile cards */
+  .action-grid { width: 100%; justify-content: space-around !important; margin-top: 8px; }
 }
 

@@ -112,15 +112,15 @@ export default function Inventario() {
                 const badge = stockBadge(item);
                 return (
                   <motion.tr key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                    <td className="text-left col-expand" style={{ fontWeight: 600 }}>{item.nombre}</td>
-                    <td className="text-left hide-mobile"><span className="badge badge-muted">{item.categoria}</span></td>
-                    <td className="text-left hide-mobile" style={{ color: 'var(--text-secondary)' }}>{item.unidad}</td>
-                    <td className="text-left">
+                    <td className="text-left col-expand" data-main="true" style={{ fontWeight: 600 }}>{item.nombre}</td>
+                    <td className="text-left hide-mobile" data-label="Categoría"><span className="badge badge-muted">{item.categoria}</span></td>
+                    <td className="text-left hide-mobile" data-label="Unidad" style={{ color: 'var(--text-secondary)' }}>{item.unidad}</td>
+                    <td className="text-left" data-label="Stock">
                       <span style={{ fontWeight: 700, color: stockColor(item), fontSize: '1rem' }}>{item.stock}</span>
                     </td>
-                    <td className="text-left hide-mobile" style={{ color: 'var(--text-muted)' }}>{item.stockMinimo}</td>
-                    <td className="text-left" style={{ color: 'var(--text-secondary)' }}>{fmt(item.precio)}</td>
-                    <td className="text-right"><span className={`badge ${badge.cls}`}>{badge.label}</span></td>
+                    <td className="text-left hide-mobile" data-label="Mínimo" style={{ color: 'var(--text-muted)' }}>{item.stockMinimo}</td>
+                    <td className="text-left" data-label="Precio" style={{ color: 'var(--text-secondary)' }}>{fmt(item.precio)}</td>
+                    <td className="text-right" data-label="Estado"><span className={`badge ${badge.cls}`}>{badge.label}</span></td>
                   </motion.tr>
                 );
               })}

@@ -116,9 +116,15 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <InstallAppPrompt />
 
 
+      {/* Mobile Overlay (Backdrop) */}
+      <div 
+        className={`mobile-overlay ${sidebarOpen ? 'visible' : ''}`} 
+        onClick={() => setSidebarOpen(false)}
+      />
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header - Siempre visible en móvil, o en desktop si el sidebar está cerrado */}
-        <header className={`mobile-header ${!sidebarOpen ? 'force-flex' : ''}`}>
+        <header className="mobile-header">
           <button 
             onClick={() => setSidebarOpen(true)}
             style={{ 
@@ -129,9 +135,13 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
           >
             ☰
           </button>
+          <div style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '-0.5px' }}>
+            ERGODENTAL<span style={{ color: 'var(--primary)' }}>VE</span>
+          </div>
+          <div style={{ width: '40px' }} /> {/* Spacer for symmetry */}
         </header>
 
-        <main className={`page-content ${!sidebarPinned ? 'collapsed' : ''} ${!sidebarOpen ? 'full-width' : ''}`}>
+        <main className={`page-content ${!sidebarPinned ? 'collapsed' : ''}`}>
           {children}
         </main>
       </div>

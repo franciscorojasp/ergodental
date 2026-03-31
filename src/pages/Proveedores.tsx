@@ -97,7 +97,7 @@ export default function Proveedores() {
               {filtrado.map((p, i) => (
                 <motion.tr key={p.id} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay: i*0.04 }}
                   style={{ cursor:'pointer' }} onClick={() => setDetalleId(p.id)}>
-                  <td className="text-left col-expand">
+                  <td className="text-left col-expand" data-main="true">
                     <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                       <div style={{
                         width:36, height:36, borderRadius:8, flexShrink:0,
@@ -107,12 +107,12 @@ export default function Proveedores() {
                       <span style={{ fontWeight:600 }}>{p.nombre}</span>
                     </div>
                   </td>
-                  <td className="text-center hide-mobile"><span className={`badge ${TIPO_BADGE[p.tipo]}`}>{p.tipo}</span></td>
-                  <td className="text-left hide-mobile" style={{ color:'var(--text-secondary)', fontSize:'0.82rem' }}>{p.rif}</td>
-                  <td className="text-left col-expand">{p.contacto}</td>
-                  <td className="text-left" style={{ color:'var(--text-secondary)' }}>{p.telefono}</td>
-                  <td className="text-left hide-mobile" style={{ color:'var(--text-muted)', fontSize:'0.82rem' }}>{p.email}</td>
-                  <td className="text-right">
+                  <td className="text-center hide-mobile" data-label="Tipo"><span className={`badge ${TIPO_BADGE[p.tipo]}`}>{p.tipo}</span></td>
+                  <td className="text-left hide-mobile" data-label="RIF" style={{ color:'var(--text-secondary)', fontSize:'0.82rem' }}>{p.rif}</td>
+                  <td className="text-left col-expand" data-label="Contacto">{p.contacto}</td>
+                  <td className="text-left" data-label="Teléfono" style={{ color:'var(--text-secondary)' }}>{p.telefono}</td>
+                  <td className="text-left hide-mobile" data-label="Email" style={{ color:'var(--text-muted)', fontSize:'0.82rem' }}>{p.email}</td>
+                  <td className="text-right" data-label="Estado">
                     <span className={`badge ${p.activo ? 'badge-success' : 'badge-muted'}`} style={{ minWidth: '80px', justifyContent: 'center' }}>
                       {p.activo ? 'Activo' : 'Inactivo'}
                     </span>

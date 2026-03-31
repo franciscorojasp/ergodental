@@ -57,15 +57,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
         )}
       </AnimatePresence>
 
-      <motion.aside
-        initial={{ x: -300 }} 
-        animate={{ 
-          x: (isOpen || window.innerWidth > 768) ? 0 : -350,
-          width: (window.innerWidth <= 768) ? 'var(--sidebar-w)' : (isPinned ? 'var(--sidebar-w)' : 'var(--sidebar-mini-w)')
-        }} 
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="sidebar"
-      >
+      <aside className={`sidebar ${isOpen ? 'open' : ''} ${!isPinned ? 'collapsed' : ''}`}>
         {/* Header de Lujo con Toggle Retráctil */}
         <div style={{ padding: isPinned ? '32px 24px' : '32px 10px', borderBottom: '1px solid var(--border)', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: isPinned ? '24px' : '0', justifyContent: isPinned ? 'flex-start' : 'center' }}>
@@ -217,7 +209,7 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             {isPinned && <span style={{ fontSize: '0.85rem', fontWeight: 700, marginLeft: '10px' }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>}
           </button>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }

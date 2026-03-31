@@ -85,19 +85,19 @@ export default function Laboratorios() {
             <tbody>
               {labs.map(l => (
                 <tr key={l.id}>
-                  <td className="text-left col-expand"><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
-                  <td className="text-left col-expand">{l.trabajo}</td>
-                  <td className="text-left hide-mobile">{l.laboratorioNombre}</td>
-                  <td className="text-left hide-mobile">
+                  <td className="text-left col-expand" data-main="true"><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
+                  <td className="text-left col-expand" data-label="Trabajo">{l.trabajo}</td>
+                  <td className="text-left hide-mobile" data-label="Laboratorio">{l.laboratorioNombre}</td>
+                  <td className="text-left hide-mobile" data-label="Envío/Entrega">
                     <div style={{fontSize:'0.8rem',color:'var(--text-muted)'}}>{l.fechaEnvio}</div>
                     <div style={{fontSize:'0.82rem',color:'var(--text-secondary)'}}>Est: {l.fechaEntregaPrevista}</div>
                   </td>
-                  <td className="text-center">
+                  <td className="text-center" data-label="Estado">
                     <span className={`badge ${l.estado === 'Recibido' ? 'badge-success' : (l.estado === 'Atrasado' ? 'badge-danger' : 'badge-warning')}`}>
                       {l.estado}
                     </span>
                   </td>
-                  <td className="text-left"><div style={{fontWeight:700}}>{fmt(l.costo)}</div></td>
+                  <td className="text-left" data-label="Costo"><div style={{fontWeight:700}}>{fmt(l.costo)}</div></td>
                   <td className="text-right">
                     <div style={{display:'flex', gap:'8px', justifyContent: 'flex-end'}}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setEditingId(l.id); setForm(l as any); setModal(true); }}>✏️</button>

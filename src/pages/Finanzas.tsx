@@ -395,14 +395,14 @@ export default function Finanzas(){
                 {pagos.map(p=>(
                   <>
                   <tr key={p.id} style={{cursor:'pointer'}} onClick={()=>setExpandedPago(expandedPago===p.id?null:p.id)}>
-                    <td className="text-left" style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{p.fecha}</td>
-                    <td className="text-left col-expand" style={{fontWeight:600}}>{p.pacienteNombre}</td>
-                    <td className="text-left hide-mobile" style={{color:'var(--text-secondary)',fontSize:'0.84rem'}}>{p.doctorNombre||'—'}</td>
-                    <td className="text-left hide-mobile">{p.concepto}</td>
-                    <td className="text-left" style={{fontWeight:700,color:'var(--success)'}}>{fmt(p.monto)}</td>
-                    <td className="text-left hide-mobile">{METODO_ICON[p.metodoPago]} {p.metodoPago}</td>
-                    <td className="text-center"><span className={`badge ${ESTADO_BADGE[p.estado]}`}>{p.estado}</span></td>
-                    <td className="text-right" style={{color:'var(--primary)',fontSize:'0.8rem'}}>{expandedPago===p.id?'▲':'▼'}</td>
+                    <td className="text-left" data-label="Fecha" style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{p.fecha}</td>
+                    <td className="text-left col-expand" data-main="true" style={{fontWeight:600}}>{p.pacienteNombre}</td>
+                    <td className="text-left hide-mobile" data-label="Doctor" style={{color:'var(--text-secondary)',fontSize:'0.84rem'}}>{p.doctorNombre||'—'}</td>
+                    <td className="text-left hide-mobile" data-label="Concepto">{p.concepto}</td>
+                    <td className="text-left" data-label="Monto" style={{fontWeight:700,color:'var(--success)'}}>{fmt(p.monto)}</td>
+                    <td className="text-left hide-mobile" data-label="Método">{METODO_ICON[p.metodoPago]} {p.metodoPago}</td>
+                    <td className="text-center" data-label="Estado"><span className={`badge ${ESTADO_BADGE[p.estado]}`}>{p.estado}</span></td>
+                    <td className="text-right" data-label="Acciones" style={{color:'var(--primary)',fontSize:'0.8rem'}}>{expandedPago===p.id?'▲':'▼'}</td>
                   </tr>
                   {expandedPago===p.id&&p.tipoReferencia&&(
                     <tr key={`${p.id}-d`}>
@@ -442,15 +442,15 @@ export default function Finanzas(){
               <tbody>
                 {egresos.map(e=>(
                   <tr key={e.id}>
-                    <td className="text-left" style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{e.fecha}</td>
-                    <td className="text-left col-expand" style={{fontWeight:600}}>{e.concepto}</td>
-                    <td className="text-left hide-mobile"><span className="badge badge-muted">{e.categoria}</span></td>
-                    <td className="text-left" style={{fontWeight:700,color:'var(--danger)'}}>{fmt(e.monto)}</td>
-                    <td className="text-left hide-mobile" style={{color:'var(--text-secondary)',fontSize:'0.82rem'}}>
+                    <td className="text-left" data-label="Fecha" style={{color:'var(--text-muted)',fontSize:'0.82rem'}}>{e.fecha}</td>
+                    <td className="text-left col-expand" data-main="true" style={{fontWeight:600}}>{e.concepto}</td>
+                    <td className="text-left hide-mobile" data-label="Categoría"><span className="badge badge-muted">{e.categoria}</span></td>
+                    <td className="text-left" data-label="Monto USD" style={{fontWeight:700,color:'var(--danger)'}}>{fmt(e.monto)}</td>
+                    <td className="text-left hide-mobile" data-label="Monto Bs" style={{color:'var(--text-secondary)',fontSize:'0.82rem'}}>
                       {(e.monto * tasaBCV).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs
                     </td>
-                    <td className="text-left hide-mobile">{METODO_ICON[e.metodoPago]} {e.metodoPago}</td>
-                    <td className="text-left hide-mobile" style={{color:'var(--text-secondary)'}}>{e.proveedorNombre||'—'}</td>
+                    <td className="text-left hide-mobile" data-label="Método">{METODO_ICON[e.metodoPago]} {e.metodoPago}</td>
+                    <td className="text-left hide-mobile" data-label="Proveedor" style={{color:'var(--text-secondary)'}}>{e.proveedorNombre||'—'}</td>
                   </tr>
                 ))}
               </tbody>

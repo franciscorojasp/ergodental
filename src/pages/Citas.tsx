@@ -101,14 +101,14 @@ export default function Citas() {
             <tbody>
               {filtradas.map((c, i) => (
                 <motion.tr key={c.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.03 }}>
-                  <td className="text-left" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
+                  <td className="text-left" data-label="Fecha/Hora" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
                     <div style={{ fontWeight:700 }}>{c.fecha}</div>
                     <div style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>{c.hora}</div>
                   </td>
-                  <td className="text-left col-expand">{c.pacienteNombre}</td>
-                  <td className="text-left hide-mobile">{c.doctorNombre}</td>
-                  <td className="text-left hide-mobile" style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
-                  <td className="text-center"><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
+                  <td className="text-left col-expand" data-main="true">{c.pacienteNombre}</td>
+                  <td className="text-left hide-mobile" data-label="Doctor">{c.doctorNombre}</td>
+                  <td className="text-left hide-mobile" data-label="Motivo" style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
+                  <td className="text-center" data-label="Estado"><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
                   <td className="text-right">
                     <div style={{ display:'flex', gap:'8px', justifyContent: 'flex-end' }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>
