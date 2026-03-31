@@ -31,16 +31,19 @@ export default function SyncIndicator({ isPinned }: { isPinned: boolean }) {
 
   if (!isPinned) {
     return (
-      <div style={{ display:'flex', justifyContent:'center', padding:'8px 0' }}>
+      <div style={{ display:'flex', alignItems:'center', gap: '6px' }}>
         <div 
+          className={online ? 'pulse-dot' : ''}
           style={{ 
-            width:10, height:10, borderRadius:'50%', 
-            background: IS_DEMO_MODE ? '#ff9800' : (online ? '#4caf50' : '#f44336'),
-            boxShadow: online ? '0 0 10px rgba(76,175,80,0.3)' : 'none',
-            transition: 'all 0.3s ease'
+            width: 7, height: 7, borderRadius:'50%', 
+            background: IS_DEMO_MODE ? '#ff9800' : (online ? 'var(--success)' : 'var(--danger)'),
+            boxShadow: online ? '0 0 8px var(--success)' : 'none',
+            flexShrink: 0
           }} 
-          title={IS_DEMO_MODE ? 'Modo Local' : (online ? 'Sistema en Línea' : 'Sin Internet')}
         />
+        <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {online ? 'Online' : 'Offline'}
+        </span>
       </div>
     );
   }

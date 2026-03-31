@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { canAccess, ROL_LABEL, type Modulo } from '../permissions';
+import { canAccess, type Modulo } from '../permissions';
 import CurrencyToggle from './CurrencyToggle';
 import ClinicaBadge from './ClinicaBadge';
 import SyncIndicator from './SyncIndicator';
@@ -51,9 +51,9 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
       <div className={`mobile-overlay ${isOpen ? 'visible' : ''}`} onClick={onClose} />
 
       <aside className={`sidebar ${isOpen ? 'open' : ''} ${isMini ? 'collapsed' : ''}`}>
-        {/* HEADER AREA: Compacted for Mobile */}
+        {/* HEADER AREA: Compacted Ergonomics */}
         <div className="sidebar-header" style={{ 
-          padding: isMini ? '24px 0' : (isMobile ? '20px 16px' : '32px 24px') 
+          padding: isMini ? '24px 0' : '20px 24px' 
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMini ? 'center' : 'flex-start', gap: '15px', position: 'relative' }}>
             <motion.div whileHover={{ scale: 1.05 }} className="sidebar-logo" style={{ width: (isMini || isMobile) ? '38px' : '44px', height: (isMini || isMobile) ? '38px' : '44px' }}>
@@ -74,25 +74,25 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             )}
 
             {!isMobile && (
-              <button onClick={onTogglePinned} className="sidebar-toggle-btn">
+              <button onClick={onTogglePinned} className="sidebar-toggle-btn" style={{ top: '28px' }}>
                 {isPinned ? '◀' : '▶'}
               </button>
             )}
           </div>
 
-          {/* Hide heavy blocks on mobile to prioritize navigation */}
+          {/* Compressed Blocks for Desktop */}
           {showFull && !isMobile && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden' }}>
               <ClinicaBadge />
               <CurrencyToggle />
             </motion.div>
           )}
         </div>
 
-        {/* NAVIGATION AREA: Optimized for scrolling */}
+        {/* NAVIGATION AREA: Maximum vertical space */}
         <nav className="custom-scrollbar" style={{ 
           flex: 1, 
-          padding: isMini ? '10px 0' : '16px 0', 
+          padding: isMini ? '10px 0' : '12px 0', 
           overflowY: 'auto' 
         }}>
           {navVisible.map((item) => (
@@ -104,47 +104,43 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
               title={isMini ? item.label : ''}
               style={{ 
                 justifyContent: isMini ? 'center' : 'flex-start', 
-                padding: isMini ? '14px 0' : (isMobile ? '12px 16px' : '12px 24px'),
-                minHeight: isMobile ? '44px' : '48px'
+                padding: isMini ? '14px 0' : (isMobile ? '12px 16px' : '10px 24px'),
+                minHeight: isMobile ? '40px' : '44px'
               }}
             >
-              <span style={{ fontSize: '1.4rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
+              <span style={{ fontSize: '1.3rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
               {showFull && (
-                <span style={{ fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'nowrap', marginLeft: '12px' }}>{item.label}</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 600, whiteSpace: 'nowrap', marginLeft: '12px' }}>{item.label}</span>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {/* FOOTER CONSOLE: Horizontal and Slim on Mobile */}
+        {/* FOOTER CONSOLE: Horizontal Ergonomics for All Expanded States */}
         <div className="sidebar-footer" style={{ 
-          padding: isMini ? '20px 0' : (isMobile ? '12px 16px' : '24px'),
+          padding: isMini ? '20px 0' : '16px 20px',
           borderTop: '1px solid var(--border)'
         }}>
-          {!isMobile && <SyncIndicator isPinned={!isMini} />}
-
           <div style={{ 
-            marginTop: isMobile ? '0' : '16px', 
-            padding: isMini ? '0' : (isMobile ? '4px' : '12px'), 
-            borderRadius: isMobile ? '0' : '16px',
-            background: (isMini || isMobile) ? 'transparent' : 'rgba(255,255,255,0.03)',
-            border: (isMini || isMobile) ? 'none' : '1px solid var(--border)',
+            padding: isMini ? '0' : '10px', 
+            borderRadius: isMini ? '0' : '16px',
+            background: isMini ? 'transparent' : 'rgba(255,255,255,0.03)',
+            border: isMini ? 'none' : '1px solid var(--border)',
             display: 'flex', 
-            flexDirection: (isMobile && !isMini) ? 'row' : 'column',
+            flexDirection: showFull ? 'row' : 'column',
             alignItems: 'center', 
-            gap: isMobile ? '10px' : '12px',
+            gap: '12px',
             width: '100%',
             justifyContent: 'space-between'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
               <motion.div whileHover={{ scale: 1.1 }} style={{ 
-                width: isMobile ? '34px' : (isMini ? '42px' : '38px'), 
-                height: isMobile ? '34px' : (isMini ? '42px' : '38px'), 
+                width: isMini ? '42px' : '36px', 
+                height: isMini ? '42px' : '36px', 
                 borderRadius: '10px',
                 background: 'linear-gradient(135deg, var(--primary), var(--accent))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontWeight: 900, color: '#fff', fontSize: '0.9rem',
-                boxShadow: isMobile ? 'none' : '0 4px 15px var(--primary-glow)',
                 flexShrink: 0
               }}>
                 {user?.nombre?.charAt(0) || 'U'}
@@ -155,34 +151,31 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
                   <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user?.nombre?.split(' ')[0]}
                   </div>
-                  {!isMobile && (
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.7 }}>
-                      {user?.rol ? ROL_LABEL[user.rol] : 'Usuario'}
-                    </div>
-                  )}
+                  <SyncIndicator isPinned={false} />
                 </div>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              {isMobile && <SyncIndicator isPinned={false} />}
-              <button 
-                onClick={toggleTheme} 
-                className="btn btn-ghost" 
-                style={{ width: '36px', height: '36px', padding: 0, borderRadius: '10px' }}
-                title="Color"
-              >
-                {theme === 'dark' ? '☀️' : '🌙'}
-              </button>
-              <button 
-                onClick={handleLogout} 
-                className="btn btn-ghost" 
-                style={{ width: '36px', height: '36px', padding: 0, borderRadius: '10px', color: 'var(--danger)' }}
-                title="Salir"
-              >
-                ⏻
-              </button>
-            </div>
+            {showFull && (
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button 
+                  onClick={toggleTheme} 
+                  className="btn btn-ghost" 
+                  style={{ width: '32px', height: '32px', padding: 0, borderRadius: '8px' }}
+                  title="Color"
+                >
+                  {theme === 'dark' ? '☀️' : '🌙'}
+                </button>
+                <button 
+                  onClick={handleLogout} 
+                  className="btn btn-ghost" 
+                  style={{ width: '32px', height: '32px', padding: 0, borderRadius: '8px', color: 'var(--danger)' }}
+                  title="Salir"
+                >
+                  ⏻
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
