@@ -73,31 +73,33 @@ export default function Laboratorios() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand" style={{ width: '25%' }}>Paciente</th>
-                <th className="col-expand" style={{ width: '25%' }}>Trabajo / Prótesis</th>
-                <th style={{ width: '20%' }} className="hide-mobile">Laboratorio</th>
-                <th style={{ width: '15%' }} className="hide-mobile">Envío / Entrega</th>
-                <th style={{ width: '10%' }}>Estado</th>
-                <th style={{ width: '10%' }}>Costo</th>
-                <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
+                <th className="text-left col-expand" style={{ width: '20%' }}>Paciente</th>
+                <th className="text-left col-expand" style={{ width: '25%' }}>Trabajo / Prótesis</th>
+                <th style={{ width: '15%' }} className="text-left hide-mobile">Laboratorio</th>
+                <th style={{ width: '15%' }} className="text-left hide-mobile">Envío / Entrega</th>
+                <th style={{ width: '10%' }} className="text-center">Estado</th>
+                <th style={{ width: '10%' }} className="text-left">Costo</th>
+                <th style={{ width: '5%', textAlign: 'right' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {labs.map(l => (
                 <tr key={l.id}>
-                  <td className="col-expand"><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
-                  <td className="col-expand">{l.trabajo}</td>
-                  <td>{l.laboratorioNombre}</td>
-                  <td>{l.fechaEnvio}</td>
-                  <td>{l.fechaEntregaPrevista}</td>
-                  <td>
+                  <td className="text-left col-expand"><div style={{fontWeight:600}}>{l.pacienteNombre}</div></td>
+                  <td className="text-left col-expand">{l.trabajo}</td>
+                  <td className="text-left hide-mobile">{l.laboratorioNombre}</td>
+                  <td className="text-left hide-mobile">
+                    <div style={{fontSize:'0.8rem',color:'var(--text-muted)'}}>{l.fechaEnvio}</div>
+                    <div style={{fontSize:'0.82rem',color:'var(--text-secondary)'}}>Est: {l.fechaEntregaPrevista}</div>
+                  </td>
+                  <td className="text-center">
                     <span className={`badge ${l.estado === 'Recibido' ? 'badge-success' : (l.estado === 'Atrasado' ? 'badge-danger' : 'badge-warning')}`}>
                       {l.estado}
                     </span>
                   </td>
-                  <td><div style={{fontWeight:700}}>{fmt(l.costo)}</div></td>
-                  <td>
-                    <div style={{display:'flex', gap:'8px'}}>
+                  <td className="text-left"><div style={{fontWeight:700}}>{fmt(l.costo)}</div></td>
+                  <td className="text-right">
+                    <div style={{display:'flex', gap:'8px', justifyContent: 'flex-end'}}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setEditingId(l.id); setForm(l as any); setModal(true); }}>✏️</button>
                       <button className="btn btn-ghost btn-sm" style={{color:'var(--danger)'}} onClick={() => setDeletingId(l.id)}>🗑️</button>
                     </div>

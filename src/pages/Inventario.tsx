@@ -98,13 +98,13 @@ export default function Inventario() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand" style={{ width: '40%' }}>Producto</th>
-                <th style={{ width: '15%' }} className="hide-mobile">Categoría</th>
-                <th style={{ width: '10%' }} className="hide-mobile">Unidad</th>
-                <th style={{ width: '20%' }}>Stock actual</th>
-                <th style={{ width: '15%' }} className="hide-mobile">Stock mín.</th>
-                <th style={{ width: '15%' }}>Precio ({moneda})</th>
-                <th style={{ width: '10%', textAlign: 'right' }}>Estado</th>
+                <th className="text-left col-expand" style={{ width: '35%' }}>Producto</th>
+                <th className="text-left hide-mobile" style={{ width: '15%' }}>Categoría</th>
+                <th className="text-left hide-mobile" style={{ width: '10%' }}>Unidad</th>
+                <th className="text-left" style={{ width: '15%' }}>Stock actual</th>
+                <th className="text-left hide-mobile" style={{ width: '10%' }}>Stock mín.</th>
+                <th className="text-left" style={{ width: '10%' }}>Precio ({moneda})</th>
+                <th className="text-right" style={{ width: '5%' }}>Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -112,15 +112,15 @@ export default function Inventario() {
                 const badge = stockBadge(item);
                 return (
                   <motion.tr key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                    <td className="col-expand" style={{ fontWeight: 600 }}>{item.nombre}</td>
-                    <td className="hide-mobile"><span className="badge badge-muted">{item.categoria}</span></td>
-                    <td style={{ color: 'var(--text-secondary)' }} className="hide-mobile">{item.unidad}</td>
-                    <td>
+                    <td className="text-left col-expand" style={{ fontWeight: 600 }}>{item.nombre}</td>
+                    <td className="text-left hide-mobile"><span className="badge badge-muted">{item.categoria}</span></td>
+                    <td className="text-left hide-mobile" style={{ color: 'var(--text-secondary)' }}>{item.unidad}</td>
+                    <td className="text-left">
                       <span style={{ fontWeight: 700, color: stockColor(item), fontSize: '1rem' }}>{item.stock}</span>
                     </td>
-                    <td className="hide-mobile" style={{ color: 'var(--text-muted)' }}>{item.stockMinimo}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{fmt(item.precio)}</td>
-                    <td><span className={`badge ${badge.cls}`}>{badge.label}</span></td>
+                    <td className="text-left hide-mobile" style={{ color: 'var(--text-muted)' }}>{item.stockMinimo}</td>
+                    <td className="text-left" style={{ color: 'var(--text-secondary)' }}>{fmt(item.precio)}</td>
+                    <td className="text-right"><span className={`badge ${badge.cls}`}>{badge.label}</span></td>
                   </motion.tr>
                 );
               })}

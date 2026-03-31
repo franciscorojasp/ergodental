@@ -96,11 +96,11 @@ export default function Usuarios() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand" style={{ width: '25%' }}>Usuario</th>
-                <th className="col-expand" style={{ width: '35%' }}>Correo</th>
-                <th style={{ width: '20%' }}>Rol Asignado</th>
-                <th style={{ width: '10%' }}>Estado</th>
-                <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
+                <th className="text-left" style={{ width: '25%' }}>Usuario</th>
+                <th className="text-left" style={{ width: '35%' }}>Correo</th>
+                <th className="text-left" style={{ width: '20%' }}>Rol asignado</th>
+                <th className="text-center" style={{ width: '10%' }}>Estado</th>
+                <th className="text-right" style={{ width: '10%' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -112,24 +112,24 @@ export default function Usuarios() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <td className="col-expand">
+                    <td className="text-left">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ 
                           width: 32, height: 32, borderRadius: '50%', 
                           background: 'linear-gradient(135deg, var(--primary), var(--accent))',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.8rem', fontWeight: 800, color: '#fff'
+                          fontSize: '0.8rem', fontWeight: 800, color: '#fff', flexShrink: 0
                         }}>
                           {u.nombre.charAt(0).toUpperCase()}
                         </div>
                         <span style={{ fontWeight: 600 }}>{u.nombre}</span>
                       </div>
                     </td>
-                    <td className="col-expand"><span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{u.email}</span></td>
-                    <td>
+                    <td className="text-left"><span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{u.email}</span></td>
+                    <td className="text-left">
                       <select 
                         className="input" 
-                        style={{ padding: '6px 10px', fontSize: '0.85rem', width: 'auto' }}
+                        style={{ padding: '6px 10px', fontSize: '0.85rem', width: 'auto', minWidth: '140px' }}
                         value={u.rol || ''}
                         onChange={(e) => handleChangeRol(u, e.target.value as Rol)}
                         disabled={savingId === u.id}
@@ -140,12 +140,12 @@ export default function Usuarios() {
                         ))}
                       </select>
                     </td>
-                    <td>
+                    <td className="text-center">
                       <span className={`badge ${u.activo ? 'badge-success' : 'badge-danger'}`} style={{ minWidth: '80px', justifyContent: 'center' }}>
                         {u.activo ? 'ACTIVO' : 'INACTIVO'}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td className="text-right">
                       <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '8px' }}>
                         <button 
                           className={`btn ${u.activo ? 'btn-ghost' : 'btn-primary'} btn-sm`}

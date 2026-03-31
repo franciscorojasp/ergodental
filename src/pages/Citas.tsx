@@ -91,26 +91,26 @@ export default function Citas() {
         <div className="table-wrap">
           <table className="table-fixed">
             <thead><tr>
-              <th style={{ width: '20%' }}>Fecha/Hora</th>
-              <th className="col-expand" style={{ width: '40%' }}>Paciente</th>
-              <th style={{ width: '25%' }} className="hide-mobile">Doctor</th>
-              <th style={{ width: '20%' }} className="hide-mobile">Motivo</th>
-              <th style={{ width: '15%' }}>Estado</th>
-              <th style={{ width: '15%', textAlign: 'right' }}>Acciones</th>
+              <th className="text-left" style={{ width: '15%' }}>Fecha/Hora</th>
+              <th className="text-left col-expand" style={{ width: '35%' }}>Paciente</th>
+              <th className="text-left hide-mobile" style={{ width: '20%' }}>Doctor</th>
+              <th className="text-left hide-mobile" style={{ width: '15%' }}>Motivo</th>
+              <th className="text-center" style={{ width: '10%' }}>Estado</th>
+              <th className="text-right" style={{ width: '5%' }}>Acciones</th>
             </tr></thead>
             <tbody>
               {filtradas.map((c, i) => (
                 <motion.tr key={c.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.03 }}>
-                  <td onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
+                  <td className="text-left" onClick={() => setDetalleId(c.id)} style={{ cursor:'pointer' }}>
                     <div style={{ fontWeight:700 }}>{c.fecha}</div>
                     <div style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>{c.hora}</div>
                   </td>
-                  <td className="col-expand">{c.pacienteNombre}</td>
-                  <td className="hide-mobile">{c.doctorNombre}</td>
-                  <td className="hide-mobile" style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
-                  <td><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
-                  <td>
-                    <div style={{ display:'flex', gap:'6px' }}>
+                  <td className="text-left col-expand">{c.pacienteNombre}</td>
+                  <td className="text-left hide-mobile">{c.doctorNombre}</td>
+                  <td className="text-left hide-mobile" style={{ fontSize:'0.85rem', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.motivo}</td>
+                  <td className="text-center"><span className={`badge ${ESTADO_CLASE[c.estado]}`}>{c.estado}</span></td>
+                  <td className="text-right">
+                    <div style={{ display:'flex', gap:'8px', justifyContent: 'flex-end' }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>
                       <button className="btn btn-ghost btn-sm" style={{ color:'var(--danger)' }} onClick={() => setDeletingId(c.id)}>🗑️</button>
                     </div>

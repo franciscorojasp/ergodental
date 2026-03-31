@@ -84,20 +84,20 @@ export default function Proveedores() {
           <table className="table-fixed">
             <thead>
               <tr>
-                <th className="col-expand" style={{ width: '30%' }}>Proveedor</th>
-                <th style={{ width: '10%' }} className="hide-mobile">Tipo</th>
-                <th style={{ width: '10%' }} className="hide-mobile">RIF</th>
-                <th className="col-expand" style={{ width: '30%' }}>Contacto</th>
-                <th style={{ width: '20%' }}>Teléfono</th>
-                <th style={{ width: '10%' }} className="hide-mobile">Email</th>
-                <th style={{ width: '20%', textAlign: 'right' }}>Estado</th>
+                <th className="text-left col-expand" style={{ width: '25%' }}>Proveedor</th>
+                <th style={{ width: '10%' }} className="text-center hide-mobile">Tipo</th>
+                <th style={{ width: '10%' }} className="text-left hide-mobile">RIF</th>
+                <th className="text-left col-expand" style={{ width: '25%' }}>Contacto</th>
+                <th style={{ width: '15%' }} className="text-left">Teléfono</th>
+                <th style={{ width: '10%' }} className="text-left hide-mobile">Email</th>
+                <th style={{ width: '5%', textAlign: 'right' }}>Estado</th>
               </tr>
             </thead>
             <tbody>
               {filtrado.map((p, i) => (
                 <motion.tr key={p.id} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay: i*0.04 }}
                   style={{ cursor:'pointer' }} onClick={() => setDetalleId(p.id)}>
-                  <td className="col-expand">
+                  <td className="text-left col-expand">
                     <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                       <div style={{
                         width:36, height:36, borderRadius:8, flexShrink:0,
@@ -107,12 +107,16 @@ export default function Proveedores() {
                       <span style={{ fontWeight:600 }}>{p.nombre}</span>
                     </div>
                   </td>
-                  <td><span className={`badge ${TIPO_BADGE[p.tipo]}`}>{p.tipo}</span></td>
-                  <td style={{ color:'var(--text-secondary)', fontSize:'0.82rem' }}>{p.rif}</td>
-                  <td className="col-expand">{p.contacto}</td>
-                  <td style={{ color:'var(--text-secondary)' }}>{p.telefono}</td>
-                  <td style={{ color:'var(--text-muted)', fontSize:'0.82rem' }}>{p.email}</td>
-                  <td><span className={`badge ${p.activo ? 'badge-success' : 'badge-muted'}`}>{p.activo ? 'Activo' : 'Inactivo'}</span></td>
+                  <td className="text-center hide-mobile"><span className={`badge ${TIPO_BADGE[p.tipo]}`}>{p.tipo}</span></td>
+                  <td className="text-left hide-mobile" style={{ color:'var(--text-secondary)', fontSize:'0.82rem' }}>{p.rif}</td>
+                  <td className="text-left col-expand">{p.contacto}</td>
+                  <td className="text-left" style={{ color:'var(--text-secondary)' }}>{p.telefono}</td>
+                  <td className="text-left hide-mobile" style={{ color:'var(--text-muted)', fontSize:'0.82rem' }}>{p.email}</td>
+                  <td className="text-right">
+                    <span className={`badge ${p.activo ? 'badge-success' : 'badge-muted'}`} style={{ minWidth: '80px', justifyContent: 'center' }}>
+                      {p.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
                 </motion.tr>
               ))}
               {filtrado.length === 0 && (

@@ -218,12 +218,12 @@ export default function Pacientes() {
         <div className="table-wrap">
           <table className="table-fixed">
             <thead><tr>
-              <th className="col-expand" style={{ width: '40%' }}>Paciente</th>
-              <th style={{ width: '15%' }} className="hide-mobile">Cédula</th>
-              <th style={{ width: '10%' }} className="hide-mobile">Edad</th>
-              <th style={{ width: '25%' }}>Teléfono</th>
-              <th style={{ width: '20%' }} className="hide-mobile">Referido por</th>
-              <th style={{ width: '15%', textAlign: 'right' }}>Acciones</th>
+              <th className="text-left col-expand" style={{ width: '35%' }}>Paciente</th>
+              <th style={{ width: '15%' }} className="text-left hide-mobile">Cédula</th>
+              <th style={{ width: '10%' }} className="text-left hide-mobile">Edad</th>
+              <th style={{ width: '15%' }} className="text-left">Teléfono</th>
+              <th style={{ width: '15%' }} className="text-left hide-mobile">Referido por</th>
+              <th style={{ width: '10%', textAlign: 'right' }}>Acciones</th>
             </tr></thead>
             <tbody>
               {filtrado.map((p, i) => {
@@ -244,14 +244,14 @@ export default function Pacientes() {
                         </div>
                       </div>
                     </td>
-                    <td className="hide-mobile">{p.cedula}</td>
-                    <td className="hide-mobile">{calcularEdad(p.fechaNacimiento)}</td>
-                    <td>{p.telefono}</td>
-                    <td className="hide-mobile">
+                    <td className="text-left hide-mobile">{p.cedula}</td>
+                    <td className="text-left hide-mobile">{calcularEdad(p.fechaNacimiento)}</td>
+                    <td className="text-left">{p.telefono}</td>
+                    <td className="text-left hide-mobile">
                       {regla ? <span className={`badge ${REF_BADGE[p.tipoReferencia!]}`}>{regla.label}</span> : <span className="badge badge-muted">—</span>}
                     </td>
-                    <td>
-                      <div style={{ display:'flex', gap:'6px' }}>
+                    <td className="text-right">
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button className="btn btn-ghost btn-sm" onClick={() => { console.log('DEBUG: Edit clicked', p.id); openEdit(p); }} title="Editar">✏️</button>
                         <button className="btn btn-ghost btn-sm" onClick={() => { console.log('DEBUG: Delete clicked', p.id); setDeletingId(p.id); }} style={{ color:'var(--danger)' }} title="Eliminar">🗑️</button>
                       </div>
