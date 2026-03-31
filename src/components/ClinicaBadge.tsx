@@ -4,47 +4,59 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useClinica } from '../contexts/ClinicaContext';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function ClinicaBadge() {
+export default function ClinicaBadge({ variant = 'default' }: { variant?: 'default' | 'compact' }) {
   const { user } = useAuth();
   const { clinica, clinicas, cambiarClinica } = useClinica();
   const [open, setOpen] = useState(false);
 
   const esAutorizado = user?.rol === 'ADMIN' || user?.rol === 'DOCTOR' || user?.permisosMultiClinica === true;
+  const isCompact = variant === 'compact';
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width: isCompact ? 'auto' : '100%' }}>
       <motion.button
         onClick={() => esAutorizado && setOpen(!open)}
         whileHover={esAutorizado ? { background: 'rgba(255,255,255,0.06)', borderColor: 'var(--primary)' } : {}}
         whileTap={esAutorizado ? { scale: 0.98 } : {}}
         style={{
-          display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '10px 12px',
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid var(--border)',
-          borderRadius: '14px',
+          display: 'flex', alignItems: 'center', gap: isCompact ? '8px' : '12px',
+          padding: isCompact ? '6px 10px' : '10px 12px',
+          background: isCompact ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+          border: isCompact ? '1px solid rgba(255,255,255,0.08)' : '1px solid var(--border)',
+          borderRadius: isCompact ? '12px' : '14px',
           cursor: esAutorizado ? 'pointer' : 'default',
-          width: '100%',
+          width: isCompact ? 'auto' : '100%',
           textAlign: 'left',
           color: 'var(--text-primary)',
           transition: 'all 0.3s ease',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+          boxShadow: isCompact ? 'none' : '0 4px 10px rgba(0,0,0,0.05)',
         }}
+        title={isCompact ? `Sede: ${clinica.nombreCorto}` : ''}
       >
         <div style={{
-          width: 36, height: 36, borderRadius: 10,
+          width: isCompact ? 24 : 36, height: isCompact ? 24 : 36, borderRadius: isCompact ? 8 : 10,
           background: 'linear-gradient(135deg, var(--primary), var(--accent))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.1rem',
-          boxShadow: '0 4px 12px var(--primary-glow)',
+          fontSize: isCompact ? '0.8rem' : '1.1rem',
+          boxShadow: isCompact ? 'none' : '0 4px 12px var(--primary-glow)',
           flexShrink: 0
         }}>🏢</div>
         
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 900, letterSpacing: '1.5px', marginBottom: '2px' }}>
-            Sede Activa
-          </div>
-          <div style={{ fontSize: '0.9rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
+        <div style={{ flex: isCompact ? '0 1 auto' : 1, minWidth: 0 }}>
+          {!isCompact && (
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 900, letterSpacing: '1.5px', marginBottom: '2px' }}>
+              Sede Activa
+            </div>
+          )}
+          <div style={{ 
+            fontSize: isCompact ? '0.75rem' : '0.9rem', 
+            fontWeight: 800, 
+            whiteSpace: 'nowrap', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            color: 'var(--text-primary)',
+            maxWidth: isCompact ? '80px' : 'none'
+          }}>
             {clinica.nombreCorto}
           </div>
         </div>
@@ -52,7 +64,7 @@ export default function ClinicaBadge() {
         {esAutorizado && (
           <motion.div 
             animate={{ rotate: open ? 180 : 0 }}
-            style={{ fontSize: '0.7rem', opacity: 0.5, color: 'var(--primary)' }}
+            style={{ fontSize: '0.6rem', opacity: 0.5, color: 'var(--primary)' }}
           >
             ▼
           </motion.div>

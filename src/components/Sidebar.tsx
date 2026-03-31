@@ -80,11 +80,22 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
             )}
           </div>
 
-          {/* Compressed Blocks for Desktop */}
-          {showFull && !isMobile && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden' }}>
-              <ClinicaBadge />
-              <CurrencyToggle />
+          {/* Header Actions: Compact for Mobile, Detailed for Desktop */}
+          {showFull && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }} 
+              animate={{ opacity: 1, height: 'auto' }} 
+              style={{ 
+                marginTop: isMobile ? '12px' : '20px', 
+                display: 'flex', 
+                flexDirection: isMobile ? 'row' : 'column', 
+                gap: isMobile ? '8px' : '10px', 
+                overflow: 'hidden',
+                alignItems: isMobile ? 'center' : 'stretch'
+              }}
+            >
+              <ClinicaBadge variant={isMobile ? 'compact' : 'default'} />
+              <CurrencyToggle variant={isMobile ? 'compact' : 'default'} />
             </motion.div>
           )}
         </div>

@@ -3,10 +3,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMoneda } from '../contexts/MonedaContext';
 
-export default function CurrencyToggle() {
+export default function CurrencyToggle({ variant = 'default' }: { variant?: 'default' | 'compact' }) {
   const { moneda, setMoneda, tasaBCV, necesitaTasa, guardarTasaManual } = useMoneda();
   const [editando, setEditando] = useState(false);
   const [valor, setValor]       = useState('');
+  const isCompact = variant === 'compact';
 
   const handleActualizar = () => {
     const num = parseFloat(valor.replace(',', '.'));
@@ -16,6 +17,41 @@ export default function CurrencyToggle() {
       setValor('');
     }
   };
+
+  if (isCompact) {
+    return (
+      <div style={{ 
+        display: 'flex', alignItems: 'center', gap: '8px', 
+        padding: '4px 6px', borderRadius: '12px',
+        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+        flexShrink: 0
+      }}>
+        {/* Compact Tasa Pill */}
+        <div style={{ 
+          fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', 
+          background: 'var(--primary-dim)', padding: '4px 8px', borderRadius: '8px',
+          whiteSpace: 'nowrap'
+        }}>
+          ${tasaBCV.toLocaleString('es-VE', { minimumFractionDigits: 1 })}
+        </div>
+
+        {/* Dense Toggle */}
+        <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '2px' }}>
+          {(['USD','BS'] as const).map(m => (
+            <button key={m} onClick={() => setMoneda(m)} style={{
+              padding: '4px 8px', border: 'none', cursor: 'pointer', borderRadius: '6px',
+              fontSize: '0.65rem', fontWeight: 900,
+              background: moneda === m ? 'var(--primary)' : 'transparent',
+              color: moneda === m ? '#000' : 'var(--text-secondary)',
+              transition: '0.2s'
+            }}>
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="glass" style={{
