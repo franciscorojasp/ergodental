@@ -9,7 +9,6 @@ import RoleGuard from './components/RoleGuard';
 import TasaModal from './components/TasaModal';
 import ClinicaModal from './components/ClinicaModal';
 import HelpCenter from './components/HelpCenter';
-import AIAssistant from './components/AIAssistant';
 import InstallAppPrompt from './components/InstallAppPrompt';
 import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized';
@@ -114,7 +113,6 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       {/* Modales globales */}
       <TasaModal />
       <HelpCenter />
-      <AIAssistant />
       <InstallAppPrompt />
 
 
