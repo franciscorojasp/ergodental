@@ -1,121 +1,136 @@
-// src/components/HelpCenter.tsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { generarAyudaPDF } from '../utils/reportes';
+import { generarManualPDF } from '../utils/reportes';
 
 interface HelpTopic {
   id: string;
   titulo: string;
   contenido: () => React.ReactNode;
-  puntos: string[]; // Resumen para PDF
+  puntos: string[]; // Resumen para PDF usando sintaxis básica markdown (#, ##, *)
   tags: string[];
 }
 
 const HELP_DATABASE: HelpTopic[] = [
   {
     id: 'general',
-    titulo: 'Bienvenida a ErgoDentalve',
-    tags: ['inicio', 'general', 'bienvenida'],
+    titulo: '1. Introducción y Acceso al Sistema',
+    tags: ['inicio', 'general', 'bienvenida', 'erp'],
     puntos: [
-      'ErgoDentalve es una plataforma ágil, integral y en la nube para la gestión clínica.',
-      'Sedes: Puedes alternar entre distintas sucursales arriba a la izquierda. La data mostrada (Citas, Finanzas, Pacientes) corresponderá exclusivamente a la clínica en la que te encuentres.',
-      'Vista Consolidada: Los perfiles administrativos pueden seleccionar "Consolidado Global" para ver métricas sumadas de todas las clínicas al mismo tiempo.',
-      'Tasa BCV: Actualiza diariamente la tasa en Configuración. Así la app cotiza automáticamente todo lo que cobres en Bs.',
-      'Seguridad: Todas las acciones quedan registradas en red, y los permisos varían según tu nivel (Administrador, Asistente, Odontólogo).'
+      '# 1. Inicio de Sesión y Navegación Básica',
+      'Bienvenido al Manual de Operaciones de ErgoDentalve. Esta guía paso a paso le enseñará cómo utilizar cada módulo de la aplicación correctamente.',
+      '## 1.1. Cómo Iniciar Sesión',
+      '* Paso 1: Ingrese su correo electrónico corporativo y su contraseña en la pantalla de inicio.',
+      '* Paso 2: Presione el botón "Ingresar". Si olvidó su contraseña, contacte a su administrador de sistema.',
+      '* Paso 3: Una vez dentro, observe el selector de "Sede" en la esquina superior izquierda. Asegúrese de seleccionar la clínica en la que se encuentra trabajando actualmente. Toda la información que ingrese se guardará en esa sede específica.',
+      '## 1.2. El Menú de Navegación',
+      '* En el panel izquierdo encontrará los botones para acceder a los distintos módulos (Pacientes, Agenda, Finanzas, etc.).',
+      '* Paso 1: Haga clic en cualquier icono del menú para cambiar de módulo.',
+      '* Paso 2: Si desea reducir la fatiga visual, busque el botón "Tema" (ícono de luna/sol) al final del menú izquierdo para activar el Modo Oscuro.',
+      '* Paso 3: Al finalizar su turno, siempre haga clic en "Cerrar Sesión" en la esquina inferior izquierda para proteger los datos de la clínica.'
     ],
     contenido: () => (
       <div className="help-content">
-        <p><strong>ErgoDentalve</strong> es el ecosistema definitivo para el flujo de tu clínica. Hemos diseñado la interfaz para que sea predictiva y rápida de aprender.</p>
+        <p><strong>Guía de Inicio:</strong> Aprenda a navegar por el sistema y asegurar su sesión de trabajo.</p>
         <div className="info-box">
-          <h5>🔑 Puntos clave de filosofía de uso:</h5>
+          <h5>🔑 Regla de Oro:</h5>
           <ul>
-            <li><strong>Todo ocurre en la nube:</strong> Si haces un cambio en una computadora, tus compañeros lo verán al instante.</li>
-            <li><strong>Sedes Separadas pero unidas:</strong> El selector superior izquierdo dicta qué datos ves. Si estás en "Sede Sur", no verás pacientes anotados en "Sede Norte". Para ver el panorama completo, selecciona "Consolidado Global".</li>
-            <li><strong>Tasa BCV:</strong> Ingresa el dólar de hoy apenas empiece el turno administrativo. ErgoDentalve convertirá automáticamente presupuestos y saldos pendientes.</li>
+            <li>Verifique siempre que la <strong>Sede Activa</strong> en la esquina superior izquierda corresponda a su lugar físico de trabajo actual. Todos los registros que haga (pacientes, cobros) se asignarán a esa sede.</li>
           </ul>
         </div>
       </div>
     )
   },
   {
-    id: 'configuracion',
-    titulo: 'Configuración Inicial (Ajustes)',
-    tags: ['configuracion', 'ajustes', 'sedes'],
+    id: 'pacientes',
+    titulo: '2. Gestión de Pacientes y Odontograma',
+    tags: ['pacientes', 'historias', 'odontograma', 'citas'],
     puntos: [
-      'Datos Institucionales: Verifícalos para asegurar que los recibos y PDFs salgan a nombre de la clínica correcta.',
-      'Gestión de Personal: Crea cuentas para tus odontólogos para poder calcular comisiones.',
-      'Estructura de Precios: Configura la tasa de cambio aquí. Asegúrate que a nivel de servidor nadie la haya alterado.'
+      '# 2. Cómo Registrar y Atender a un Paciente',
+      'Este proceso es crítico. Un error en el registro puede afectar el historial médico.',
+      '## 2.1. Crear un Nuevo Paciente',
+      '* Paso 1: Diríjase al módulo "Pacientes" en el menú izquierdo.',
+      '* Paso 2: Haga clic en el botón azul "+ Nuevo Paciente" en la esquina superior derecha.',
+      '* Paso 3: Llene obligatoriamente el número de Cédula, Nombre Completo, Fecha de Nacimiento y Teléfono. Sin estos datos no podrá guardar.',
+      '* Paso 4: Haga clic en el botón verde "Guardar". El paciente aparecerá ahora en la lista principal.',
+      '## 2.2. Llenar la Anamnesis (Historial Médico)',
+      '* Paso 1: Busque al paciente en la lista y haga clic en su nombre para abrir su perfil.',
+      '* Paso 2: Vaya a la pestaña "Anamnesis" o "Antecedentes".',
+      '* Paso 3: Marque las casillas correspondientes si el paciente sufre de alergias, hipertensión, diabetes, etc.',
+      '* Paso 4: Escriba detalles adicionales en el cuadro de texto y presione "Guardar Antecedentes".',
+      '## 2.3. Cómo usar el Odontograma',
+      '* Paso 1: Dentro del perfil del paciente, haga clic en la pestaña "Odontograma".',
+      '* Paso 2: Verá una representación gráfica de los dientes. Haga clic izquierdo sobre el diente específico que desea diagnosticar o tratar.',
+      '* Paso 3: Se abrirá un pequeño menú. Seleccione el estado (ej. "Caries", "Implante", "Endodoncia").',
+      '* Paso 4: El diente cambiará de color según el estado seleccionado (ej. rojo para caries, azul para tratamientos realizados).',
+      '* Paso 5: IMPORTANTE: Una vez termine de actualizar los dientes, DEBE hacer clic en el botón azul "Guardar Odontograma" en la parte inferior.'
     ],
     contenido: () => (
       <div className="help-content">
-        <p>El primer paso vital es revisar que el panel de Configuración tenga todo en orden:</p>
+        <p>Tutorial paso a paso para el registro clínico. Siga las instrucciones cuidadosamente.</p>
         <ol>
-          <li><strong>Datos de Sede:</strong> Revisa tu Dirección, Teléfono, y RIF. Esto es lo que se incrustará en todos los PDFs (Recibos, Presupuestos) que le entregues a tus pacientes.</li>
-          <li><strong>Mantenimiento de Personal:</strong> Antes de crear citas, debes tener en sistema a tus Doctores. Así podrás asignarlos como tratantes y luego, calcular su honorario.</li>
-          <li><strong>Control de Tasa:</strong> En la sección Tasa BCV puedes forzar actualizar el valor manual. Esta tasa regirá conversiones visuales en el Área de Finanzas y Presupuestos.</li>
+          <li>Nunca cree un paciente sin antes buscar su Cédula en la barra de búsqueda superior para evitar duplicados.</li>
+          <li>El odontograma debe guardarse manualmente presionando el botón de guardar.</li>
         </ol>
       </div>
     )
   },
   {
-    id: 'historias',
-    titulo: 'Historias Médicas e Ingreso Clínico',
-    tags: ['pacientes', 'historias', 'odontograma'],
+    id: 'agenda',
+    titulo: '3. Manejo de la Agenda y Citas',
+    tags: ['agenda', 'calendario', 'citas'],
     puntos: [
-      'Buscador Universal: Filtra por Cédula o Nombre. Es instantáneo.',
-      'Radiografías y Archivos: Próximamente habilitado. Usa las Notas del Odontograma para documentar todo.',
-      'Odontograma Interactivo: Cada pieza dental (11 al 48 infantil/adulto) puede alterarse seleccionando un estado (Caries, Implante, Corona, etc).',
-      'Actualización en vivo: Cada guardado sella fecha y hora en tu registro local de la nube.'
+      '# 3. Cómo Agendar y Confirmar Citas',
+      'La agenda visualiza el flujo de trabajo diario de los doctores.',
+      '## 3.1. Crear una Cita Nueva',
+      '* Paso 1: Vaya al módulo "Agenda" en el panel izquierdo.',
+      '* Paso 2: Haga clic en el día y hora exactos en el calendario visual donde desea colocar la cita.',
+      '* Paso 3: Se abrirá un formulario. En el buscador "Paciente", escriba el nombre o cédula del paciente y selecciónelo de la lista.',
+      '* Paso 4: Seleccione al Odontólogo tratante en el menú desplegable.',
+      '* Paso 5: Escriba el motivo de la consulta y haga clic en "Agendar".',
+      '## 3.2. Cambiar el Estado de una Cita (Flujo de Recepción)',
+      '* Paso 1: Cuando el paciente llegue a la clínica, haga clic sobre su cita en el calendario.',
+      '* Paso 2: Cambie el "Estado" de "Programada" a "En Sala". El color de la cita cambiará para notificar al doctor.',
+      '* Paso 3: Una vez el doctor termine de atenderlo, vuelva a abrir la cita y cambie el estado a "Atendida".',
+      '* Paso 4: Si el paciente falta, cámbielo a "Cancelada".'
     ],
     contenido: () => (
       <div className="help-content">
-        <p>El corazón de tu clínica son tus pacientes. En el módulo de <strong>Pacientes</strong> tienes acceso al historial sin demoras.</p>
-        <ul>
-          <li><strong>Odontograma Interactivo:</strong> Es la herramienta más icónica. Entra a un paciente y haz click en el diente. Se desplegará un menú radial o de lista para seleccionar la afección o tratamiento. Al guardar, quedará reflejado en la Historia Clínica.</li>
-          <li><strong>Datos Personales:</strong> Completa siempre Fecha de Nacimiento (para recordatorios), y Condiciones Sistémicas Críticas. Verás banderas de alerta si es alérgico o de riesgo.</li>
-          <li><strong>Presupuestos:</strong> En la vista del paciente, puedes enlazar presupuestos directamente a lo que arrojó el odontograma.</li>
-        </ul>
+        <p>Administración del calendario. Mantener los estados de las citas actualizados es vital para calcular tiempos de espera.</p>
       </div>
     )
   },
   {
     id: 'finanzas',
-    titulo: 'Caja, Ingresos y Egresos',
-    tags: ['finanzas', 'pagos', 'bolivares', 'dolares'],
+    titulo: '4. Cobros y Financiamiento',
+    tags: ['finanzas', 'pagos', 'bolivares', 'dolares', 'facturacion'],
     puntos: [
-      'Sistema Multimoneda: Montos base en dólares (generalmente) y el sistema calculará equivalencias en Bolívares al momento.',
-      'Generación de Recibos: Al registrar un pago a favor de un tratamiento, puedes exportarlo inmediatamente en PDF con el botón correspondiente.',
-      'Honorarios (Comisiones): Al anotar quién fue el Doctor en una intervención y el "Tipo de Referencia", el Dashboard cruza la regla (ej. 70/30) y destina lo correspondiente a Honorarios por Pagar al Doctor.',
-      'Egresos: No dediques la clínica solo a registrar ingresos. Anota compras de materiales, nómina, etc. Para ver ganancias Netas operativas.'
+      '# 4. Cómo Registrar Pagos y Egresos',
+      'El módulo financiero calcula automáticamente la conversión entre Dólares y Bolívares usando la tasa BCV oficial del día.',
+      '## 4.1. Registrar un Cobro a un Paciente',
+      '* Paso 1: Diríjase al módulo "Finanzas" y seleccione la pestaña "Ingresos".',
+      '* Paso 2: Haga clic en el botón verde "+ Nuevo Ingreso".',
+      '* Paso 3: Busque y seleccione al Paciente que está pagando.',
+      '* Paso 4: Ingrese el monto en Dólares (USD). Verá que el sistema calcula automáticamente el equivalente en Bolívares (Bs) en la casilla de al lado.',
+      '* Paso 5: Seleccione el Método de Pago (Zelle, Pago Móvil, Punto de Venta, Efectivo, etc.).',
+      '* Paso 6: Si el pago es por transferencia o punto, escriba obligatoriamente el Número de Referencia y el Banco.',
+      '* Paso 7: Describa el tratamiento cobrado (ej. "Limpieza Dental Simple") y presione "Guardar".',
+      '## 4.2. Cuentas por Cobrar (Créditos)',
+      '* Paso 1: Si un paciente no paga el monto completo, vaya al módulo Finanzas > Pestaña "Créditos".',
+      '* Paso 2: Agregue un nuevo crédito vinculando al paciente, ingresando el monto adeudado y fijando una fecha límite de pago.',
+      '* Paso 3: Cuando el paciente regrese a abonar, busque su registro de crédito y seleccione "Registrar Abono".',
+      '## 4.3. Cierre de Caja Diario',
+      '* Paso 1: Al final del día, los administradores deben ir a Finanzas > "Cierre Diario".',
+      '* Paso 2: Seleccione la fecha de hoy y presione "Generar Cierre PDF".',
+      '* Paso 3: Imprima o guarde el PDF generado para cotejar los totales con los vouchers del punto de venta y transferencias bancarias recibidas.'
     ],
     contenido: () => (
       <div className="help-content">
-        <p>El libro de control contable sin la complicación contable.</p>
+        <p>Instrucciones detalladas de manejo de dinero. Los errores de digitación aquí afectan los reportes contables.</p>
         <ul>
-          <li><strong>Dólares o Bolívares:</strong> Al reportar ingresos de pacientes, el sistema asume montos fijos en USD pero recibe pagos en Punto Venta (Bs). El campo <em>Cobro en Bs</em> te mostrará la conversión exacta automática.</li>
-          <li><strong>Cálculo de Comisiones a Doctores:</strong> El éxito del sistema recae en los porcentajes pre-acordados. Al cobrarle a un paciente 100$, si el doctor está al 60%, verás 60$ acumulándose en la sección "Doctores".</li>
-          <li><strong>Reportes Trimestrales:</strong> En Finanzas, filtra por mes o trimestre y genera un Reporte Financiero completo con un click para mostrárselo a gerencia o socios.</li>
-        </ul>
-      </div>
-    )
-  },
-  {
-    id: 'documentos',
-    titulo: 'Impresión y Envío de PDFs',
-    tags: ['pdf', 'recibos', 'impresion'],
-    puntos: [
-      'Todo lo que haces, es Exportable: Presupuestos, Recibos de Pago, y Resumen Financiero.',
-      'Documentos Únicos: Todo PDF exportado tiene un N° DOC-000XXX para trazabilidad legal y administrativa dentro de la empresa.',
-      'Configuración: El PDF saldrá con la información real de la Sede desde donde lo mandas a hacer.'
-    ],
-    contenido: () => (
-      <div className="help-content">
-        <p>Mantén la elegancia con todos tus pacientes.</p>
-        <ul>
-          <li><strong>¿Qué puedes exportar?</strong> Puedes descargar en PDF el Odontograma (próximamente), los Recibos de pago cuando un paciente abona, y los Presupuestos con desglose de ítems.</li>
-          <li><strong>Envío por WhatsApp:</strong> Aunque el botón actual descarga localmente el PDF, puedes compartir el archivo recién bajado directamente por WhatsApp en tu equipo o celular de la clínica, dando un toque muy moderno de atención al usuario.</li>
+          <li><strong>Tasa Automática:</strong> No intente calcular los bolívares manualmente. Solo escriba los dólares y deje que el sistema aplique la tasa BCV del día.</li>
+          <li><strong>Referencias:</strong> Todo pago digital exige su número de confirmación.</li>
         </ul>
       </div>
     )
@@ -157,7 +172,7 @@ export default function HelpCenter() {
     if (!activeTopic) return;
     setIsGenerating(true);
     try {
-      await generarAyudaPDF({
+      await generarManualPDF({
         titulo: activeTopic.titulo,
         puntos: activeTopic.puntos
       }, user?.nombre);
@@ -172,12 +187,13 @@ export default function HelpCenter() {
     setIsGenerating(true);
     try {
       // Combinar todos los temas
-      const puntosCombinados = HELP_DATABASE.map(
-        t => `[${t.titulo.toUpperCase()}] ${t.puntos.join(' · ')}`
-      );
+      let puntosCombinados: string[] = ['# MANUAL DE USUARIO OFICIAL - ERGODENTALVE', 'Este documento contiene las especificaciones operativas y de procesos estandarizados para el uso del ERP.'];
+      HELP_DATABASE.forEach(t => {
+        puntosCombinados = [...puntosCombinados, ...t.puntos];
+      });
       
-      await generarAyudaPDF({
-        titulo: 'Manual Completo de Usuario ErgoDentalve',
+      await generarManualPDF({
+        titulo: 'Manual de Usuario Integral',
         puntos: puntosCombinados
       }, user?.nombre);
     } catch (e) {

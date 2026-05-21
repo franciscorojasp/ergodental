@@ -66,7 +66,7 @@ export default function TasaModal() {
                 Tasa de Cambio Oficial
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '16px' }}>
-                Ingrese la tasa BCV oficial del día para los cálculos en Bolívares.
+                No se pudo obtener la tasa oficial automáticamente. Ingrese la tasa BCV del día para continuar.
               </p>
 
               <div style={{

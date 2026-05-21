@@ -143,7 +143,7 @@ export default function TasaBCV() {
             {necesitaTasa ? '⚠️ Acción Requerida' : '✏️ Ajuste de Tasa'}
           </div>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.4 }}>
-            Consulte el valor oficial en <a href="https://bcv.org.ve" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 800 }}>bcv.org.ve</a> e ingréselo para recalcular el sistema.
+            La tasa oficial se actualiza <strong>automáticamente</strong>. Utilice este panel solo si requiere realizar un ajuste manual.
           </p>
           
           <div style={{ display: 'flex', gap: '8px' }}>

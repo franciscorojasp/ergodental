@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getTasaHoy, saveTasaHoy, getHistorialTasasDB, processSyncQueue } from '../api';
+import { saveTasaHoy, getHistorialTasasDB, processSyncQueue } from '../api';
 import { useAuth } from './AuthContext';
 
 export type Moneda = 'USD' | 'BS';
@@ -123,18 +123,54 @@ export function MonedaProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(STORAGE_HIST, JSON.stringify(parsedHistory));
 
           // Si la primera tasa del historial es de HOY, la aplicamos directamente
-          // para no obligar al usuario a ingresarla nuevamente
           const histHoy = parsedHistory[0];
-          if (histHoy.fecha === hoy && histHoy.tasa > 0) {
+          if (histHoy && histHoy.fecha === hoy && histHoy.tasa > 0) {
             setTasaBCV(histHoy.tasa);
             localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: histHoy.tasa, fecha: hoy }));
+          } else {
+            // ¡NO HAY TASA PARA HOY! Extraer de API Pública del BCV Automáticamente
+            try {
+              const bcvRes = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+              if (bcvRes.ok) {
+                const bcvData = await bcvRes.json();
+                if (bcvData && bcvData.promedio) {
+                  const tasaAuto = typeof bcvData.promedio === 'string' 
+                    ? parseFloat(bcvData.promedio.replace(',', '.')) 
+                    : Number(bcvData.promedio);
+                    
+                  if (tasaAuto > 0) {
+                    setTasaBCV(tasaAuto);
+                    localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: tasaAuto, fecha: hoy }));
+                    // Sincronizar a Supabase para que los demás la tengan lista
+                    saveTasaHoy(tasaAuto, 'Bot Automático BCV').catch(e => console.warn('Error guardando tasa auto:', e));
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn("No se pudo obtener la tasa automática del BCV", err);
+              // Si falla el bot y getHistorialTasas falló, se pedirá manualmente vía Modal
+            }
           }
         } else {
-          // Fallback legacy (si getHistorialTasas falla o hay error)
-          const tasaGlobal = await getTasaHoy();
-          if (tasaGlobal && tasaGlobal > 0) {
-            setTasaBCV(tasaGlobal);
-            localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: tasaGlobal, fecha: hoy }));
+          // Fallback en caso de que la tabla de historial esté vacía por primera vez
+          try {
+            const bcvRes = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+            if (bcvRes.ok) {
+              const bcvData = await bcvRes.json();
+              if (bcvData && bcvData.promedio) {
+                const tasaAuto = typeof bcvData.promedio === 'string' 
+                  ? parseFloat(bcvData.promedio.replace(',', '.')) 
+                  : Number(bcvData.promedio);
+                  
+                if (tasaAuto > 0) {
+                  setTasaBCV(tasaAuto);
+                  localStorage.setItem(STORAGE_TASA, JSON.stringify({ tasa: tasaAuto, fecha: hoy }));
+                  saveTasaHoy(tasaAuto, 'Bot Automático BCV').catch(e => console.warn('Error guardando tasa auto:', e));
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Fallo fallback BCV automática", err);
           }
         }
       } catch (err) {

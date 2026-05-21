@@ -235,7 +235,7 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
   }
 }
 
-export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): Promise<void> {
+export async function generarManualPDF(topic: { titulo: string; puntos: string[] }, usuario?: string): Promise<void> {
   try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     const correlativo = await getGlobalCorrelativo();
@@ -243,7 +243,7 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
     // Reutilizamos el header con una config mínima
     addHeader(doc, { 
       titulo: topic.titulo, 
-      subtitulo: 'Guía de Ayuda ErgoDentalve',
+      subtitulo: 'Documentación Oficial ErgoDentalve',
       usuario,
       columnas: [], filas: [] 
     }, correlativo);
@@ -251,28 +251,55 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
     const W = doc.internal.pageSize.getWidth();
     let currentY = 70; // bajamos un poco por si hay ámbito
 
-    doc.setFontSize(11);
-    doc.setTextColor(40, 40, 40);
-    doc.setFont('helvetica', 'normal');
-
     topic.puntos.forEach(punto => {
-      // Si el punto es muy largo, lo dividimos
-      const lines = doc.splitTextToSize(`• ${punto}`, W - 28);
-      
-      // Verificar si necesitamos nueva página
-      if (currentY + (lines.length * 6) > 260) {
-        doc.addPage();
-        let newTblStartY = addHeader(doc, { titulo: topic.titulo, subtitulo: 'Guía de Ayuda ErgoDentalve', columnas:[], filas:[] }, correlativo);
-        currentY = newTblStartY;
+      let textToPrint = punto;
+      let fontSize = 10;
+      let fontStyle = 'normal';
+      let textColor: [number, number, number] = [60, 60, 60];
+      let indent = 14;
+
+      if (punto.startsWith('# ')) {
+        textToPrint = punto.replace('# ', '');
+        fontSize = 14;
+        fontStyle = 'bold';
+        textColor = [30, 90, 180]; // BRAND_COLOR
+        currentY += 4;
+      } else if (punto.startsWith('## ')) {
+        textToPrint = punto.replace('## ', '');
+        fontSize = 12;
+        fontStyle = 'bold';
+        textColor = [40, 40, 40];
+        currentY += 2;
+      } else if (punto.startsWith('* ')) {
+        textToPrint = '• ' + punto.replace('* ', '');
+        indent = 18;
       }
 
-      doc.text(lines, 14, currentY);
-      currentY += (lines.length * 7);
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...textColor);
+      doc.setFont('helvetica', fontStyle);
+
+      const lines = doc.splitTextToSize(textToPrint, W - indent - 14);
+      
+      // Verificar si necesitamos nueva página
+      if (currentY + (lines.length * (fontSize * 0.4)) > 260) {
+        doc.addPage();
+        let newTblStartY = addHeader(doc, { titulo: topic.titulo, subtitulo: 'Documentación Oficial ErgoDentalve', columnas:[], filas:[] }, correlativo);
+        currentY = newTblStartY;
+        
+        // Re-aplicar estilo de fuente
+        doc.setFontSize(fontSize);
+        doc.setTextColor(...textColor);
+        doc.setFont('helvetica', fontStyle);
+      }
+
+      doc.text(lines, indent, currentY);
+      currentY += (lines.length * (fontSize * 0.45)) + 3;
     });
 
     addFooter(doc);
     
-    const filename = `ayuda_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}.pdf`;
+    const filename = `manual_${topic.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}.pdf`;
     doc.save(filename);
     
     try {
@@ -285,7 +312,7 @@ export async function generarAyudaPDF(topic: { titulo: string; puntos: string[] 
     } catch (e) {}
     
   } catch (error) {
-    console.error('Error generando ayuda PDF:', error);
+    console.error('Error generando manual PDF:', error);
     alert('Ocurrió un error al generar la guía en PDF.');
   }
 }

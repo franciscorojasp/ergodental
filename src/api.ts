@@ -14,7 +14,16 @@ export const isDemoSession = () => {
       // Francisco y Admins SUPER_ADMINS nunca son demo si hay conexión
       const SUPER_ADMINS = ['francisco.rojasp@gmail.com', 'blascojennifer47@gmail.com', 'vera.hugo712@gmail.com', 'carlosalejandroverablasco183@gmail.com'];
       if (SUPER_ADMINS.includes(u.email?.toLowerCase())) return false;
-      return u.email === 'demo@ergodentalve.com';
+      
+      const DEMO_EMAILS = [
+        'demo@ergodentalve.com',
+        'admin@ergodentalve.com',
+        'doctor@ergodentalve.com',
+        'asistente@ergodentalve.com',
+        'recepcion@ergodentalve.com',
+        'pro@ergodentalve.com'
+      ];
+      return DEMO_EMAILS.includes(u.email?.toLowerCase());
     } catch { return false; }
   }
   return false;
@@ -75,6 +84,78 @@ export interface SyncAction {
   action: 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT';
   payload: any;
   timestamp: number;
+  retries?: number;
+}
+
+// Determina si un error es permanente/irrecuperable en lugar de transitorio de conexión
+function isPermanentError(err: any): boolean {
+  if (!err) return false;
+  
+  // Códigos de error de PostgreSQL/PostgREST conocidos que son permanentes
+  // PGRSTxxx: PostgREST Syntax/Schema Errors
+  // 42501: RLS Violation (Sin permisos)
+  // 23505: Unique Violation
+  // 23503: Foreign Key Violation
+  // 23502: Not Null Violation
+  // 22P02: Invalid Text Representation
+  // 22001: String Data Right Truncation
+  const code = err.code;
+  if (code && typeof code === 'string') {
+    if (
+      code.startsWith('23') || 
+      code.startsWith('42') || 
+      code.startsWith('22') || 
+      code.startsWith('PGRST')
+    ) {
+      return true;
+    }
+  }
+
+  // Estatus HTTP que representan fallas definitivas de acceso o de sintaxis cliente
+  const status = err.status || err.statusCode;
+  if (status && [400, 401, 403, 409].includes(status)) {
+    return true;
+  }
+
+  // Análisis robusto de mensajes comunes irrecuperables
+  const msg = (err.message || String(err)).toLowerCase();
+  if (
+    msg.includes('schema cache') ||
+    msg.includes('column of') ||
+    msg.includes('does not exist') ||
+    msg.includes('row-level security') ||
+    msg.includes('violates unique constraint') ||
+    msg.includes('violates foreign key')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+// Guarda los fallos irrecuperables en un histórico local de fallas para depuración
+function archiveFailedSyncAction(item: SyncAction, error: any) {
+  if (typeof window === 'undefined') return;
+  try {
+    const failedList: any[] = JSON.parse(localStorage.getItem('ergo_sync_failed') || '[]');
+    failedList.push({
+      ...item,
+      failed_at: Date.now(),
+      error: {
+        message: error?.message || String(error),
+        code: error?.code,
+        status: error?.status || error?.statusCode
+      }
+    });
+    // Mantener un historial acotado a 50 elementos
+    if (failedList.length > 50) {
+      failedList.shift();
+    }
+    localStorage.setItem('ergo_sync_failed', JSON.stringify(failedList));
+    console.warn(`⚠️ Elemento descartado y archivado en fallos (Tabla: ${item.table}):`, error);
+  } catch (e) {
+    console.error('Error guardando en ergo_sync_failed:', e);
+  }
 }
 
 export function saveToSyncQueue(action: Omit<SyncAction, 'id' | 'timestamp'>) {
@@ -103,33 +184,19 @@ export async function processSyncQueue() {
   
   for (const item of queue) {
     try {
-      // ─── GOBERNANZA DE DATOS PROACTIVA (REPARADOR v1.9) ────────────
-      // Este bloque actúa como un firewall de esquema antes de tocar la red.
+      // ─── GOBERNANZA DE DATOS PROACTIVA (REPARADOR v2.0) ────────────
+      // Este bloque actúa como un normalizador de esquema para tablas especiales.
       
-      // 1. Citas: Eliminar campos que NO existen en el esquema de producción real
-      if (item.table === 'citas') {
-        const toxic = ['tipo_referencia', 'referidor_nombre', 'referidor_contacto', 'last_updated'];
-        toxic.forEach(f => delete item.payload[f]);
-      }
-      
-      // 2. Odontogramas: Asegurar Verdad de Producción (columna 'datos')
+      // 1. Odontogramas: Asegurar Verdad de Producción (columna 'datos')
       if (item.table === 'odontogramas') {
         if ((item.payload.data || item.payload.piezas) && !item.payload.datos) {
           item.payload.datos = item.payload.piezas || item.payload.data;
         }
-        // Eliminamos campos documentales que causan 400 Bad Request
+        // Eliminamos campos temporales de UI o incompatibles
         delete item.payload.id; 
         delete item.payload.data;
         delete item.payload.piezas;
         delete item.payload.last_updated;
-      }
-
-      // 3. Pagos y Egresos: Blindaje de Campos Económicos (v1.9)
-      // Garantizamos que campos adicionales no bloqueen la contabilidad
-      if (item.table === 'pagos' || item.table === 'egresos') {
-        // El campo last_updated es el principal sospechoso de errores 400 en estas tablas
-        delete item.payload.last_updated;
-        delete item.payload.lastUpdated;
       }
       // ─────────────────────────────────────────────────────────────
 
@@ -150,7 +217,6 @@ export async function processSyncQueue() {
         throw new Error('Action not supported');
       }
 
-
       const { error } = await operation;
       if (error) throw error;
       
@@ -158,7 +224,18 @@ export async function processSyncQueue() {
     } catch (err: any) {
       console.error(`❌ Error sincronizando item en ${item.table}:`, err);
       localStorage.setItem('ergo_last_sync_error', err?.message || JSON.stringify(err));
-      remainingQueue.push(item);
+      
+      const currentRetries = (item.retries || 0) + 1;
+      const isPermanent = isPermanentError(err);
+      
+      if (isPermanent || currentRetries >= 5) {
+        archiveFailedSyncAction(item, err);
+      } else {
+        remainingQueue.push({
+          ...item,
+          retries: currentRetries
+        });
+      }
     } 
   }
   
@@ -937,9 +1014,6 @@ export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
     return nueva;
   }
   const dbData = mapKeys(c, toSnake);
-  // Saneamiento de esquema v1.8 (Blindaje total)
-  const schemaToxicFields = ['tipo_referencia', 'referidor_nombre', 'referidor_contacto', 'last_updated'];
-  schemaToxicFields.forEach(field => delete dbData[field]);
   
   return await withOfflineSync<Cita>(
     () => supabase.from('citas').insert(dbData).select().single(),
@@ -961,9 +1035,6 @@ export async function updateCita(c: Partial<Cita> & { id: string }): Promise<Cit
   }
   const { id, ...rest } = c;
   const dbData = mapKeys(rest, toSnake);
-  // Saneamiento de esquema v1.8 (Blindaje total)
-  const schemaToxicFields = ['tipo_referencia', 'referidor_nombre', 'referidor_contacto', 'last_updated'];
-  schemaToxicFields.forEach(field => delete dbData[field]);
 
   return await withOfflineSync<Cita>(
     () => supabase.from('citas').update(dbData).eq('id', id).select().single(),
@@ -1248,7 +1319,7 @@ export async function deletePresupuesto(id: string): Promise<void> {
 
 // Recibos
 export async function getRecibos(): Promise<Recibo[]> {
-  if (IS_DEMO_MODE) return DEMO_RECIBOS;
+  if (isDemoSession()) return DEMO_RECIBOS;
   const { data, error } = await supabase.from('recibos').select('*').order('fecha', { ascending: false });
   if (error) throw error;
   return mapKeys(data, toCamel) as Recibo[];

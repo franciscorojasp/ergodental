@@ -24,6 +24,7 @@ const NAV: { to: string; icon: string; label: string; modulo: Modulo }[] = [
   { to: '/proveedores', icon: '🏢', label: 'Proveedores', modulo: 'proveedores' },
   { to: '/tasabcv',     icon: '💱', label: 'Tasa BCV',    modulo: 'finanzas'    },
   { to: '/configuracion', icon: '⚙️', label: 'Configuración', modulo: 'configuracion' },
+  { to: '/manual-tecnico', icon: '🛠️', label: 'Manual Técnico', modulo: 'configuracion' },
   { to: '/soporte',      icon: '🚀', label: 'Desarrolladores', modulo: 'dashboard' },
 ];
 

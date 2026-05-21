@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS evoluciones_clinicas (
 CREATE TABLE IF NOT EXISTS odontogramas (
   id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   paciente_id UUID REFERENCES pacientes(id) ON DELETE CASCADE UNIQUE,
-  piezas      JSONB NOT NULL DEFAULT '[]',
+  datos       JSONB NOT NULL DEFAULT '[]',
   fecha       DATE DEFAULT CURRENT_DATE
 );
 

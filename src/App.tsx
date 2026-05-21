@@ -29,6 +29,7 @@ import Laboratorios from './pages/Laboratorios';
 import Usuarios from './pages/Usuarios';
 import ResetPassword from './pages/ResetPassword';
 import Desarrolladores from './pages/Desarrolladores';
+import ManualTecnico from './pages/ManualTecnico';
 import { ROL_HOME } from './permissions';
 
 import { useState, useEffect } from 'react';
@@ -223,6 +224,9 @@ export default function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/soporte" element={
                   <ProtectedLayout><Desarrolladores /></ProtectedLayout>
+                } />
+                <Route path="/manual-tecnico" element={
+                  <ProtectedLayout><RoleGuard modulo="configuracion" redirigir><ManualTecnico /></RoleGuard></ProtectedLayout>
                 } />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
