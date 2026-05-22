@@ -33,15 +33,21 @@ const REF_ICON: Record<TipoReferencia,string> = {
   'Profesional-Especialista':'👨‍⚕️','Paciente-Clinica':'🏥','Foraneo-30':'🌍','Foraneo-10':'🌐',
 };
 
-function daysBetween(d1:string,d2:string){
-  return Math.abs((new Date(d1).getTime()-new Date(d2).getTime())/86400000);
-}
-function isInPeriod(dateStr:string,periodo:PeriodoReporte):boolean{
-  const days={Hoy:0, Semanal:7,Quincenal:15,Mensual:30,Trimestral:90,Semestral:180,Anual:365};
-  if (periodo === 'Hoy') {
-    return dateStr === new Date().toISOString().split('T')[0];
-  }
-  return daysBetween(dateStr,new Date().toISOString().split('T')[0])<=days[periodo];
+const parseDateSafe = (f: string) => {
+  if (!f) return new Date();
+  const clean = String(f).split('T')[0];
+  const d = new Date(clean + 'T12:00:00');
+  return isNaN(d.getTime()) ? new Date() : d;
+};
+
+function isInPeriod(dateStr: string, periodo: PeriodoReporte): boolean {
+  const hoyStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  if (periodo === 'Hoy') return dateStr === hoyStr;
+  const dateCita = parseDateSafe(dateStr);
+  const dateHoy = parseDateSafe(hoyStr);
+  const diff = (dateHoy.getTime() - dateCita.getTime()) / 86400000;
+  const days = { Hoy: 0, Semanal: 7, Quincenal: 15, Mensual: 30, Trimestral: 90, Semestral: 180, Anual: 365 };
+  return diff >= 0 && diff <= days[periodo];
 }
 
 // ── Barra proporcional de desglose ────────────────────────────────────────────
@@ -92,10 +98,10 @@ export default function Finanzas(){
 
   const { fmt, tasaBCV } = useMoneda();
   const { user }         = useAuth();
-  const { clinica }      = useClinica();
+  const { clinica, clinicas } = useClinica();
   const [isMobile]       = useState(window.innerWidth < 768);
 
-  const hoy  = new Date().toLocaleDateString('en-CA');
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
   const [formPago,setFormPago]=useState({
     pacienteId:'', doctorId:'', concepto:'', monto:0, tasaCambio:tasaBCV,
@@ -112,20 +118,69 @@ export default function Finanzas(){
     concepto:'',categoria:'Suministros' as Egreso['categoria'],
     monto:0,tasaCambio:tasaBCV,metodoPago:'Transferencia BS' as MetodoPago,
     proveedorId:'',fecha:hoy,notas:'',
+    clinicaId: clinica.id === 'consolidado' ? (clinicas.find(c => c.id !== 'consolidado')?.id || 'la-vina') : clinica.id,
   });
 
   useEffect(()=>{
     getPagos().then(data => setPagos(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
     getEgresos().then(data => setEgresos(data.filter(e => clinica.id === 'consolidado' || e.clinicaId === clinica.id)));
     getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
-    getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id && p.tipo==='Odontólogo'&& p.activo)));
-    getProveedores().then(data => setProveedores(data.filter(x => x.clinicaId === clinica.id && x.activo)));
+    getPersonal().then(data => setPersonal(data.filter(p => (clinica.id === 'consolidado' || p.clinicaId === clinica.id) && p.tipo==='Odontólogo'&& p.activo)));
+    getProveedores().then(data => setProveedores(data.filter(x => (clinica.id === 'consolidado' || x.clinicaId === clinica.id) && x.activo)));
   },[clinica.id]);
 
   // Auto-fill referral + doctor from patient + appointment
   const onPacienteChange=(id:string)=>{
     const pac=pacientes.find(p=>p.id===id);
     setFormPago(f=>({...f,pacienteId:id,tipoReferencia:pac?.tipoReferencia||'',referidorNombre:pac?.referidorNombre||''}));
+  };
+
+  const openModalPago = () => {
+    setFormPago({
+      pacienteId: '',
+      doctorId: '',
+      concepto: '',
+      monto: 0,
+      tasaCambio: tasaBCV,
+      metodoPago: 'Pago Móvil',
+      tipoPago: 'Contado',
+      diasCredito: 15,
+      fecha: hoy,
+      notas: '',
+      tipoReferencia: '',
+      referidorNombre: '',
+      bancoEmisor: '',
+      numeroReferencia: '',
+      telefonoOrigen: '',
+    });
+    setModalPago(true);
+  };
+
+  const openModalEgreso = () => {
+    const defaultClinicId = clinica.id === 'consolidado' ? (clinicas.find(c => c.id !== 'consolidado')?.id || 'la-vina') : clinica.id;
+    setFormEgreso({
+      concepto: '',
+      categoria: 'Suministros',
+      monto: 0,
+      tasaCambio: tasaBCV,
+      metodoPago: 'Transferencia BS',
+      proveedorId: '',
+      fecha: hoy,
+      notas: '',
+      clinicaId: defaultClinicId,
+    });
+    setModalEgreso(true);
+  };
+
+  const handleEgresoProveedorChange = (provId: string) => {
+    const prov = proveedores.find(p => p.id === provId);
+    setFormEgreso(f => {
+      const next = { ...f, proveedorId: provId };
+      if (clinica.id === 'consolidado' && prov?.clinicaId) {
+        next.clinicaId = prov.clinicaId;
+      }
+      return next;
+    });
   };
 
   const desglosePreview=useMemo(()=>{
@@ -193,7 +248,7 @@ export default function Finanzas(){
   const totalHonorarios=doctoresData.reduce((s,d)=>s+d.honorarios,0);
 
   const isFormPagoValid = !!(formPago.pacienteId && formPago.doctorId && formPago.concepto && formPago.monto > 0 && formPago.fecha);
-  const isFormEgresoValid = !!(formEgreso.concepto && formEgreso.monto > 0 && formEgreso.categoria && formEgreso.fecha);
+  const isFormEgresoValid = !!(formEgreso.concepto && formEgreso.monto > 0 && formEgreso.categoria && formEgreso.fecha && formEgreso.clinicaId);
 
   // Guardar ingreso
   const handleSavePago=async(e:React.FormEvent)=>{
@@ -207,8 +262,9 @@ export default function Finanzas(){
       const pac=pacientes.find(p=>p.id===formPago.pacienteId);
       const doc=personal.find(p=>p.id===formPago.doctorId);
       const fechaV=formPago.tipoPago==='Crédito'?new Date(Date.now()+formPago.diasCredito*86400000).toISOString().split('T')[0]:undefined;
+      const targetClinicaId = clinica.id === 'consolidado' ? (pac?.clinicaId || 'la-vina') : clinica.id;
       const nuevo=await createPago({
-        clinicaId: clinica.id,
+        clinicaId: targetClinicaId,
         pacienteId:formPago.pacienteId,
         pacienteNombre:pac?`${pac.nombre} ${pac.apellido}`:'',
         concepto:formPago.concepto,monto:formPago.monto,
@@ -243,8 +299,9 @@ export default function Finanzas(){
     setSaving(true);
     try{
       const prov=proveedores.find(p=>p.id===formEgreso.proveedorId);
+      const targetClinicaId = clinica.id === 'consolidado' ? (formEgreso.clinicaId || 'la-vina') : clinica.id;
       const nuevo=await createEgreso({
-        clinicaId: clinica.id,
+        clinicaId: targetClinicaId,
         concepto:formEgreso.concepto,categoria:formEgreso.categoria,
         monto:formEgreso.monto,
         montoBs:METODO_GROUP[formEgreso.metodoPago]==='Bolívares'?formEgreso.monto*formEgreso.tasaCambio:0,
@@ -311,8 +368,8 @@ export default function Finanzas(){
         </div>
         <div className="action-grid mobile-scroll">
           <button className="btn btn-ghost btn-sm" onClick={generarPDF}>📄 Exportar PDF</button>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setModalEgreso(true)}>+ Crear Egreso</button>
-          <button className="btn btn-primary btn-sm" onClick={()=>setModalPago(true)}>+ Nuevo Ingreso</button>
+          <button className="btn btn-ghost btn-sm" onClick={openModalEgreso}>+ Crear Egreso</button>
+          <button className="btn btn-primary btn-sm" onClick={openModalPago}>+ Nuevo Ingreso</button>
         </div>
       </div>
 
@@ -926,6 +983,16 @@ export default function Finanzas(){
               </div>
               <form onSubmit={handleSaveEgreso}>
                 <div className="modal-body">
+                  {clinica.id === 'consolidado' && (
+                    <div className="input-group" style={{ marginBottom: '14px' }}>
+                      <label>Clínica de Destino *</label>
+                      <select className="input" required value={formEgreso.clinicaId} onChange={e=>setFormEgreso(f=>({...f,clinicaId:e.target.value}))}>
+                        {clinicas.filter(c => c.id !== 'consolidado').map(c => (
+                          <option key={c.id} value={c.id}>{c.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="input-group"><label>Concepto *</label><input id="egreso-concepto" name="concepto" className="input" required value={formEgreso.concepto} onChange={e=>setFormEgreso(f=>({...f,concepto:e.target.value}))}/></div>
                   <div className="grid-2">
                     <div className="input-group">
@@ -936,7 +1003,7 @@ export default function Finanzas(){
                     </div>
                     <div className="input-group">
                       <label>Proveedor</label>
-                      <select id="egreso-proveedor" name="proveedorId" className="input" value={formEgreso.proveedorId} onChange={e=>setFormEgreso(f=>({...f,proveedorId:e.target.value}))}>
+                      <select id="egreso-proveedor" name="proveedorId" className="input" value={formEgreso.proveedorId} onChange={e=>handleEgresoProveedorChange(e.target.value)}>
                         <option value="">Sin proveedor</option>
                         {proveedores.map(p=><option key={p.id} value={p.id}>{p.nombre}</option>)}
                       </select>

@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [totalPers,   setTotalPers]   = useState(0);
   const [periodo,     setPeriodo]     = useState<Periodo>('Mensual');
 
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
   useEffect(() => {
     getCitas().then(data => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
@@ -45,8 +45,8 @@ export default function Dashboard() {
     if (periodo === 'Hoy') return String(fecha).split('T')[0] === hoy;
     const dateCita = parseDateSafe(fecha);
     const dateHoy = new Date(hoy + 'T12:00:00');
-    const diff = Math.abs((dateHoy.getTime() - dateCita.getTime()) / 86400000);
-    return diff <= DIAS[periodo];
+    const diff = (dateHoy.getTime() - dateCita.getTime()) / 86400000;
+    return diff >= 0 && diff <= DIAS[periodo];
   };
 
   const citasHoy       = citas.filter(c => String(c.fecha).split('T')[0] === hoy);
