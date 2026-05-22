@@ -30,14 +30,35 @@ export const isDemoSession = () => {
 };
 
 // ─── HELPERS DE TRATAMIENTO DE DATOS ───────────────────────────────────────
+export const isValidUUID = (id: any): boolean => {
+  if (typeof id !== 'string') return false;
+  const looseUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return looseUuidRegex.test(id);
+};
+
+export const generateUUID = (): string => {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const UUID_KEYS = ['paciente_id', 'doctor_id', 'cita_id', 'proveedor_id', 'presupuesto_id'];
+
 export function sanitizeData(payload: any): any {
   if (Array.isArray(payload)) return payload.map(sanitizeData);
   if (payload !== null && typeof payload === 'object') {
     const next: any = {};
     for (const k in payload) {
       const v = payload[k];
-      // Convertir "" o undefined a null para campos sensibles de DB (fechas, numeros)
-      if (v === "" || v === undefined) {
+      // Sanitizar UUIDs no válidos a null para evitar crash en Postgres
+      if (UUID_KEYS.includes(k) && v !== null && !isValidUUID(v)) {
+        next[k] = null;
+      } else if (v === "" || v === undefined) {
         next[k] = null;
       } else if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
         next[k] = sanitizeData(v);
@@ -85,6 +106,37 @@ export interface SyncAction {
   payload: any;
   timestamp: number;
   retries?: number;
+}
+
+function isMissingColumnError(err: any): boolean {
+  if (!err) return false;
+  const code = err.code;
+  if (code === 'PGRST204' || code === '42703') return true;
+  
+  const msg = (err.message || String(err)).toLowerCase();
+  if (
+    msg.includes('column') && 
+    (msg.includes('does not exist') || msg.includes('could not find'))
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function extractMissingColumn(error: any): string | null {
+  if (!error) return null;
+  const msg = error.message || String(error);
+  
+  const match1 = msg.match(/Could not find the '([^']+)' column/i);
+  if (match1) return match1[1];
+  
+  const match2 = msg.match(/column "([^"]+)"/i);
+  if (match2) return match2[1];
+
+  const match3 = msg.match(/column ([a-zA-Z0-9_]+) does not exist/i);
+  if (match3) return match3[1];
+  
+  return null;
 }
 
 // Determina si un error es permanente/irrecuperable en lugar de transitorio de conexión
@@ -183,60 +235,84 @@ export async function processSyncQueue() {
   const remainingQueue: SyncAction[] = [];
   
   for (const item of queue) {
-    try {
-      // ─── GOBERNANZA DE DATOS PROACTIVA (REPARADOR v2.0) ────────────
-      // Este bloque actúa como un normalizador de esquema para tablas especiales.
-      
-      // 1. Odontogramas: Asegurar Verdad de Producción (columna 'datos')
-      if (item.table === 'odontogramas') {
-        if ((item.payload.data || item.payload.piezas) && !item.payload.datos) {
-          item.payload.datos = item.payload.piezas || item.payload.data;
+    let success = false;
+    let attempt = 0;
+    const maxAttempts = 15;
+    
+    while (attempt < maxAttempts && !success) {
+      try {
+        // ─── GOBERNANZA DE DATOS PROACTIVA (REPARADOR v2.0) ────────────
+        // Este bloque actúa como un normalizador de esquema para tablas especiales.
+        
+        // 1. Odontogramas: Asegurar Verdad de Producción (columna 'datos')
+        if (item.table === 'odontogramas') {
+          if ((item.payload.data || item.payload.piezas) && !item.payload.datos) {
+            item.payload.datos = item.payload.piezas || item.payload.data;
+          }
+          // Eliminamos campos temporales de UI o incompatibles
+          delete item.payload.id; 
+          delete item.payload.data;
+          delete item.payload.piezas;
+          delete item.payload.last_updated;
         }
-        // Eliminamos campos temporales de UI o incompatibles
-        delete item.payload.id; 
-        delete item.payload.data;
-        delete item.payload.piezas;
-        delete item.payload.last_updated;
-      }
-      // ─────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────
 
-      let operation;
-      if (item.table === 'odontogramas') {
-        operation = supabase.from('odontogramas').upsert(item.payload, { onConflict: 'paciente_id' });
-      } else if (item.action === 'INSERT') {
-        operation = supabase.from(item.table).insert(item.payload);
-      } else if (item.action === 'UPDATE') {
-        const { id, ...rest } = item.payload;
-        if (!id) throw new Error('Missing ID for update');
-        operation = supabase.from(item.table).update(rest).eq('id', id);
-      } else if (item.action === 'UPSERT') {
-        operation = supabase.from(item.table).upsert(item.payload, { onConflict: 'id' });
-      } else if (item.action === 'DELETE') {
-        operation = supabase.from(item.table).delete().eq('id', item.payload.id);
-      } else {
-        throw new Error('Action not supported');
-      }
+        let operation;
+        if (item.table === 'odontogramas') {
+          operation = supabase.from('odontogramas').upsert(item.payload, { onConflict: 'paciente_id' });
+        } else if (item.action === 'INSERT') {
+          operation = supabase.from(item.table).insert(item.payload);
+        } else if (item.action === 'UPDATE') {
+          const { id, ...rest } = item.payload;
+          if (!id) throw new Error('Missing ID for update');
+          operation = supabase.from(item.table).update(rest).eq('id', id);
+        } else if (item.action === 'UPSERT') {
+          operation = supabase.from(item.table).upsert(item.payload, { onConflict: 'id' });
+        } else if (item.action === 'DELETE') {
+          operation = supabase.from(item.table).delete().eq('id', item.payload.id);
+        } else {
+          throw new Error('Action not supported');
+        }
 
-      const { error } = await operation;
-      if (error) throw error;
-      
-      console.log(`✅ Sincronizado correcto: ${item.table} (${item.action})`);
-    } catch (err: any) {
-      console.error(`❌ Error sincronizando item en ${item.table}:`, err);
-      localStorage.setItem('ergo_last_sync_error', err?.message || JSON.stringify(err));
-      
-      const currentRetries = (item.retries || 0) + 1;
-      const isPermanent = isPermanentError(err);
-      
-      if (isPermanent || currentRetries >= 5) {
-        archiveFailedSyncAction(item, err);
-      } else {
-        remainingQueue.push({
-          ...item,
-          retries: currentRetries
-        });
-      }
-    } 
+        const { error } = await operation;
+        if (error) throw error;
+        
+        success = true;
+        console.log(`✅ Sincronizado correcto: ${item.table} (${item.action})`);
+      } catch (err: any) {
+        const isMissingCol = isMissingColumnError(err);
+        if (isMissingCol) {
+          const missingCol = extractMissingColumn(err);
+          if (missingCol && item.payload && typeof item.payload === 'object') {
+            console.warn(`🧹 [SyncQueue] Detectada columna faltante '${missingCol}' en tabla '${item.table}'. Sanitizando payload y reintentando...`);
+            delete item.payload[missingCol];
+            const camelCol = missingCol.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+            const snakeCol = missingCol.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+            delete item.payload[camelCol];
+            delete item.payload[snakeCol];
+            
+            attempt++;
+            continue; // Reintentar la operación inmediatamente con el payload sanitizado
+          }
+        }
+
+        console.error(`❌ Error sincronizando item en ${item.table}:`, err);
+        localStorage.setItem('ergo_last_sync_error', err?.message || JSON.stringify(err));
+        
+        const currentRetries = (item.retries || 0) + 1;
+        const isPermanent = isPermanentError(err);
+        
+        if (isPermanent || currentRetries >= 5) {
+          archiveFailedSyncAction(item, err);
+        } else {
+          remainingQueue.push({
+            ...item,
+            retries: currentRetries
+          });
+        }
+        break; // Detener reintentos para este elemento si no es recuperable o ya falló
+      } 
+    }
   }
   
   localStorage.setItem('ergo_sync_queue', JSON.stringify(remainingQueue));
@@ -271,16 +347,40 @@ export async function withOfflineSync<T>(
     return optimisticData;
   }
 
-  try {
-    const res = await operation();
-    if (res.error) throw res.error;
-    if (res.data) return mapKeys(res.data, toCamel) as T;
-    return optimisticData;
-  } catch (err: any) {
-    console.warn(`⚠️ Fallo en operación Supabase (${table}):`, err.message || err);
-    if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
-    return optimisticData;
+  let attempt = 0;
+  const maxAttempts = 15;
+  while (attempt < maxAttempts) {
+    try {
+      const res = await operation();
+      if (res.error) throw res.error;
+      if (res.data) return mapKeys(res.data, toCamel) as T;
+      return optimisticData;
+    } catch (err: any) {
+      console.warn(`⚠️ Fallo en operación Supabase (${table}) [intento ${attempt + 1}]:`, err.message || err);
+      
+      const isMissingCol = isMissingColumnError(err);
+      if (isMissingCol) {
+        const missingCol = extractMissingColumn(err);
+        if (missingCol && payload && typeof payload === 'object') {
+          console.warn(`🧹 Detectada columna faltante '${missingCol}' en tabla '${table}'. Sanitizando payload y reintentando...`);
+          delete payload[missingCol];
+          const camelCol = missingCol.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+          const snakeCol = missingCol.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+          delete payload[camelCol];
+          delete payload[snakeCol];
+          
+          attempt++;
+          continue; // Reintentar la operación con el payload sanitizado
+        }
+      }
+
+      if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
+      return optimisticData;
+    }
   }
+
+  if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
+  return optimisticData;
 }
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -714,6 +814,50 @@ function mapKeys(obj: any, mapper: (k: string) => string): any {
 const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
 const toSnake = (s: string) => s.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
+export function mergeOfflineQueue<T>(table: string, remoteData: T[]): T[] {
+  if (typeof window === 'undefined') return remoteData;
+  try {
+    const queue: any[] = JSON.parse(localStorage.getItem('ergo_sync_queue') || '[]');
+    const tableActions = queue.filter(x => x.table === table);
+    if (tableActions.length === 0) return remoteData;
+
+    let merged = [...remoteData];
+
+    for (const action of tableActions) {
+      if (action.action === 'INSERT') {
+        const item = mapKeys(action.payload, toCamel) as T;
+        const exists = merged.some((x: any) => x.id === (item as any).id);
+        if (!exists) {
+          merged.unshift(item);
+        }
+      } else if (action.action === 'UPDATE') {
+        const item = mapKeys(action.payload, toCamel) as any;
+        const idx = merged.findIndex((x: any) => x.id === item.id);
+        if (idx !== -1) {
+          merged[idx] = { ...merged[idx], ...item };
+        }
+      } else if (action.action === 'UPSERT') {
+        const item = mapKeys(action.payload, toCamel) as any;
+        const idx = merged.findIndex((x: any) => x.id === item.id);
+        if (idx !== -1) {
+          merged[idx] = { ...merged[idx], ...item };
+        } else {
+          merged.unshift(item);
+        }
+      } else if (action.action === 'DELETE') {
+        const payload = action.payload;
+        const idToDelete = payload.id;
+        merged = merged.filter((x: any) => x.id !== idToDelete);
+      }
+    }
+
+    return merged;
+  } catch (e) {
+    console.error('Error merging offline queue:', e);
+    return remoteData;
+  }
+}
+
 // --- Evoluciones ---
 export async function getEvoluciones() { 
   if (isDemoSession()) return []; 
@@ -865,7 +1009,8 @@ export async function getPacientes(): Promise<Paciente[]> {
   if (isDemoSession()) return DEMO_PACIENTES;
   const { data, error } = await supabase.from('pacientes').select('*').order('nombre');
   if (error) throw error;
-  return mapKeys(data, toCamel) as Paciente[];
+  const remote = mapKeys(data, toCamel) as Paciente[];
+  return mergeOfflineQueue<Paciente>('pacientes', remote);
 }
 
 export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>): Promise<Paciente> {
@@ -875,7 +1020,8 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
     saveDemoStore('pacientes', DEMO_PACIENTES);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(p, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(p, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9
   delete dbData.last_updated;
   
@@ -884,7 +1030,7 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'fechaRegistro'>):
     'pacientes',
     'INSERT',
     dbData,
-    { ...p, id: `pac${Date.now()}` } as unknown as Paciente
+    { ...p, id: clientUUID } as unknown as Paciente
   );
 }
 
@@ -934,7 +1080,8 @@ export async function getPersonal(): Promise<Personal[]> {
   if (isDemoSession()) return DEMO_PERSONAL;
   const { data, error } = await supabase.from('personal').select('*').order('nombre');
   if (error) throw error;
-  return mapKeys(data, toCamel) as Personal[];
+  const remote = mapKeys(data, toCamel) as Personal[];
+  return mergeOfflineQueue<Personal>('personal', remote);
 }
 
 export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal> {
@@ -944,7 +1091,8 @@ export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal>
     saveDemoStore('personal', DEMO_PERSONAL);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(p, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(p, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9 (Inmunidad Total)
   delete dbData.last_updated;
 
@@ -953,7 +1101,7 @@ export async function createPersonal(p: Omit<Personal, 'id'>): Promise<Personal>
     'personal',
     'INSERT',
     dbData,
-    { ...p, id: `per${Date.now()}` } as unknown as Personal
+    { ...p, id: clientUUID } as unknown as Personal
   );
 }
 
@@ -1003,7 +1151,8 @@ export async function getCitas(): Promise<Cita[]> {
   if (isDemoSession()) return DEMO_CITAS;
   const { data, error } = await supabase.from('citas').select('*').order('fecha', { ascending: false });
   if (error) throw error;
-  return mapKeys(data, toCamel) as Cita[];
+  const remote = mapKeys(data, toCamel) as Cita[];
+  return mergeOfflineQueue<Cita>('citas', remote);
 }
 
 export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
@@ -1013,14 +1162,15 @@ export async function createCita(c: Omit<Cita, 'id'>): Promise<Cita> {
     saveDemoStore('citas', DEMO_CITAS);
     return nueva;
   }
-  const dbData = mapKeys(c, toSnake);
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(c, toSnake), id: clientUUID });
   
   return await withOfflineSync<Cita>(
     () => supabase.from('citas').insert(dbData).select().single(),
     'citas',
     'INSERT',
     dbData,
-    { ...c, id: `cit${Date.now()}` } as unknown as Cita
+    { ...c, id: clientUUID } as unknown as Cita
   );
 }
 
@@ -1068,7 +1218,8 @@ export async function getInventario(): Promise<ItemInventario[]> {
   if (isDemoSession()) return DEMO_INVENTARIO;
   const { data, error } = await supabase.from('inventario').select('*').order('nombre');
   if (error) throw error;
-  return mapKeys(data, toCamel) as ItemInventario[];
+  const remote = mapKeys(data, toCamel) as ItemInventario[];
+  return mergeOfflineQueue<ItemInventario>('inventario', remote);
 }
 
 export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Promise<ItemInventario> {
@@ -1078,7 +1229,8 @@ export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Pr
     saveDemoStore('inventario', DEMO_INVENTARIO);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(item, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(item, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9 (Inmunidad Total)
   delete dbData.last_updated;
 
@@ -1087,7 +1239,7 @@ export async function createItemInventario(item: Omit<ItemInventario, 'id'>): Pr
     'inventario',
     'INSERT',
     dbData,
-    { ...item, id: `inv${Date.now()}` } as unknown as ItemInventario
+    { ...item, id: clientUUID } as unknown as ItemInventario
   );
 }
 
@@ -1096,7 +1248,8 @@ export async function getPagos(): Promise<Pago[]> {
   if (isDemoSession()) return DEMO_PAGOS;
   const { data, error } = await supabase.from('pagos').select('*').order('fecha', { ascending: false });
   if (error) throw error;
-  return mapKeys(data, toCamel) as Pago[];
+  const remote = mapKeys(data, toCamel) as Pago[];
+  return mergeOfflineQueue<Pago>('pagos', remote);
 }
 
 export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
@@ -1106,7 +1259,8 @@ export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
     saveDemoStore('pagos', DEMO_PAGOS);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(p, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(p, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9
   delete dbData.last_updated;
 
@@ -1115,7 +1269,7 @@ export async function createPago(p: Omit<Pago, 'id'>): Promise<Pago> {
     'pagos',
     'INSERT',
     dbData,
-    { ...p, id: `pag${Date.now()}` } as unknown as Pago
+    { ...p, id: clientUUID } as unknown as Pago
   );
 }
 
@@ -1123,7 +1277,8 @@ export async function getEgresos(): Promise<Egreso[]> {
   if (isDemoSession()) return DEMO_EGRESOS;
   const { data, error } = await supabase.from('egresos').select('*').order('fecha', { ascending: false });
   if (error) throw error;
-  return mapKeys(data, toCamel) as Egreso[];
+  const remote = mapKeys(data, toCamel) as Egreso[];
+  return mergeOfflineQueue<Egreso>('egresos', remote);
 }
 
 export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
@@ -1133,7 +1288,8 @@ export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
     saveDemoStore('egresos', DEMO_EGRESOS);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(e, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(e, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9
   delete dbData.last_updated;
 
@@ -1142,7 +1298,7 @@ export async function createEgreso(e: Omit<Egreso, 'id'>): Promise<Egreso> {
     'egresos',
     'INSERT',
     dbData,
-    { ...e, id: `egr${Date.now()}` } as unknown as Egreso
+    { ...e, id: clientUUID } as unknown as Egreso
   );
 }
 
@@ -1150,7 +1306,8 @@ export async function getProveedores(): Promise<Proveedor[]> {
   if (isDemoSession()) return DEMO_PROVEEDORES;
   const { data, error } = await supabase.from('proveedores').select('*').order('nombre');
   if (error) throw error;
-  return mapKeys(data, toCamel) as Proveedor[];
+  const remote = mapKeys(data, toCamel) as Proveedor[];
+  return mergeOfflineQueue<Proveedor>('proveedores', remote);
 }
 
 export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveedor> {
@@ -1160,7 +1317,8 @@ export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveed
     saveDemoStore('proveedores', DEMO_PROVEEDORES);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(p, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(p, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9 (Inmunidad Total)
   delete dbData.last_updated;
 
@@ -1169,7 +1327,7 @@ export async function createProveedor(p: Omit<Proveedor, 'id'>): Promise<Proveed
     'proveedores',
     'INSERT',
     dbData,
-    { ...p, id: `pro${Date.now()}` } as unknown as Proveedor
+    { ...p, id: clientUUID } as unknown as Proveedor
   );
 }
 
@@ -1261,7 +1419,8 @@ export async function getPresupuestos(): Promise<Presupuesto[]> {
   if (isDemoSession()) return DEMO_PRESUPUESTOS;
   const { data, error } = await supabase.from('presupuestos').select('*').order('fecha', { ascending: false });
   if (error) throw error;
-  return mapKeys(data, toCamel) as Presupuesto[];
+  const remote = mapKeys(data, toCamel) as Presupuesto[];
+  return mergeOfflineQueue<Presupuesto>('presupuestos', remote);
 }
 
 export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Presupuesto> {
@@ -1271,7 +1430,8 @@ export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Pre
     saveDemoStore('presupuestos', DEMO_PRESUPUESTOS);
     return nuevo;
   }
-  const dbData = sanitizeData(mapKeys(p, toSnake));
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(p, toSnake), id: clientUUID });
   // Blindaje Estructural v1.9 (Inmunidad Total)
   delete dbData.last_updated;
 
@@ -1280,7 +1440,7 @@ export async function createPresupuesto(p: Omit<Presupuesto, 'id'>): Promise<Pre
     'presupuestos',
     'INSERT',
     dbData,
-    { ...p, id: `pre${Date.now()}` } as unknown as Presupuesto
+    { ...p, id: clientUUID } as unknown as Presupuesto
   );
 }
 
@@ -1322,7 +1482,8 @@ export async function getRecibos(): Promise<Recibo[]> {
   if (isDemoSession()) return DEMO_RECIBOS;
   const { data, error } = await supabase.from('recibos').select('*').order('fecha', { ascending: false });
   if (error) throw error;
-  return mapKeys(data, toCamel) as Recibo[];
+  const remote = mapKeys(data, toCamel) as Recibo[];
+  return mergeOfflineQueue<Recibo>('recibos', remote);
 }
 
 export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
@@ -1332,13 +1493,14 @@ export async function createRecibo(r: Omit<Recibo, 'id'>): Promise<Recibo> {
     saveDemoStore('recibos', DEMO_RECIBOS);
     return nuevo;
   }
-  const dbData = mapKeys(r, toSnake);
+  const clientUUID = generateUUID();
+  const dbData = sanitizeData({ ...mapKeys(r, toSnake), id: clientUUID });
   return await withOfflineSync<Recibo>(
     () => supabase.from('recibos').insert(dbData).select().single(),
     'recibos',
     'INSERT',
     dbData,
-    { ...r, id: `rec${Date.now()}` } as unknown as Recibo
+    { ...r, id: clientUUID } as unknown as Recibo
   );
 }
 

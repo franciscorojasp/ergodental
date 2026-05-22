@@ -852,7 +852,6 @@ export default function Finanzas(){
                   </div>
                   <div className="input-group">
                     <label>Concepto *</label>
-                    <input className="input" required value={formPago.concepto} onChange={e=>setFormPago(f=>({...f,concepto:e.target.value}))} placeholder="Ej: Limpieza dental, Ortodoncia mensualidad..."/>
                     <input id="pago-concepto" name="concepto" className="input" required value={formPago.concepto} onChange={e=>setFormPago(f=>({...f,concepto:e.target.value}))} placeholder="Ej: Limpieza dental, Ortodoncia mensualidad..."/>
                   </div>
                   <div className="grid-2">
