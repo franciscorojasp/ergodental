@@ -1,6 +1,12 @@
 // src/api.ts
 // Capa de acceso a datos.
-import { supabase, IS_SUPABASE_CONNECTED } from './lib/supabase';
+import { supabase as realSupabase, IS_SUPABASE_CONNECTED } from './lib/supabase';
+import { VITE_USE_GOOGLE_SHEETS, googleSheetsApi, googleSheetsRequest } from './lib/googleSheets';
+
+export const supabase = VITE_USE_GOOGLE_SHEETS ? {
+  ...googleSheetsApi,
+  auth: realSupabase ? realSupabase.auth : {} as any
+} as any : realSupabase;
 
 export const IS_DEMO_EMAILS = ['demo@ergodentalve.com']; // Only use a specific non-production email for demo
 
@@ -972,6 +978,31 @@ export async function loginUser(email: string, password: string): Promise<Usuari
   }
 
   // 3. Autenticación Directa (Sin límites de tiempo artificiales)
+  if (VITE_USE_GOOGLE_SHEETS) {
+    try {
+      const user = await googleSheetsRequest('login', { email, password });
+      return user as Usuario;
+    } catch (err: any) {
+      // Fallback para Administradores de la Propiedad en Google Sheets
+      const SUPER_ADMINS = [
+        'francisco.rojasp@gmail.com', 
+        'blascojennifer47@gmail.com', 
+        'vera.hugo712@gmail.com', 
+        'carlosalejandroverablasco183@gmail.com'
+      ];
+      if (SUPER_ADMINS.includes(email.toLowerCase())) {
+        return {
+          id: 'admin_' + Date.now(),
+          nombre: email.split('@')[0],
+          email: email,
+          rol: 'ADMIN',
+          activo: true
+        };
+      }
+      throw err;
+    }
+  }
+
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
   if (authError) throw authError;
 
