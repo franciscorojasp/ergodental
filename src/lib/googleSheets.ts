@@ -213,16 +213,42 @@ export const googleSheetsApi = {
             return { data: null, error };
           }
         };
-        return {
-          order: () => ({
-            limit: () => ({ maybeSingle: executeGet }),
-            maybeSingle: executeGet,
-            then: (onf: any, onr: any) => executeGet().then(onf, onr)
-          }),
-          single: executeGet,
-          maybeSingle: executeGet,
+        const chain: any = {
+          order: () => chain,
+          limit: () => chain,
+          single: async () => {
+             const res = await executeGet();
+             return { data: res.data && res.data.length > 0 ? res.data[0] : null, error: res.error };
+          },
+          maybeSingle: async () => {
+             const res = await executeGet();
+             return { data: res.data && res.data.length > 0 ? res.data[0] : null, error: res.error };
+          },
+          eq: (field: string, value: any) => {
+            const camelField = toCamel(field);
+            const executeFiltered = async () => {
+              const res = await executeGet();
+              if (res.data && Array.isArray(res.data)) {
+                 const filtered = res.data.filter((item: any) => item[camelField] == value);
+                 return { data: filtered, error: null };
+              }
+              return res;
+            };
+            return {
+              single: async () => {
+                 const res = await executeFiltered();
+                 return { data: res.data && res.data.length > 0 ? res.data[0] : null, error: res.error };
+              },
+              maybeSingle: async () => {
+                 const res = await executeFiltered();
+                 return { data: res.data && res.data.length > 0 ? res.data[0] : null, error: res.error };
+              },
+              then: (onf: any, onr: any) => executeFiltered().then(onf, onr)
+            };
+          },
           then: (onf: any, onr: any) => executeGet().then(onf, onr)
         };
+        return chain;
       },
       insert: (payload: any) => createChain(`create${singularEntity}`, payload),
       update: (payload: any) => {
