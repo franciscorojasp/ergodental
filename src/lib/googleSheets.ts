@@ -106,13 +106,13 @@ export const googleSheetsApi = {
           eq: (field: string, value: any) => createChain(`update${singularEntity}`, { ...payload, [field]: value })
         };
       },
-      upsert: (payload: any, options?: any) => {
+      upsert: (payload: any, _options?: any) => {
         const action = tableName === 'odontogramas' ? 'saveOdontograma' : `create${singularEntity}`;
         return createChain(action, payload);
       },
       delete: () => {
         return {
-          eq: (field: string, value: any) => {
+          eq: (_field: string, _value: any) => {
              const executeDel = async () => ({ data: null, error: null });
              return {
                 then: (onf: any, onr: any) => executeDel().then(onf, onr)
