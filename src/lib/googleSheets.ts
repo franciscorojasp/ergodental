@@ -196,7 +196,13 @@ export const googleSheetsApi = {
       select: () => {
         const executeGet = async () => {
           try {
-            let data = await googleSheetsRequest(`get${entityName}`);
+            let actionName = `get${entityName}`;
+            if (tableName === 'odontogramas') actionName = 'getOdontograma';
+            if (tableName === 'evoluciones_clinicas') actionName = 'getEvolucionClinica';
+            if (tableName === 'laboratorios') actionName = 'getLaboratorio';
+            if (tableName === 'clinicas') actionName = 'getClinica';
+
+            let data = await googleSheetsRequest(actionName);
             // Autoparsear arrays y objetos que vengan como string
             if (Array.isArray(data)) {
                data = data.map((row: any) => {
