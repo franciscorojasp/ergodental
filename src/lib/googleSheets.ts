@@ -93,10 +93,22 @@ export const googleSheetsApi = {
       
       const executeHistorial = async () => {
         try {
+          let localHist: any[] = [];
+          try { localHist = JSON.parse(localStorage.getItem('ergo_tasa_historial') || '[]'); } catch(e){}
+          
           const res = await googleSheetsRequest('getTasaHoy');
           const monto = res?.tasa || 0;
-          if (monto === 0) return { data: [], error: null };
-          return { data: [{ monto, fecha: new Date().toLocaleDateString('en-CA'), usuario: 'Configuración' }], error: null };
+          
+          if (monto > 0) {
+            const hoy = new Date().toLocaleDateString('en-CA');
+            if (localHist.length === 0 || (localHist[0] && localHist[0].fecha !== hoy)) {
+              localHist.unshift({ monto, fecha: hoy, usuario: 'Sistema' });
+              if (localHist.length > 30) localHist = localHist.slice(0, 30);
+              localStorage.setItem('ergo_tasa_historial', JSON.stringify(localHist));
+            }
+          }
+          
+          return { data: localHist, error: null };
         } catch (error) { return { data: [], error }; }
       };
 
@@ -117,9 +129,23 @@ export const googleSheetsApi = {
         insert: (payload: any) => {
           const exec = async () => {
             try {
+              let localHist: any[] = [];
+              try { localHist = JSON.parse(localStorage.getItem('ergo_tasa_historial') || '[]'); } catch(e){}
+              
+              const hoy = new Date().toLocaleDateString('en-CA');
+              const item = { monto: payload.monto, fecha: hoy, usuario: payload.usuario || 'Sistema' };
+              
+              localHist = localHist.filter((h:any) => h.fecha !== hoy);
+              localHist.unshift(item);
+              if (localHist.length > 30) localHist = localHist.slice(0, 30);
+              
+              localStorage.setItem('ergo_tasa_historial', JSON.stringify(localHist));
+              
               await googleSheetsRequest('saveTasaHoy', payload);
               return { data: payload, error: null };
-            } catch (error) { return { data: null, error }; }
+            } catch (error) {
+              return { data: null, error };
+            }
           };
           return { then: (onf: any, onr: any) => exec().then(onf, onr) };
         }
