@@ -203,12 +203,23 @@ export const googleSheetsApi = {
             if (tableName === 'clinicas') actionName = 'getClinica';
 
             let data = await googleSheetsRequest(actionName);
-            // Autoparsear arrays y objetos que vengan como string
+            // Autoparsear arrays y objetos que vengan como string, y normalizar fechas ISO
             if (Array.isArray(data)) {
                data = data.map((row: any) => {
                   for (const k in row) {
-                     if (typeof row[k] === 'string' && (row[k].startsWith('[') || row[k].startsWith('{'))) {
-                        try { row[k] = JSON.parse(row[k]); } catch(e) {}
+                     if (typeof row[k] === 'string') {
+                        if (row[k].startsWith('[') || row[k].startsWith('{')) {
+                           try { row[k] = JSON.parse(row[k]); } catch(e) {}
+                        } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(row[k])) {
+                           const d = new Date(row[k]);
+                           if (!isNaN(d.getTime())) {
+                              if (k.toLowerCase().includes('hora')) {
+                                 row[k] = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                              } else {
+                                 row[k] = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                              }
+                           }
+                        }
                      }
                   }
                   return row;
