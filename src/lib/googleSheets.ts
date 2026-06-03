@@ -90,16 +90,29 @@ export const googleSheetsApi = {
           return { data: { monto: res?.tasa || 0 }, error: null };
         } catch (error) { return { data: null, error }; }
       };
+      
+      const executeHistorial = async () => {
+        try {
+          const res = await googleSheetsRequest('getTasaHoy');
+          const monto = res?.tasa || 0;
+          if (monto === 0) return { data: [], error: null };
+          return { data: [{ monto, fecha: new Date().toLocaleDateString('en-CA'), usuario: 'Configuración' }], error: null };
+        } catch (error) { return { data: [], error }; }
+      };
+
       return {
         select: () => ({
           order: () => ({
-            limit: () => ({ maybeSingle: executeTasa }),
+            limit: () => ({ 
+              maybeSingle: executeTasa,
+              then: (onf: any, onr: any) => executeHistorial().then(onf, onr)
+            }),
             maybeSingle: executeTasa,
-            then: (onf: any, onr: any) => executeTasa().then(onf, onr)
+            then: (onf: any, onr: any) => executeHistorial().then(onf, onr)
           }),
           single: executeTasa,
           maybeSingle: executeTasa,
-          then: (onf: any, onr: any) => executeTasa().then(onf, onr)
+          then: (onf: any, onr: any) => executeHistorial().then(onf, onr)
         }),
         insert: (payload: any) => {
           const exec = async () => {
