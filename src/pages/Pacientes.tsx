@@ -248,7 +248,7 @@ export default function Pacientes() {
                           fontSize: '1rem', fontWeight: 900, color: 'var(--primary)',
                           boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
                         }}>
-                          {p.nombre.charAt(0)}{p.apellido.charAt(0)}
+                          {String(p.nombre || '').charAt(0)}{String(p.apellido || '').charAt(0)}
                         </div>
                         <div>
                           <div style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>{p.nombre} {p.apellido}</div>
@@ -311,7 +311,7 @@ export default function Pacientes() {
               <div className="modal-header">
                 <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
                   <div style={{ width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, color:'#fff' }}>
-                    {detalle.nombre.charAt(0)}{detalle.apellido.charAt(0)}
+                    {String(detalle.nombre || '').charAt(0)}{String(detalle.apellido || '').charAt(0)}
                   </div>
                   <h3>{detalle.nombre} {detalle.apellido}</h3>
                 </div>
@@ -433,7 +433,7 @@ export default function Pacientes() {
                   </button>
                   {detalle.telefono && (
                     <a className="btn btn-ghost" style={{ flex:1, justifyContent:'center', border:'1px solid #25D366', color:'#25D366' }}
-                      href={`https://wa.me/${detalle.telefono.replace(/\s/g, '').replace(/-/g, '')}`} target="_blank" rel="noreferrer">
+                      href={`https://wa.me/${String(detalle.telefono).replace(/[\s-]/g, '')}`} target="_blank" rel="noreferrer">
                       💬 WhatsApp
                     </a>
                   )}
