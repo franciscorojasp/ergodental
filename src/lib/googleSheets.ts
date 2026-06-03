@@ -40,7 +40,12 @@ export async function googleSheetsRequest(action: string, data: any = {}): Promi
       throw new Error(`Error HTTP: ${response.status}`);
     }
 
-    const result = await response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      return { success: true };
+    }
+    
+    const result = JSON.parse(text);
     if (result && result.error) {
       throw new Error(result.error);
     }
@@ -68,6 +73,15 @@ export const googleSheetsApi = {
     if (tableName === 'usuarios') singularEntity = 'Usuario';
     if (tableName === 'presupuestos') singularEntity = 'Presupuesto';
     if (tableName === 'facturas') singularEntity = 'Factura';
+
+    if (tableName === 'auditoria_logs') {
+      return {
+        insert: (payload: any) => {
+          const exec = async () => ({ data: payload, error: null });
+          return { then: (onf: any, onr: any) => exec().then(onf, onr) };
+        }
+      } as any;
+    }
 
     if (tableName === 'tasa_bcv') {
       const executeTasa = async () => {

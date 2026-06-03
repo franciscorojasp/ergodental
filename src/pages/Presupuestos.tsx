@@ -80,7 +80,7 @@ export default function Presupuestos() {
     setForm({
       pacienteId: p.pacienteId,
       notas: p.notas || '',
-      items: p.items.map(item => ({ ...item, id: item.id || Math.random().toString() }))
+      items: (Array.isArray(p.items) ? p.items : (typeof p.items === 'string' ? JSON.parse(p.items || '[]') : [])).map((item: any) => ({ ...item, id: item.id || Math.random().toString() }))
     });
     setModal(true);
   };
@@ -187,7 +187,8 @@ export default function Presupuestos() {
 
   const imprimirPresupuesto = async (p: Presupuesto) => {
     const sedeNombre = CLINICAS.find(c => c.id === p.clinicaId)?.nombre || clinica.nombre;
-    const itemsPDF = p.items.map(i => [i.descripcion, i.cantidad, fmt(i.precio), fmt(i.subtotal)]);
+    const itemsData = Array.isArray(p.items) ? p.items : (typeof p.items === 'string' ? JSON.parse(p.items || '[]') : []);
+    const itemsPDF = itemsData.map((i: any) => [i.descripcion, i.cantidad, fmt(i.precio), fmt(i.subtotal)]);
     await generarReportePDF({
       titulo: 'PRESUPUESTO ODONTOLÓGICO',
       clinica: sedeNombre,
