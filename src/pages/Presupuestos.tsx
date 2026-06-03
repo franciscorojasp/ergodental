@@ -4,7 +4,7 @@ import { useClinica } from '../contexts/ClinicaContext';
 import { useMoneda } from '../contexts/MonedaContext';
 import { 
   getPresupuestos, createPresupuesto, updatePresupuesto, deletePresupuesto,
-  getPacientes, createRecibo, createPago,
+  getPacientes, createRecibo, createPago, getPersonal,
   type Presupuesto, type Paciente, type EstadoPresupuesto, CLINICAS 
 } from '../api';
 import { generarReportePDF } from '../utils/reportes';
@@ -23,6 +23,10 @@ export default function Presupuestos() {
   const [filtro, setFiltro] = useState<EstadoPresupuesto | 'Todos'>('Todos');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [sharingPresupuesto, setSharingPresupuesto] = useState<Presupuesto | null>(null);
+  const [personal, setPersonal] = useState<any[]>([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const [editingPresupuesto, setEditingPresupuesto] = useState<Presupuesto | null>(null);
   const [isMobile] = useState(window.innerWidth < 768);
 
@@ -41,10 +45,12 @@ export default function Presupuestos() {
     setError(null);
     Promise.all([
       getPresupuestos(),
-      getPacientes()
-    ]).then(([presData, pacData]) => {
+      getPacientes(),
+      getPersonal()
+    ]).then(([presData, pacData, personalData]) => {
       setPresupuestos(presData.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id));
       setPacientes(pacData.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id));
+      setPersonal(personalData.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id));
     }).catch(err => {
       setError('Error al cargar datos: ' + (err.message || err));
     }).finally(() => {
@@ -201,6 +207,81 @@ export default function Presupuestos() {
     });
   };
 
+  const openShare = (p: Presupuesto) => {
+    setSharingPresupuesto(p);
+    setSelectedDoctorId('');
+    setShareModalOpen(true);
+  };
+
+  const getShareText = (p: Presupuesto, destinatarioNombre: string) => {
+    const itemsData = Array.isArray(p.items) ? p.items : (typeof p.items === 'string' ? JSON.parse(p.items || '[]') : []);
+    const descripciones = itemsData.map((i: any) => i.descripcion).join(', ');
+    return `Hola, estimad@ ${destinatarioNombre}, acá te compartimos el presupuesto por ${descripciones}, el monto total es de ${fmt(p.total)}$, favor confirmar la aprobación del mismo por esta vía, millones de gracias por preferirnos.`;
+  };
+
+  const handleShareStatus = (p: Presupuesto) => {
+    if (p.estado === 'Borrador') {
+      updatePresupuesto({ id: p.id, estado: 'Enviado' }).then(() => {
+        getPresupuestos().then(data => setPresupuestos(data.filter(px => clinica.id === 'consolidado' || px.clinicaId === clinica.id)));
+      });
+    }
+  };
+
+  const shareViaWhatsApp = (p: Presupuesto, isDoctor: boolean) => {
+    let telefono = '';
+    let nombre = '';
+    if (isDoctor) {
+      if (!selectedDoctorId) return alert('Seleccione un médico.');
+      const doc = personal.find(x => x.id === selectedDoctorId);
+      if (!doc) return;
+      telefono = doc.telefono || '';
+      nombre = `${doc.nombre} ${doc.apellido}`;
+    } else {
+      const pac = pacientes.find(x => x.id === p.pacienteId);
+      if (!pac) return;
+      telefono = pac.telefono || '';
+      nombre = `${pac.nombre} ${pac.apellido}`;
+    }
+
+    if (!telefono) {
+      alert(`El ${isDoctor ? 'médico' : 'paciente'} no tiene un número de teléfono registrado.`);
+      return;
+    }
+
+    let cleanPhone = telefono.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '58' + cleanPhone.substring(1);
+    
+    const text = encodeURIComponent(getShareText(p, nombre));
+    window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+    if (!isDoctor) handleShareStatus(p);
+  };
+
+  const shareViaEmail = (p: Presupuesto, isDoctor: boolean) => {
+    let email = '';
+    let nombre = '';
+    if (isDoctor) {
+      if (!selectedDoctorId) return alert('Seleccione un médico.');
+      const doc = personal.find(x => x.id === selectedDoctorId);
+      if (!doc) return;
+      email = doc.email || '';
+      nombre = `${doc.nombre} ${doc.apellido}`;
+    } else {
+      const pac = pacientes.find(x => x.id === p.pacienteId);
+      if (!pac) return;
+      email = pac.email || '';
+      nombre = `${pac.nombre} ${pac.apellido}`;
+    }
+
+    if (!email) {
+      alert(`El ${isDoctor ? 'médico' : 'paciente'} no tiene un correo registrado.`);
+      return;
+    }
+
+    const text = encodeURIComponent(getShareText(p, nombre));
+    window.open(`mailto:${email}?subject=Presupuesto Odontológico&body=${text}`, '_blank');
+    if (!isDoctor) handleShareStatus(p);
+  };
+
   const handleDelete = (id: string) => {
     setDeletingId(id);
     setConfirmDeleteOpen(true);
@@ -285,6 +366,7 @@ export default function Presupuestos() {
                     <td className="text-right">
                       <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
                         <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => imprimirPresupuesto(p)} title="Imprimir PDF">📄</button>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--primary)' }} onClick={() => openShare(p)} title="Compartir">📤</button>
                         <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)} title="Editar">✏️</button>
                         {p.estado === 'Borrador' && (
                           <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--success)' }} onClick={() => {
@@ -313,6 +395,57 @@ export default function Presupuestos() {
       )}
 
       <AnimatePresence>
+        {shareModalOpen && sharingPresupuesto && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShareModalOpen(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="modal" style={{ maxWidth: '400px' }}>
+              <div className="modal-handle" />
+              <div className="modal-header">
+                <h3>📤 Compartir Presupuesto</h3>
+                <button className="btn-close" onClick={() => setShareModalOpen(false)}>✕</button>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <label className="label">Compartir con Paciente</label>
+                  <div style={{ fontSize: '0.85rem', marginBottom: '12px' }}>{sharingPresupuesto.pacienteNombre}</div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-primary btn-sm" style={{ flex: 1, background: '#25D366', color: '#fff', border: 'none' }} onClick={() => shareViaWhatsApp(sharingPresupuesto, false)}>
+                      💬 WhatsApp
+                    </button>
+                    <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => shareViaEmail(sharingPresupuesto, false)}>
+                      📧 Correo
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <label className="label">Compartir con Médico</label>
+                  <select className="input" style={{ marginBottom: '12px' }} value={selectedDoctorId} onChange={e => setSelectedDoctorId(e.target.value)}>
+                    <option value="">Seleccione un médico...</option>
+                    {personal.filter(p => p.tipo === 'Odontólogo').map(doc => (
+                      <option key={doc.id} value={doc.id}>{doc.nombre} {doc.apellido}</option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-primary btn-sm" style={{ flex: 1, background: '#25D366', color: '#fff', border: 'none' }} onClick={() => shareViaWhatsApp(sharingPresupuesto, true)}>
+                      💬 WhatsApp
+                    </button>
+                    <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => shareViaEmail(sharingPresupuesto, true)}>
+                      📧 Correo
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                  Nota: Al enviarlo, el mensaje se abrirá pre-llenado. Recuerde adjuntar manualmente el PDF del presupuesto en el chat.
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+
         {modal && (
           <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModal(false)}>
             <motion.div initial={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? '100%' : 40 }} transition={{ type: 'spring', damping: 28, stiffness: 220 }} className="modal" style={{ maxWidth: '800px' }}>
