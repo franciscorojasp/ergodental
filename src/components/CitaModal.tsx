@@ -69,7 +69,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
   useEffect(() => {
     if (isOpen) {
       getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
-      getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id && p.tipo === 'Odontólogo' && p.activo)));
+      getPersonal().then(data => setPersonal(data.filter(p => (clinica.id === 'consolidado' || p.clinicaId === clinica.id) && String(p.tipo).toLowerCase().includes('odont') && (p.activo !== false || (editingCita && p.id === editingCita.doctorId)))));
       
       if (editingCita) {
         setForm({
@@ -261,6 +261,9 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                     <label>Paciente *</label>
                     <select id="cita-paciente" name="pacienteId" className="input" required value={form.pacienteId} onChange={e => onPacienteChange(e.target.value)}>
                       <option value="">Seleccione...</option>
+                      {editingCita && !pacientes.find(p => p.id === editingCita.pacienteId) && (
+                        <option value={editingCita.pacienteId}>{editingCita.pacienteNombre}</option>
+                      )}
                       {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido} ({p.cedula})</option>)}
                     </select>
                   </div>
@@ -268,6 +271,9 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                     <label>Doctor *</label>
                     <select id="cita-doctor" name="doctorId" className="input" required value={form.doctorId} onChange={e => setForm(f => ({ ...f, doctorId: e.target.value }))}>
                       <option value="">Seleccione...</option>
+                      {editingCita && !personal.find(p => p.id === editingCita.doctorId) && (
+                        <option value={editingCita.doctorId}>{editingCita.doctorNombre}</option>
+                      )}
                       {personal.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
                     </select>
                   </div>

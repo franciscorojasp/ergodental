@@ -33,7 +33,7 @@ export default function Agenda() {
 
   useEffect(() => {
     getCitas().then(data => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
-    getPersonal().then(data => setPersonal(data.filter(p => p.clinicaId === clinica.id && p.tipo === 'Odontólogo')));
+    getPersonal().then(data => setPersonal(data.filter(p => (clinica.id === 'consolidado' || p.clinicaId === clinica.id) && String(p.tipo).toLowerCase().includes('odont'))));
   }, [clinica.id]);
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
