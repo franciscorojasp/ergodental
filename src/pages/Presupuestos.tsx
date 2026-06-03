@@ -11,6 +11,17 @@ import { generarReportePDF } from '../utils/reportes';
 import ConfirmDialog from '../components/ConfirmDialog';
 import RoleGuard from '../components/RoleGuard';
 
+const safeParseItems = (items: any) => {
+  if (Array.isArray(items)) return items;
+  if (!items || typeof items !== 'string') return [];
+  try {
+    return JSON.parse(items);
+  } catch (e) {
+    console.error("Error parsing items:", items);
+    return [];
+  }
+};
+
 export default function Presupuestos() {
   const { clinica } = useClinica();
   const { fmt } = useMoneda();
@@ -86,7 +97,7 @@ export default function Presupuestos() {
     setForm({
       pacienteId: p.pacienteId,
       notas: p.notas || '',
-      items: (Array.isArray(p.items) ? p.items : (typeof p.items === 'string' ? JSON.parse(p.items || '[]') : [])).map((item: any) => ({ ...item, id: item.id || Math.random().toString() }))
+      items: safeParseItems(p.items).map((item: any) => ({ ...item, id: item.id || Math.random().toString() }))
     });
     setModal(true);
   };
@@ -193,7 +204,7 @@ export default function Presupuestos() {
 
   const imprimirPresupuesto = async (p: Presupuesto) => {
     const sedeNombre = CLINICAS.find(c => c.id === p.clinicaId)?.nombre || clinica.nombre;
-    const itemsData = Array.isArray(p.items) ? p.items : (typeof p.items === 'string' ? JSON.parse(p.items || '[]') : []);
+    const itemsData = safeParseItems(p.items);
     const itemsPDF = itemsData.map((i: any) => [i.descripcion, i.cantidad, fmt(i.precio), fmt(i.subtotal)]);
     await generarReportePDF({
       titulo: 'PRESUPUESTO ODONTOLÓGICO',
@@ -214,7 +225,7 @@ export default function Presupuestos() {
   };
 
   const getShareText = (p: Presupuesto, destinatarioNombre: string) => {
-    const itemsData = Array.isArray(p.items) ? p.items : (typeof p.items === 'string' ? JSON.parse(p.items || '[]') : []);
+    const itemsData = safeParseItems(p.items);
     const descripciones = itemsData.map((i: any) => i.descripcion).join(', ');
     return `Hola, estimad@ ${destinatarioNombre}, acá te compartimos el presupuesto por ${descripciones}, el monto total es de ${fmt(p.total)}$, favor confirmar la aprobación del mismo por esta vía, millones de gracias por preferirnos.`;
   };
