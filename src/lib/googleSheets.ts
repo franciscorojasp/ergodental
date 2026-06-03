@@ -60,7 +60,8 @@ export async function googleSheetsRequest(action: string, data: any = {}): Promi
 // Simulador del comportamiento de la API de Supabase para poder usarlo en withOfflineSync
 export const googleSheetsApi = {
   from: (tableName: string) => {
-    const entityName = tableName.charAt(0).toUpperCase() + tableName.slice(1);
+    let entityName = tableName.charAt(0).toUpperCase() + tableName.slice(1);
+    if (tableName === 'profiles') entityName = 'Usuarios';
     let singularEntity = entityName;
     if (tableName === 'pacientes') singularEntity = 'Paciente';
     if (tableName === 'personal') singularEntity = 'Personal';
@@ -70,7 +71,7 @@ export const googleSheetsApi = {
     if (tableName === 'inventario') singularEntity = 'ItemInventario';
     if (tableName === 'proveedores') singularEntity = 'Proveedor';
     if (tableName === 'odontogramas') singularEntity = 'Odontograma';
-    if (tableName === 'usuarios') singularEntity = 'Usuario';
+    if (tableName === 'usuarios' || tableName === 'profiles') singularEntity = 'Usuario';
     if (tableName === 'presupuestos') singularEntity = 'Presupuesto';
     if (tableName === 'facturas') singularEntity = 'Factura';
 
