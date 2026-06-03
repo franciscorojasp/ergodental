@@ -73,7 +73,13 @@ export const googleSheetsApi = {
     if (tableName === 'odontogramas') singularEntity = 'Odontograma';
     if (tableName === 'usuarios' || tableName === 'profiles') singularEntity = 'Usuario';
     if (tableName === 'presupuestos') singularEntity = 'Presupuesto';
-    if (tableName === 'facturas') singularEntity = 'Factura';
+    if (tableName === 'facturas' || tableName === 'recibos') singularEntity = 'Factura';
+    if (tableName === 'evoluciones_clinicas') {
+      entityName = 'EvolucionesClinicas';
+      singularEntity = 'EvolucionClinica';
+    }
+    if (tableName === 'laboratorios') singularEntity = 'Laboratorio';
+    if (tableName === 'clinicas') singularEntity = 'Clinica';
 
     if (tableName === 'auditoria_logs') {
       return {
@@ -153,10 +159,23 @@ export const googleSheetsApi = {
       } as any;
     }
 
+    const toCamel = (s: string) => s.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+    const mapKeys = (obj: any, fn: (k: string) => string): any => {
+      if (Array.isArray(obj)) return obj.map(v => mapKeys(v, fn));
+      if (obj !== null && typeof obj === 'object') {
+        return Object.keys(obj).reduce((result, key) => {
+          result[fn(key)] = mapKeys(obj[key], fn);
+          return result;
+        }, {} as any);
+      }
+      return obj;
+    };
+
     const createChain = (actionName: string, payload: any) => {
       const execute = async () => {
         try {
-          const data = await googleSheetsRequest(actionName, payload);
+          const payloadCamel = payload ? mapKeys(payload, toCamel) : payload;
+          const data = await googleSheetsRequest(actionName, payloadCamel);
           return { data, error: null };
         } catch (error) {
           return { data: null, error };
