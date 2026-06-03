@@ -1610,12 +1610,13 @@ export async function getGlobalCorrelativo(): Promise<string> {
     return `DOC-${next.toString().padStart(6, '0')}`;
   }
   try {
+    if (!supabase.rpc) throw new Error('RPC no disponible');
     const { data, error } = await supabase.rpc('next_correlativo');
     if (error) throw error;
     return data;
   } catch (err) {
     console.warn("RPC next_correlativo no encontrado o falló. Usando serial de emergencia.");
-    const fallback = `ERR-${Math.floor(Date.now()/1000)}`;
+    const fallback = `DOC-${Math.floor(Date.now()/1000)}`;
     return fallback;
   }
 }
