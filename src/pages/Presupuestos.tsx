@@ -389,7 +389,7 @@ export default function Presupuestos() {
                         {p.estado === 'Aprobado' && (
                           <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--accent)' }} onClick={() => handleGenerarRecibo(p)} title="Procesar Pago">💳</button>
                         )}
-                        <RoleGuard modulo="presupuestos" accion="eliminar">
+                        <RoleGuard modulo="presupuestos" accion="eliminar" allowInConsolidado>
                           <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => handleDelete(p.id)} title="Eliminar">🗑️</button>
                         </RoleGuard>
                       </div>

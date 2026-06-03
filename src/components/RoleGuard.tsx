@@ -17,6 +17,8 @@ interface RoleGuardProps {
   redirigir?: boolean;
   /** Qué mostrar si no hay permiso (opcional — por defecto nada) */
   fallback?: ReactNode;
+  /** Permitir acción en modo consolidado (Sede Global) */
+  allowInConsolidado?: boolean;
 }
 
 export default function RoleGuard({
@@ -25,6 +27,7 @@ export default function RoleGuard({
   children,
   redirigir = false,
   fallback = null,
+  allowInConsolidado = false,
 }: RoleGuardProps) {
   const { user } = useAuth();
   const { clinica } = useClinica();
@@ -41,7 +44,7 @@ export default function RoleGuard({
   }
 
   // Prevenir creación/edición en vista consolidada
-  if (clinica.id === 'consolidado' && accion && accion !== 'ver') {
+  if (!allowInConsolidado && clinica.id === 'consolidado' && accion && accion !== 'ver') {
     if (redirigir) return <Navigate to="/unauthorized" replace />;
     return <>{fallback}</>;
   }
