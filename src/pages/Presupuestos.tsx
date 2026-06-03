@@ -336,7 +336,7 @@ export default function Presupuestos() {
                       <thead>
                         <tr>
                           <th>Descripción</th>
-                          <th style={{ width: '80px' }}>Cant.</th>
+                          <th style={{ width: '120px' }}>Cant.</th>
                           <th style={{ width: '120px' }}>Precio</th>
                           <th style={{ width: '120px' }}>Total</th>
                           <th style={{ width: '40px' }}></th>
