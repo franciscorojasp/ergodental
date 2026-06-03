@@ -17,13 +17,23 @@ export async function googleSheetsRequest(action: string, data: any = {}): Promi
   url.searchParams.append('action', action);
   url.searchParams.append('key', API_KEY);
 
+  // Preprocesar data para stringificar objetos/arrays anidados (ej. items, piezas)
+  const processedData: any = {};
+  for (const key in data) {
+    if (data[key] !== null && typeof data[key] === 'object') {
+      processedData[key] = JSON.stringify(data[key]);
+    } else {
+      processedData[key] = data[key];
+    }
+  }
+
   try {
     const response = await fetch(url.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8', // Recomendado para evitar problemas CORS preflight con Google Apps Script
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(processedData),
     });
 
     if (!response.ok) {
@@ -59,6 +69,36 @@ export const googleSheetsApi = {
     if (tableName === 'presupuestos') singularEntity = 'Presupuesto';
     if (tableName === 'facturas') singularEntity = 'Factura';
 
+    if (tableName === 'tasa_bcv') {
+      const executeTasa = async () => {
+        try {
+          const res = await googleSheetsRequest('getTasaHoy');
+          return { data: { monto: res?.tasa || 0 }, error: null };
+        } catch (error) { return { data: null, error }; }
+      };
+      return {
+        select: () => ({
+          order: () => ({
+            limit: () => ({ maybeSingle: executeTasa }),
+            maybeSingle: executeTasa,
+            then: (onf: any, onr: any) => executeTasa().then(onf, onr)
+          }),
+          single: executeTasa,
+          maybeSingle: executeTasa,
+          then: (onf: any, onr: any) => executeTasa().then(onf, onr)
+        }),
+        insert: (payload: any) => {
+          const exec = async () => {
+            try {
+              await googleSheetsRequest('saveTasaHoy', payload);
+              return { data: payload, error: null };
+            } catch (error) { return { data: null, error }; }
+          };
+          return { then: (onf: any, onr: any) => exec().then(onf, onr) };
+        }
+      } as any;
+    }
+
     const createChain = (actionName: string, payload: any) => {
       const execute = async () => {
         try {
@@ -83,7 +123,18 @@ export const googleSheetsApi = {
       select: () => {
         const executeGet = async () => {
           try {
-            const data = await googleSheetsRequest(`get${entityName}`);
+            let data = await googleSheetsRequest(`get${entityName}`);
+            // Autoparsear arrays y objetos que vengan como string
+            if (Array.isArray(data)) {
+               data = data.map((row: any) => {
+                  for (const k in row) {
+                     if (typeof row[k] === 'string' && (row[k].startsWith('[') || row[k].startsWith('{'))) {
+                        try { row[k] = JSON.parse(row[k]); } catch(e) {}
+                     }
+                  }
+                  return row;
+               });
+            }
             return { data, error: null };
           } catch (error) {
             return { data: null, error };
