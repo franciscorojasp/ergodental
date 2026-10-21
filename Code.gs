@@ -1,14 +1,13 @@
 /**
- * ErgoDental Backend - Google Apps Script (Versión Completa y Unificada)
+ * ErgoDental Backend - Google Apps Script (Versión Vinculada a ErgoDental_DB)
  * Gestiona el acceso a Google Sheets como base de datos para Ergodental.
  */
 
-// Si el script está dentro de la hoja de Google Sheets (Extensiones > Apps Script),
-// puedes dejar SPREADSHEET_ID vacío: ''.
-// Si deseas forzar una hoja específica, pega aquí el ID de la URL de tu hoja de cálculo:
-const SPREADSHEET_ID = ''; 
+// ID extraído de la URL oficial de la base de datos ErgoDental_DB:
+// https://docs.google.com/spreadsheets/d/1VRXeKo_3lVmtUBwZoZzumyRQ1pVlP_eapNWUMztqJAs/edit
+const SPREADSHEET_ID = '1VRXeKo_3lVmtUBwZoZzumyRQ1pVlP_eapNWUMztqJAs'; 
 
-// Clave secreta que debe coincidir con la aplicación web
+// Clave de seguridad sincronizada con el frontend web de Vercel
 const API_KEY = 'ERGO_SECRET_2024';
 
 function getSheet() {
@@ -19,25 +18,25 @@ function getSheet() {
 }
 
 function doGet(e) {
-  const key = e.parameter.key;
+  const key = e.parameter ? e.parameter.key : null;
   if (key !== API_KEY) {
     return ContentService.createTextOutput(JSON.stringify({ error: 'No autorizado' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  const action = e.parameter.action;
-  const data = e.parameter.payload ? JSON.parse(e.parameter.payload) : null;
+  const action = e.parameter ? e.parameter.action : null;
+  const data = (e.parameter && e.parameter.payload) ? JSON.parse(e.parameter.payload) : null;
   return handleAction(action, data);
 }
 
 function doPost(e) {
-  const key = e.parameter.key;
+  const key = e.parameter ? e.parameter.key : null;
   if (key !== API_KEY) {
     return ContentService.createTextOutput(JSON.stringify({ error: 'No autorizado' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  const action = e.parameter.action;
+  const action = e.parameter ? e.parameter.action : null;
   let data = {};
   try {
     data = e.postData && e.postData.contents ? JSON.parse(e.postData.contents) : {};
@@ -51,7 +50,21 @@ function handleAction(action, data) {
   try {
     let result;
     switch (action) {
-      // --- AUTENTICACIÓN Y USUARIOS ---
+      // --- TEST Y DIAGNÓSTICO ---
+      case 'ping':
+      case 'getPing': {
+        const ss = getSheet();
+        result = {
+          status: 'ok',
+          databaseName: ss.getName(),
+          databaseId: ss.getId(),
+          sheetsCount: ss.getSheets().length,
+          timestamp: new Date().toISOString()
+        };
+        break;
+      }
+
+      // --- AUTENTICACIÓN Y GESTIÓN DE USUARIOS ---
       case 'login': 
         result = loginUser(data.email, data.password); 
         break;
@@ -82,7 +95,7 @@ function handleAction(action, data) {
         result = deleteData('Pacientes', data.id || data); 
         break;
 
-      // --- PERSONAL / DOCTORES ---
+      // --- PERSONAL Y DOCTORES ---
       case 'getPersonal': 
         result = getData('Personal'); 
         break;
@@ -96,7 +109,7 @@ function handleAction(action, data) {
         result = deleteData('Personal', data.id || data); 
         break;
 
-      // --- CITAS ---
+      // --- CITAS MÉDICAS ---
       case 'getCitas': 
         result = getData('Citas'); 
         break;
@@ -110,7 +123,7 @@ function handleAction(action, data) {
         result = deleteData('Citas', data.id || data); 
         break;
 
-      // --- PAGOS / FACTURAS ---
+      // --- PAGOS Y FACTURACIÓN ---
       case 'getPagos': 
         result = getData('Pagos'); 
         break;
@@ -121,7 +134,7 @@ function handleAction(action, data) {
         result = deleteData('Pagos', data.id || data); 
         break;
 
-      // --- EGRESOS ---
+      // --- EGRESOS Y GASTOS ---
       case 'getEgresos': 
         result = getData('Egresos'); 
         break;
@@ -160,7 +173,7 @@ function handleAction(action, data) {
         result = deleteData('Proveedores', data.id || data); 
         break;
 
-      // --- LABORATORIOS ---
+      // --- LABORATORIOS DENTALES ---
       case 'getLaboratorios':
       case 'getLaboratorio': 
         result = getData('Laboratorios'); 
@@ -175,7 +188,7 @@ function handleAction(action, data) {
         result = deleteData('Laboratorios', data.id || data); 
         break;
 
-      // --- HISTORIA CLÍNICA / EVOLUCIONES ---
+      // --- HISTORIA CLÍNICA Y EVOLUCIONES ---
       case 'getEvoluciones':
       case 'getEvolucionClinica': 
         result = getData('EvolucionesClinicas'); 
@@ -188,7 +201,7 @@ function handleAction(action, data) {
         result = updateData('EvolucionesClinicas', data); 
         break;
 
-      // --- PRESUPUESTOS ---
+      // --- PRESUPUESTOS CLÍNICOS ---
       case 'getPresupuestos': 
         result = getData('Presupuestos'); 
         break;
@@ -204,7 +217,7 @@ function handleAction(action, data) {
         result = deleteData('Presupuestos', data.id || data); 
         break;
 
-      // --- RECIBOS / FACTURAS ---
+      // --- RECIBOS Y FACTURAS ---
       case 'getRecibos':
       case 'getFacturas': 
         result = getData('Facturas'); 
@@ -218,7 +231,7 @@ function handleAction(action, data) {
         result = deleteData('Facturas', data.id || data); 
         break;
 
-      // --- ODONTOGRAMA ---
+      // --- ODONTOGRAMA DENTAL ---
       case 'getOdontograma': 
         result = getData('Odontogramas'); 
         break;
@@ -228,7 +241,7 @@ function handleAction(action, data) {
         else result = addData('Odontogramas', data);
         break;
 
-      // --- TASA Y CONFIGURACIÓN ---
+      // --- TASA CAMBIO Y CONFIGURACIÓN ---
       case 'getTasaHoy': 
         result = getTasaHoy(); 
         break;
@@ -376,13 +389,6 @@ function updateData(sheetName, obj) {
 
   for (let i = 1; i < data.length; i++) {
     if (data[i][idIndex] == obj.id) {
-      // Optimistic Locking si aplica
-      if (timeIndex !== -1 && obj.lastUpdated) {
-        const sheetTime = Number(data[i][timeIndex]) || 0;
-        if (sheetTime > Number(obj.lastUpdated)) {
-          // No bloquear si es actualización administrativa forzada
-        }
-      }
       obj.lastUpdated = new Date().getTime();
 
       const rowRange = sheet.getRange(i + 1, 1, 1, headers.length);
