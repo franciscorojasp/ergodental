@@ -25,7 +25,14 @@ function doGet(e) {
   }
 
   const action = e.parameter ? e.parameter.action : null;
-  const data = (e.parameter && e.parameter.payload) ? JSON.parse(e.parameter.payload) : null;
+  let data = null;
+  if (e.parameter && e.parameter.payload) {
+    try {
+      data = JSON.parse(e.parameter.payload);
+    } catch (err) {
+      data = e.parameter.payload;
+    }
+  }
   return handleAction(action, data);
 }
 
