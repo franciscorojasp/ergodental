@@ -4,21 +4,23 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qekotlqwollxcvcawvns.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFla290bHF3b2xseGN2Y2F3dm5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mjk5MTEsImV4cCI6MjA5MDAwNTkxMX0.ah2W38jGubpOGh4pwi-5lO74dF-LT9KqZB2CFuRKBFs';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Detectar si la clave actual es incorrecta (Stripe) y forzar la correcta
 const IS_STRIPE_KEY = supabaseAnonKey.startsWith('sb_publishable');
-const finalAnonKey = IS_STRIPE_KEY ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFla290bHF3b2xseGN2Y2F3dm5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mjk5MTEsImV4cCI6MjA5MDAwNTkxMX0.ah2W38jGubpOGh4pwi-5lO74dF-LT9KqZB2CFuRKBFs' : supabaseAnonKey;
+const finalAnonKey = IS_STRIPE_KEY ? '' : supabaseAnonKey;
 
-console.debug('Supabase URL:', supabaseUrl ? 'detectada' : 'VACÍA');
-console.debug('Supabase Key:', finalAnonKey ? (IS_STRIPE_KEY ? 'STRIKE_FIX_APPLIED' : 'detectada') : 'VACÍA');
+const isPlaceholderUrl = (url: string) => 
+  !url || 
+  url.includes('qekotlqwollxcvcawvns') || 
+  url.includes('qpkptlowpjlxsycsvpns') || 
+  url.includes('placeholder') ||
+  url.includes('your-project');
 
-export const IS_SUPABASE_CONNECTED = !!(
-  supabaseUrl && 
-  finalAnonKey && 
-  supabaseUrl.startsWith('http')
-);
+export const IS_SUPABASE_CONNECTED = 
+  import.meta.env.VITE_USE_GOOGLE_SHEETS !== 'true' && 
+  !!(supabaseUrl && finalAnonKey && supabaseUrl.startsWith('http') && !isPlaceholderUrl(supabaseUrl));
 
 // Helper para procesar tokens en la URL si el detectSessionInUrl falla por el HashRouter
 const processHashTokens = () => {
@@ -42,7 +44,7 @@ const processHashTokens = () => {
   }
 };
 
-export const supabase = (supabaseUrl && finalAnonKey)
+export const supabase = IS_SUPABASE_CONNECTED
   ? createClient(supabaseUrl, finalAnonKey, {
       auth: {
         persistSession: true,

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import * as api from '../api';
+import type { Rol } from '../api';
 import { updatePassword, logAuditoria } from '../api';
 import { ROL_HOME } from '../permissions';
 
@@ -17,6 +18,8 @@ export default function Login() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [rolSolicitado, setRolSolicitado] = useState<Rol>('RECEPCION');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -48,21 +51,39 @@ export default function Login() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+    if (!email.trim() || !password) {
+      setError('Por favor ingresa tu correo y contraseña');
+      return;
+    }
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
     setLoading(true);
     try {
-      const { error: signUpError } = await api.signUpNewUser(email, password);
+      const { error: signUpError } = await api.signUpNewUser({
+        nombre: nombre.trim() || email.split('@')[0],
+        email: email.trim().toLowerCase(),
+        password,
+        rol: rolSolicitado
+      });
       if (signUpError) throw signUpError;
-      setSuccess('¡Cuenta creada! Hemos enviado un código a tu Gmail.');
+
+      setSuccess('¡Cuenta registrada exitosamente! Por seguridad clínica, tu acceso debe ser activado por un Administrador.');
+      setNombre('');
+      setPassword('');
+      setConfirmPassword('');
       setTimeout(() => {
         setSuccess('');
-        setView('register-verify');
-      }, 2000);
+        setView('login');
+      }, 4000);
     } catch (err: any) {
-      setError(err.message || 'Error al crear la cuenta');
+      setError(err.message || 'Error al registrar la cuenta');
     } finally {
       setLoading(false);
     }
@@ -205,17 +226,109 @@ export default function Login() {
             )}
 
             {view === 'register' && (
-              <motion.form key="register" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                  <h2 style={{ color: '#fff' }}>Crea tu Cuenta</h2>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>Recibirás un código de 8 dígitos.</p>
+              <motion.form key="register" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '4px' }}>
+                  <h2 style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>Crea tu Cuenta</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', marginTop: '2px' }}>Registro de acceso al sistema clínico</p>
                 </div>
-                <input id="reg-email" name="email" className="premium-input" type="email" placeholder="Gmail" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
-                <input id="reg-password" name="password" className="premium-input" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
-                <input id="reg-confirm" name="confirmPassword" className="premium-input" type="password" placeholder="Confirmar" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 20px', color: '#fff' }} />
-                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem' }}>⚠️ {error}</p>}
-                <button className="premium-btn" type="submit" disabled={loading} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 }}>{loading ? 'Procesando...' : 'Obtener Código'}</button>
-                <button type="button" onClick={() => setView('login')} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none' }}>Volver</button>
+
+                <div className="input-group">
+                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', marginBottom: '6px', fontWeight: 600 }}>NOMBRE Y APELLIDO</label>
+                  <input 
+                    id="reg-nombre" 
+                    name="nombre" 
+                    className="premium-input" 
+                    type="text" 
+                    placeholder="Ej. Dr. Carlos Silva" 
+                    value={nombre} 
+                    onChange={e => setNombre(e.target.value)} 
+                    required 
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '12px 18px', color: '#fff' }} 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', marginBottom: '6px', fontWeight: 600 }}>CORREO ELECTRÓNICO</label>
+                  <input 
+                    id="reg-email" 
+                    name="email" 
+                    className="premium-input" 
+                    type="email" 
+                    placeholder="ejemplo@ergodentalve.com" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '12px 18px', color: '#fff' }} 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', marginBottom: '6px', fontWeight: 600 }}>FUNCIÓN O ROL EN LA CLÍNICA</label>
+                  <select
+                    id="reg-rol"
+                    name="rol"
+                    className="premium-input"
+                    value={rolSolicitado}
+                    onChange={e => setRolSolicitado(e.target.value as Rol)}
+                    style={{ width: '100%', background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '12px 18px', color: '#fff' }}
+                  >
+                    <option value="DOCTOR">👨‍⚕️ Doctor / Odontólogo</option>
+                    <option value="ASISTENTE">🩺 Asistente Clínico</option>
+                    <option value="RECEPCION">🖥️ Recepción y Caja</option>
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', marginBottom: '6px', fontWeight: 600 }}>CONTRASEÑA</label>
+                  <input 
+                    id="reg-password" 
+                    name="password" 
+                    className="premium-input" 
+                    type="password" 
+                    placeholder="Mínimo 6 caracteres" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    required 
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '12px 18px', color: '#fff' }} 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem', marginBottom: '6px', fontWeight: 600 }}>CONFIRMAR CONTRASEÑA</label>
+                  <input 
+                    id="reg-confirm" 
+                    name="confirmPassword" 
+                    className="premium-input" 
+                    type="password" 
+                    placeholder="Repite la contraseña" 
+                    value={confirmPassword} 
+                    onChange={e => setConfirmPassword(e.target.value)} 
+                    required 
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '12px 18px', color: '#fff' }} 
+                  />
+                </div>
+
+                {error && <p style={{ color: '#ff4d4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255,77,77,0.1)', padding: '10px', borderRadius: '12px' }}>⚠️ {error}</p>}
+                {success && <p style={{ color: '#4dff4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(77,255,77,0.1)', padding: '10px', borderRadius: '12px' }}>✅ {success}</p>}
+
+                <button 
+                  className="premium-btn" 
+                  type="submit" 
+                  disabled={loading} 
+                  style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', borderRadius: '14px', border: 'none', color: '#fff', fontWeight: 700, marginTop: '6px' }}
+                >
+                  {loading ? 'Creando cuenta...' : 'Completar Registro'}
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => { setError(''); setSuccess(''); setView('login'); }} 
+                    style={{ color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.88rem' }}
+                  >
+                    ¿Ya tienes cuenta? <span style={{ color: '#3490dc', fontWeight: 600 }}>Inicia Sesión</span>
+                  </button>
+                </div>
               </motion.form>
             )}
 

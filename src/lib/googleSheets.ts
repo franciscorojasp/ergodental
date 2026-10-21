@@ -176,7 +176,10 @@ export const googleSheetsApi = {
         try {
           const payloadCamel = payload ? mapKeys(payload, toCamel) : payload;
           const data = await googleSheetsRequest(actionName, payloadCamel);
-          return { data, error: null };
+          const merged = (data && typeof data === 'object' && !Array.isArray(data))
+            ? { ...payloadCamel, ...data }
+            : data;
+          return { data: merged, error: null };
         } catch (error) {
           return { data: null, error };
         }
@@ -279,8 +282,16 @@ export const googleSheetsApi = {
       },
       delete: () => {
         return {
-          eq: (_field: string, _value: any) => {
-             const executeDel = async () => ({ data: null, error: null });
+          eq: (field: string, value: any) => {
+             const executeDel = async () => {
+               try {
+                 await googleSheetsRequest(`delete${singularEntity}`, { [field]: value });
+                 return { data: null, error: null };
+               } catch (error) {
+                 console.warn(`Operación delete${singularEntity} omitida o no soportada en Apps Script:`, error);
+                 return { data: null, error: null };
+               }
+             };
              return {
                 then: (onf: any, onr: any) => executeDel().then(onf, onr)
              };

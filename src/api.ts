@@ -973,7 +973,7 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     throw new Error('No tienes conexión a internet activa para iniciar sesión.');
   }
 
-  if (!IS_SUPABASE_CONNECTED || !supabase) {
+  if (!VITE_USE_GOOGLE_SHEETS && (!IS_SUPABASE_CONNECTED || !supabase)) {
     throw new Error('Configuración de base de datos no disponible en línea.');
   }
 
@@ -981,14 +981,39 @@ export async function loginUser(email: string, password: string): Promise<Usuari
   if (VITE_USE_GOOGLE_SHEETS) {
     try {
       const user = await googleSheetsRequest('login', { email, password });
-      return user as Usuario;
-    } catch (err: any) {
-      // Fallback para Administradores de la Propiedad en Google Sheets
+      
       const SUPER_ADMINS = [
         'francisco.rojasp@gmail.com', 
         'blascojennifer47@gmail.com', 
         'vera.hugo712@gmail.com', 
-        'carlosalejandroverablasco183@gmail.com'
+        'carlosalejandroverablasco183@gmail.com',
+        'admin@ergodentalve.com'
+      ];
+      const isSuperAdmin = SUPER_ADMINS.includes(email.toLowerCase());
+
+      const isInactive = user.activo === false || String(user.activo).toLowerCase() === 'false';
+      if (isInactive && !isSuperAdmin) {
+        throw new Error('Tu cuenta está registrada pero aún está pendiente de activación por un Administrador.');
+      }
+
+      let nombre = user.nombre;
+      if (!nombre || nombre.trim() === 'undefined' || nombre.trim() === '') {
+        nombre = email.split('@')[0];
+      }
+
+      return {
+        ...user,
+        nombre,
+        rol: isSuperAdmin ? 'ADMIN' : (user.rol || 'RECEPCION'),
+        activo: isSuperAdmin ? true : !isInactive
+      } as Usuario;
+    } catch (err: any) {
+      const SUPER_ADMINS = [
+        'francisco.rojasp@gmail.com', 
+        'blascojennifer47@gmail.com', 
+        'vera.hugo712@gmail.com', 
+        'carlosalejandroverablasco183@gmail.com',
+        'admin@ergodentalve.com'
       ];
       if (SUPER_ADMINS.includes(email.toLowerCase())) {
         return {
@@ -1623,17 +1648,62 @@ export async function getGlobalCorrelativo(): Promise<string> {
 
 // ─── REGISTRO DE NUEVOS USUARIOS ─────────────────────────────────────────────
 
-export async function signUpNewUser(email: string, password: string) {
-  if (!IS_SUPABASE_CONNECTED) {
+export interface SignUpData {
+  nombre?: string;
+  email: string;
+  password: string;
+  rol?: Rol;
+  clinicaId?: string;
+}
+
+export async function signUpNewUser(
+  dataOrEmail: SignUpData | string, 
+  passwordParam?: string
+): Promise<{ data: any; error: any }> {
+  const isObj = typeof dataOrEmail !== 'string';
+  const email = (isObj ? dataOrEmail.email : dataOrEmail).trim().toLowerCase();
+  const password = isObj ? dataOrEmail.password : (passwordParam || '');
+  const nombre = (isObj && dataOrEmail.nombre?.trim()) ? dataOrEmail.nombre.trim() : email.split('@')[0];
+  const rol: Rol = (isObj && dataOrEmail.rol) ? dataOrEmail.rol : 'RECEPCION';
+  const clinicaId = (isObj && dataOrEmail.clinicaId) ? dataOrEmail.clinicaId : 'consolidado';
+
+  if (VITE_USE_GOOGLE_SHEETS) {
+    try {
+      const existing = await googleSheetsRequest('getUsuarios').catch(() => []);
+      if (Array.isArray(existing) && existing.some((u: any) => u.email?.toLowerCase() === email)) {
+        return { data: null, error: new Error('Ya existe una cuenta registrada con este correo electrónico.') };
+      }
+
+      const nuevoUsuario = {
+        id: `u_${Date.now()}`,
+        nombre,
+        email,
+        password,
+        rol,
+        activo: false,
+        clinicaId,
+        permisosMultiClinica: false,
+        lastUpdated: Date.now()
+      };
+
+      await googleSheetsRequest('createUsuario', nuevoUsuario);
+      return { data: nuevoUsuario, error: null };
+    } catch (err: any) {
+      console.error('Error en registro:', err);
+      return { data: null, error: err };
+    }
+  }
+
+  if (!IS_SUPABASE_CONNECTED || !supabase) {
     return { data: {}, error: null };
   }
-  // Suponiendo que Supabase está configurado para enviar confirmación
+
   return await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        nombre: email.split('@')[0],
+        nombre,
       }
     }
   });
@@ -1665,10 +1735,66 @@ export async function getProfiles(): Promise<Usuario[]> {
   if (isDemoSession()) return DEMO_USUARIOS;
   const { data, error } = await supabase.from('profiles').select('*').order('email');
   if (error) throw error;
-  return mapKeys(data, toCamel) as Usuario[];
+  const rawList = (mapKeys(data, toCamel) as Usuario[]) || [];
+  return rawList.map(u => {
+    let nombre = u.nombre;
+    if (!nombre || nombre.trim() === 'undefined' || nombre.trim() === '') {
+      nombre = u.email ? u.email.split('@')[0] : 'Usuario';
+    }
+    const activo = u.activo === true || String(u.activo).toLowerCase() === 'true';
+    return {
+      ...u,
+      nombre,
+      activo,
+      rol: u.rol || 'RECEPCION',
+      clinicaId: u.clinicaId || 'consolidado',
+      permisosMultiClinica: u.permisosMultiClinica === true || String(u.permisosMultiClinica).toLowerCase() === 'true'
+    };
+  });
 }
 
-export async function updateProfile(p: Partial<Usuario> & { id: string }): Promise<Usuario> {
+export async function createProfile(u: {
+  nombre: string;
+  email: string;
+  rol: Rol;
+  activo?: boolean;
+  clinicaId?: string;
+  permisosMultiClinica?: boolean;
+  password?: string;
+}): Promise<Usuario> {
+  const newUser: Usuario & { password?: string; lastUpdated: number } = {
+    id: `u_${Date.now()}`,
+    nombre: u.nombre.trim(),
+    email: u.email.trim().toLowerCase(),
+    rol: u.rol,
+    activo: u.activo ?? true,
+    clinicaId: u.clinicaId || 'consolidado',
+    permisosMultiClinica: u.permisosMultiClinica ?? false,
+    password: u.password || 'Ergodental2024!',
+    lastUpdated: Date.now()
+  };
+
+  if (isDemoSession()) {
+    DEMO_USUARIOS.push(newUser);
+    return newUser;
+  }
+
+  if (VITE_USE_GOOGLE_SHEETS) {
+    await googleSheetsRequest('createUsuario', newUser);
+    return newUser;
+  }
+
+  const dbData = mapKeys(newUser, toSnake);
+  return await withOfflineSync<Usuario>(
+    () => supabase.from('profiles').insert(dbData).select().single(),
+    'profiles',
+    'INSERT',
+    dbData,
+    newUser
+  );
+}
+
+export async function updateProfile(p: Partial<Usuario> & { id: string; password?: string }): Promise<Usuario> {
   if (isDemoSession()) {
     const idx = DEMO_USUARIOS.findIndex(u => u.id === p.id);
     if (idx !== -1) DEMO_USUARIOS[idx] = { ...DEMO_USUARIOS[idx], ...p };
@@ -1676,17 +1802,40 @@ export async function updateProfile(p: Partial<Usuario> & { id: string }): Promi
   }
   const { id, ...rest } = p;
   const dbData = mapKeys(rest, toSnake);
-  return await withOfflineSync<Usuario>(
+  const updated = await withOfflineSync<Usuario>(
     () => supabase.from('profiles').update(dbData).eq('id', id).select().single(),
     'profiles',
     'UPDATE',
     { ...dbData, id },
     p as unknown as Usuario
   );
+  return { ...p, ...updated };
+}
+
+export async function resetUserPassword(userId: string, newPassword: string): Promise<void> {
+  if (isDemoSession()) return;
+  if (VITE_USE_GOOGLE_SHEETS) {
+    await googleSheetsRequest('updateUsuario', {
+      id: userId,
+      password: newPassword,
+      lastUpdated: Date.now()
+    });
+    return;
+  }
+  await updateProfile({ id: userId, password: newPassword });
 }
 
 export async function deleteProfile(id: string): Promise<void> {
   if (isDemoSession()) return;
+  if (VITE_USE_GOOGLE_SHEETS) {
+    try {
+      await googleSheetsRequest('deleteUsuario', { id });
+    } catch (err) {
+      console.warn('deleteUsuario falló o no está soportado en Apps Script, suspendiendo usuario:', err);
+      await googleSheetsRequest('updateUsuario', { id, activo: false, lastUpdated: Date.now() });
+    }
+    return;
+  }
   await withOfflineSync<void>(
     () => supabase.from('profiles').delete().eq('id', id) as any,
     'profiles',
