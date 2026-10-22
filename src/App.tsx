@@ -61,7 +61,8 @@ function AppLoader({ subtitle }: { subtitle?: string }) {
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarPinned, setSidebarPinned] = useState(() => 
     localStorage.getItem('ergo_sidebar_pinned') !== 'false'
   );
@@ -72,39 +73,25 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
     localStorage.setItem('ergo_sidebar_pinned', String(newVal));
   };
 
-  // Cerrar sidebar automáticamente al cambiar a móvil si estaba abierto
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 768) setSidebarOpen(true);
-      else setSidebarOpen(false);
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setSidebarOpen(false);
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const { content } = useContent();
 
   if (loading) return <AppLoader subtitle={content.loading_session} />;
   if (!user) return <Navigate to="/login" replace />;
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const distance = touchEnd - touchStart;
-    
-    // Si desliza hacia la derecha (>70px) y empezó en el primer cuarto de pantalla (<100px)
-    if (distance > 70 && touchStart < 100) setSidebarOpen(true);
-    setTouchStart(null);
-  };
-
   return (
-    <div className="app-layout animate-fade-in" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="app-layout animate-fade-in">
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -117,13 +104,15 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <HelpCenter />
       <InstallAppPrompt />
 
-      {/* Mobile Overlay (Backdrop) */}
-      <div 
-        className={`mobile-overlay ${sidebarOpen ? 'visible' : ''}`} 
-        onClick={() => setSidebarOpen(false)}
-      />
+      {/* Mobile Overlay (Backdrop) - SOLO para móvil y cuando el sidebar esté abierto */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="mobile-overlay visible" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%', overflowX: 'hidden' }}>
+      <div className="main-viewport-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%' }}>
         {/* Header - Siempre visible en móvil, o en desktop si el sidebar está cerrado */}
         <header className="mobile-header">
           <button 
