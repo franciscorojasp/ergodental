@@ -116,7 +116,7 @@ A continuación se detallan tus credenciales oficiales para ingresar a la plataf
 ${baseUrl}
 
 👤 *Usuario / Correo:* ${usuario.email}
-🔑 *Contraseña:* ${password ? password : '(Usa tu contraseña habitual)'}
+🔑 *Contraseña:* ${password ? password : '(Usa tu contraseña habitual configurada en el sistema)'}
 🩺 *Rol Clínico:* ${ROL_LABEL[usuario.rol]}
 🏥 *Sede Asignada:* ${nombreSede}
 
@@ -587,12 +587,25 @@ ${qrUrl}
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <div style={{ position: 'relative', flex: 1 }}>
+                    {/* Honeypot anti-autofill para evitar que el navegador inyecte credenciales guardadas del admin */}
+                    <div style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+                      <input type="text" name="chrome_prevent_autofill_user" tabIndex={-1} autoComplete="off" />
+                      <input type="password" name="chrome_prevent_autofill_pwd" tabIndex={-1} autoComplete="off" />
+                    </div>
                     <input
                       className="input"
                       type={mostrarPassword ? 'text' : 'password'}
-                      placeholder="Escribe o genera la contraseña"
+                      placeholder="Escribe o genera una clave temporal..."
                       value={password}
                       onChange={e => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
+                      name={`user_cred_override_${usuario?.id || 'temp'}`}
+                      id={`user_cred_override_${usuario?.id || 'temp'}`}
+                      data-lpignore="true"
+                      data-form-type="other"
                       style={{
                         width: '100%',
                         fontSize: '0.88rem',

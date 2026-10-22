@@ -772,6 +772,11 @@ export default function Usuarios() {
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>
                       {usuarioEditando ? 'NUEVA CONTRASEÑA (Dejar en blanco para mantener la actual)' : 'CONTRASEÑA INICIAL'}
                     </label>
+                    {/* Honeypot anti-autofill */}
+                    <div style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+                      <input type="text" name="chrome_prevent_form_usr" tabIndex={-1} autoComplete="off" />
+                      <input type="password" name="chrome_prevent_form_pwd" tabIndex={-1} autoComplete="off" />
+                    </div>
                     <input 
                       className="input" 
                       type="password" 
@@ -779,6 +784,11 @@ export default function Usuarios() {
                       value={formData.password} 
                       onChange={e => setFormData({ ...formData, password: e.target.value })} 
                       required={!usuarioEditando}
+                      autoComplete="new-password"
+                      name="admin_user_form_pwd"
+                      id="admin_user_form_pwd"
+                      data-lpignore="true"
+                      data-form-type="other"
                       style={{ width: '100%' }}
                     />
                   </div>
@@ -862,6 +872,10 @@ export default function Usuarios() {
                       placeholder="Nueva contraseña"
                       value={nuevaPassword} 
                       onChange={e => setNuevaPassword(e.target.value)} 
+                      autoComplete="new-password"
+                      name="admin_reset_user_pwd_1"
+                      id="admin_reset_user_pwd_1"
+                      data-lpignore="true"
                       style={{ width: '100%' }}
                     />
                   </div>
@@ -875,6 +889,10 @@ export default function Usuarios() {
                       placeholder="Repite la nueva contraseña"
                       value={confirmarPassword} 
                       onChange={e => setConfirmarPassword(e.target.value)} 
+                      autoComplete="new-password"
+                      name="admin_reset_user_pwd_2"
+                      id="admin_reset_user_pwd_2"
+                      data-lpignore="true"
                       style={{ width: '100%' }}
                     />
                   </div>
