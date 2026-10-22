@@ -52,10 +52,16 @@ export default function ReportePagosModal({ isOpen, onClose }: Props) {
   // Pestañas internas del reporte
   const [tabReporte, setTabReporte] = useState<'resumen' | 'detalle' | 'compartir'>('resumen');
 
-  // Destinatarios para compartir
-  const [destinatarioRol, setDestinatarioRol] = useState<'direccion' | 'administracion' | 'recepcion' | 'otro'>('administracion');
-  const [telefonoPersonalizado, setTelefonoPersonalizado] = useState('');
-  const [emailDestinatario, setEmailDestinatario] = useState('');
+  // Destinatarios para compartir (Selección de lista)
+  const [selectedPersonalIds, setSelectedPersonalIds] = useState<string[]>([]);
+  const [filtroRolDestinatario, setFiltroRolDestinatario] = useState<string>('todos');
+  const [busquedaDestinatario, setBusquedaDestinatario] = useState<string>('');
+  const [telefonoManual, setTelefonoManual] = useState('');
+  const [emailManual, setEmailManual] = useState('');
+  const [nombreManual, setNombreManual] = useState('');
+  const [mostrarManual, setMostrarManual] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const [enviadosWhatsApp, setEnviadosWhatsApp] = useState<Record<string, boolean>>({});
 
   const chartCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -275,35 +281,91 @@ export default function ReportePagosModal({ isOpen, onClose }: Props) {
     return msg;
   };
 
-  const handleEnviarWhatsApp = () => {
-    let telefono = '';
+  // ── SELECCIÓN Y GESTIÓN DE DESTINATARIOS EN LISTA ──
+  const formatWhatsAppPhone = (rawPhone: string) => {
+    let t = (rawPhone || '').replace(/\D/g, '');
+    if (!t) return '';
+    if (t.startsWith('04')) t = '58' + t.substring(1);
+    else if (t.startsWith('4') && t.length === 10) t = '58' + t;
+    return t;
+  };
 
-    if (destinatarioRol === 'otro') {
-      telefono = telefonoPersonalizado.replace(/\D/g, '');
-    } else {
-      // Buscar contacto del rol seleccionado
-      const personalRol = personal.find(p => {
-        const rol = String(p.tipo).toLowerCase();
-        if (destinatarioRol === 'direccion') return rol.includes('coord') || rol.includes('admin') || rol.includes('odont');
-        if (destinatarioRol === 'administracion') return rol.includes('admin');
-        if (destinatarioRol === 'recepcion') return rol.includes('recep') || rol.includes('asist');
-        return false;
-      });
-      telefono = personalRol?.telefono ? personalRol.telefono.replace(/\D/g, '') : '';
+  // Filtrado de personal para lista de destinatarios
+  const personalFiltrado = useMemo(() => {
+    return personal.filter(p => {
+      if (filtroRolDestinatario !== 'todos') {
+        const tipo = (p.tipo || '').toLowerCase();
+        if (filtroRolDestinatario === 'odontologos' && !tipo.includes('odont')) return false;
+        if (filtroRolDestinatario === 'administracion' && !tipo.includes('admin') && !tipo.includes('coord')) return false;
+        if (filtroRolDestinatario === 'recepcion' && !tipo.includes('recep') && !tipo.includes('asist')) return false;
+      }
+      if (busquedaDestinatario.trim()) {
+        const q = busquedaDestinatario.toLowerCase();
+        const nombreCompleto = `${p.nombre || ''} ${p.apellido || ''}`.toLowerCase();
+        const matchRol = (p.tipo || '').toLowerCase().includes(q);
+        const matchTel = (p.telefono || '').includes(q);
+        const matchEmail = (p.email || '').toLowerCase().includes(q);
+        if (!nombreCompleto.includes(q) && !matchRol && !matchTel && !matchEmail) return false;
+      }
+      return true;
+    });
+  }, [personal, filtroRolDestinatario, busquedaDestinatario]);
+
+  const personasSeleccionadas = useMemo(() => {
+    return personal.filter(p => selectedPersonalIds.includes(p.id));
+  }, [personal, selectedPersonalIds]);
+
+  const emailsSeleccionados = useMemo(() => {
+    const list = personasSeleccionadas
+      .map(p => p.email?.trim())
+      .filter((e): e is string => !!e && e.includes('@'));
+    if (emailManual.trim() && emailManual.includes('@')) {
+      list.push(emailManual.trim());
     }
+    return Array.from(new Set(list));
+  }, [personasSeleccionadas, emailManual]);
 
-    if (telefono.startsWith('04')) telefono = '58' + telefono.substring(1);
-    else if (telefono.startsWith('4')) telefono = '58' + telefono;
+  const toggleSelectPerson = (id: string) => {
+    setSelectedPersonalIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
+  const handleSelectAllVisible = () => {
+    const visibleIds = personalFiltrado.map(p => p.id);
+    const allSelected = visibleIds.length > 0 && visibleIds.every(id => selectedPersonalIds.includes(id));
+    if (allSelected) {
+      setSelectedPersonalIds(prev => prev.filter(id => !visibleIds.includes(id)));
+    } else {
+      setSelectedPersonalIds(prev => Array.from(new Set([...prev, ...visibleIds])));
+    }
+  };
+
+  const handleEnviarWhatsAppA = (rawPhone: string, idRef?: string) => {
+    const tel = formatWhatsAppPhone(rawPhone);
     const texto = encodeURIComponent(buildMensajeWhatsApp());
-    const url = telefono ? `https://wa.me/${telefono}?text=${texto}` : `https://wa.me/?text=${texto}`;
+    const url = tel ? `https://wa.me/${tel}?text=${texto}` : `https://wa.me/?text=${texto}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+    if (idRef) {
+      setEnviadosWhatsApp(prev => ({ ...prev, [idRef]: true }));
+    }
   };
 
   const handleEnviarEmail = () => {
     const subject = encodeURIComponent(`Reporte Ejecutivo de Pagos y Pacientes - ${clinica.nombre} (${periodo})`);
     const body = encodeURIComponent(buildMensajeWhatsApp());
-    window.location.href = `mailto:${emailDestinatario}?subject=${subject}&body=${body}`;
+    const destinatarios = emailsSeleccionados.join(',');
+    window.location.href = destinatarios ? `mailto:${destinatarios}?subject=${subject}&body=${body}` : `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const handleCopiarMensaje = async () => {
+    try {
+      await navigator.clipboard.writeText(buildMensajeWhatsApp());
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    } catch (err) {
+      console.error('Error al copiar al portapapeles', err);
+    }
   };
 
   if (!isOpen) return null;
@@ -595,100 +657,408 @@ export default function ReportePagosModal({ isOpen, onClose }: Props) {
                   </div>
                 )}
 
-                {/* ── PESTAÑA: ENVIAR POR WHATSAPP / CORREO ────────────── */}
+                {/* ── PESTAÑA: ENVIAR POR WHATSAPP / CORREO (SELECCIÓN DE LISTA) ────────────── */}
                 {tabReporte === 'compartir' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '640px', margin: '0 auto' }}>
-                    <div style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid var(--primary-dim)', padding: '16px', borderRadius: '14px' }}>
-                      <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--primary)', marginBottom: '4px' }}>
-                        📤 Envío Directo a Roles Correspondientes
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '780px', margin: '0 auto' }}>
+                    
+                    {/* Tarjeta de Encabezado y Guía */}
+                    <div style={{ background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(37, 211, 102, 0.05))', border: '1px solid var(--primary-dim)', padding: '14px 18px', borderRadius: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>📋</span>
+                            <span>Seleccionar Destinatarios del Reporte</span>
+                          </div>
+                          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                            Selecciona de la lista a las personas que recibirán este informe vía WhatsApp o Correo. Puedes elegir uno, varios o todos.
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className="badge badge-primary" style={{ fontSize: '0.78rem', fontWeight: 800 }}>
+                            {personasSeleccionadas.length} seleccionado(s)
+                          </span>
+                        </div>
                       </div>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        Envía el informe ejecutivo discriminado con un clic al rol deseado o ingresa un número personalizado.
-                      </p>
                     </div>
 
-                    <div className="input-group">
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700 }}>Seleccionar Rol Destinatario:</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
-                        {[
-                          { id: 'administracion', label: '💼 Administración' },
-                          { id: 'direccion', label: '👑 Dirección / Dueño' },
-                          { id: 'recepcion', label: '🏥 Recepción' },
-                          { id: 'otro', label: '💬 Personalizado' }
-                        ].map(r => (
+                    {/* Barra de Filtros y Búsqueda de Destinatarios */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', flex: 1, minWidth: '220px' }}>
+                        <div style={{ position: 'relative', width: '100%', maxWidth: '240px' }}>
+                          <input
+                            type="text"
+                            className="input input-sm"
+                            placeholder="🔍 Buscar destinatario..."
+                            value={busquedaDestinatario}
+                            onChange={e => setBusquedaDestinatario(e.target.value)}
+                            style={{ width: '100%', height: '32px', fontSize: '0.78rem', paddingLeft: '10px' }}
+                          />
+                        </div>
+
+                        {/* Filtros por Rol */}
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {[
+                            { id: 'todos', label: `Todos (${personal.length})` },
+                            { id: 'administracion', label: '💼 Admin' },
+                            { id: 'odontologos', label: '👨‍⚕️ Doctores' },
+                            { id: 'recepcion', label: '🏥 Recepción' },
+                          ].map(f => (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => setFiltroRolDestinatario(f.id)}
+                              className={`btn btn-sm ${filtroRolDestinatario === f.id ? 'btn-primary' : 'btn-ghost'}`}
+                              style={{ height: '32px', padding: '0 8px', fontSize: '0.72rem' }}
+                            >
+                              {f.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Botón rápido Seleccionar/Deseleccionar Todos */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={handleSelectAllVisible}
+                          className="btn btn-ghost btn-sm"
+                          style={{ height: '32px', fontSize: '0.72rem', border: '1px solid var(--border)' }}
+                        >
+                          {personalFiltrado.length > 0 && personalFiltrado.every(p => selectedPersonalIds.includes(p.id))
+                            ? '◻️ Desmarcar Visibles'
+                            : '☑️ Marcar Visibles'}
+                        </button>
+                        {selectedPersonalIds.length > 0 && (
                           <button
-                            key={r.id}
                             type="button"
-                            onClick={() => setDestinatarioRol(r.id as any)}
-                            className={`btn btn-sm ${destinatarioRol === r.id ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ height: '36px', fontSize: '0.75rem' }}
+                            onClick={() => setSelectedPersonalIds([])}
+                            className="btn btn-ghost btn-sm text-danger"
+                            style={{ height: '32px', fontSize: '0.72rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}
                           >
-                            {r.label}
+                            ✕ Limpiar
                           </button>
-                        ))}
+                        )}
                       </div>
                     </div>
 
-                    {destinatarioRol === 'otro' && (
-                      <div className="input-group">
-                        <label style={{ fontSize: '0.8rem', fontWeight: 700 }}>Número WhatsApp (ej. 04141234567 o +58...):</label>
-                        <input
-                          type="tel"
-                          className="input"
-                          placeholder="0414..."
-                          value={telefonoPersonalizado}
-                          onChange={e => setTelefonoPersonalizado(e.target.value)}
-                        />
-                      </div>
-                    )}
+                    {/* LISTA INTERACTIVA DE DESTINATARIOS */}
+                    <div
+                      style={{
+                        maxHeight: '230px',
+                        overflowY: 'auto',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '12px',
+                        padding: '6px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px'
+                      }}
+                    >
+                      {personalFiltrado.map(p => {
+                        const isSelected = selectedPersonalIds.includes(p.id);
+                        const initiales = `${p.nombre?.[0] || ''}${p.apellido?.[0] || ''}`.toUpperCase() || 'P';
+                        const telFormatted = p.telefono ? p.telefono : null;
 
-                    <div className="input-group">
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700 }}>Correo Electrónico (Opcional):</label>
-                      <input
-                        type="email"
-                        className="input"
-                        placeholder="administracion@clinica.com"
-                        value={emailDestinatario}
-                        onChange={e => setEmailDestinatario(e.target.value)}
-                      />
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => toggleSelectPerson(p.id)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              background: isSelected ? 'rgba(0, 212, 255, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                              border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border-light)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}} // controlado por el contenedor
+                                style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+                              />
+                              <div
+                                style={{
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '50%',
+                                  background: isSelected ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
+                                  color: isSelected ? '#000' : 'var(--text-primary)',
+                                  fontWeight: 800,
+                                  fontSize: '0.75rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                {initiales}
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                  {p.nombre} {p.apellido}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{p.tipo}</span>
+                                  {p.especialidad && <span>· {p.especialidad}</span>}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Datos de Contacto Directo */}
+                            <div style={{ textAlign: 'right', fontSize: '0.72rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              {telFormatted ? (
+                                <span style={{ color: '#25D366', fontWeight: 600 }}>💬 {telFormatted}</span>
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)' }}>Sin WhatsApp</span>
+                              )}
+                              {p.email ? (
+                                <span style={{ color: 'var(--text-secondary)' }}>✉️ {p.email}</span>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {personalFiltrado.length === 0 && (
+                        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                          No se encontraron personas con ese filtro o búsqueda.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Acordeón para Destinatario Externo / Manual */}
+                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-light)', borderRadius: '10px', overflow: 'hidden' }}>
+                      <button
+                        type="button"
+                        onClick={() => setMostrarManual(!mostrarManual)}
+                        className="btn btn-ghost"
+                        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: '10px 14px', fontSize: '0.78rem', fontWeight: 700 }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>➕</span>
+                          <span>Agregar Destinatario Adicional / Personalizado</span>
+                        </span>
+                        <span>{mostrarManual ? '▲ Ocultar' : '▼ Expandir'}</span>
+                      </button>
+
+                      {mostrarManual && (
+                        <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border-light)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                          <div className="input-group">
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700 }}>Nombre o Referencia:</label>
+                            <input
+                              type="text"
+                              className="input input-sm"
+                              placeholder="Ej. Dr. Socio / Dueño..."
+                              value={nombreManual}
+                              onChange={e => setNombreManual(e.target.value)}
+                            />
+                          </div>
+                          <div className="input-group">
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700 }}>WhatsApp (ej. 04141234567):</label>
+                            <input
+                              type="tel"
+                              className="input input-sm"
+                              placeholder="0414..."
+                              value={telefonoManual}
+                              onChange={e => setTelefonoManual(e.target.value)}
+                            />
+                          </div>
+                          <div className="input-group">
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700 }}>Correo Electrónico:</label>
+                            <input
+                              type="email"
+                              className="input input-sm"
+                              placeholder="correo@ejemplo.com"
+                              value={emailManual}
+                              onChange={e => setEmailManual(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PANEL DE ACCIONES DE ENVÍO */}
+                    <div style={{ background: 'rgba(0, 0, 0, 0.25)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>📤 Acciones de Despacho</span>
+                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          {personasSeleccionadas.length + (telefonoManual ? 1 : 0)} destinatario(s)
+                        </span>
+                      </div>
+
+                      {/* Lista de Envío por WhatsApp */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                        {personasSeleccionadas.length === 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleEnviarWhatsAppA(personasSeleccionadas[0].telefono, personasSeleccionadas[0].id)}
+                            className="btn"
+                            style={{
+                              height: '42px',
+                              background: '#25D366',
+                              color: '#000',
+                              fontWeight: 800,
+                              borderRadius: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              fontSize: '0.82rem'
+                            }}
+                          >
+                            <span>📲</span>
+                            <span>Enviar WhatsApp a {personasSeleccionadas[0].nombre} ({personasSeleccionadas[0].telefono || 'Sin número'})</span>
+                          </button>
+                        )}
+
+                        {personasSeleccionadas.length > 1 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                              Envío individual a cada persona seleccionada:
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '6px' }}>
+                              {personasSeleccionadas.map(p => {
+                                const enviado = enviadosWhatsApp[p.id];
+                                return (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => handleEnviarWhatsAppA(p.telefono, p.id)}
+                                    className="btn btn-sm"
+                                    style={{
+                                      background: enviado ? '#15803d' : '#25D366',
+                                      color: enviado ? '#fff' : '#000',
+                                      fontWeight: 700,
+                                      borderRadius: '8px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      padding: '6px 10px',
+                                      fontSize: '0.75rem'
+                                    }}
+                                  >
+                                    <span>📲 {p.nombre} {p.apellido}</span>
+                                    <span style={{ fontSize: '0.68rem', opacity: 0.9 }}>
+                                      {enviado ? '✓ Abierto' : p.telefono || 'Sin tel.'}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {personasSeleccionadas.length === 0 && telefonoManual && (
+                          <button
+                            type="button"
+                            onClick={() => handleEnviarWhatsAppA(telefonoManual, 'manual')}
+                            className="btn"
+                            style={{
+                              height: '42px',
+                              background: '#25D366',
+                              color: '#000',
+                              fontWeight: 800,
+                              borderRadius: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              fontSize: '0.82rem'
+                            }}
+                          >
+                            <span>📲</span>
+                            <span>Enviar WhatsApp al número manual ({telefonoManual})</span>
+                          </button>
+                        )}
+
+                        {personasSeleccionadas.length === 0 && !telefonoManual && (
+                          <button
+                            type="button"
+                            onClick={() => handleEnviarWhatsAppA('')}
+                            className="btn"
+                            style={{
+                              height: '40px',
+                              background: '#25D366',
+                              color: '#000',
+                              fontWeight: 800,
+                              borderRadius: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              fontSize: '0.82rem'
+                            }}
+                          >
+                            <span>📲</span>
+                            <span>Enviar por WhatsApp (Abrir sin destinatario fijo)</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Botones Complementarios: Correo y Copiar */}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={handleEnviarEmail}
+                          className="btn btn-ghost"
+                          style={{
+                            flex: 1,
+                            minWidth: '180px',
+                            height: '38px',
+                            border: '1px solid var(--primary)',
+                            color: 'var(--primary)',
+                            fontWeight: 700,
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            fontSize: '0.78rem'
+                          }}
+                        >
+                          <span>✉️</span>
+                          <span>Enviar Correo ({emailsSeleccionados.length} destinatarios)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleCopiarMensaje}
+                          className="btn btn-ghost"
+                          style={{
+                            flex: 1,
+                            minWidth: '160px',
+                            height: '38px',
+                            border: '1px solid var(--border)',
+                            color: copiado ? '#25D366' : 'var(--text-secondary)',
+                            fontWeight: 700,
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            fontSize: '0.78rem'
+                          }}
+                        >
+                          <span>{copiado ? '✓' : '📋'}</span>
+                          <span>{copiado ? 'Copiado al Portapapeles' : 'Copiar Texto del Reporte'}</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Previsualización del Resumen */}
-                    <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                    <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '12px 14px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
                         Vista Previa del Texto de Notificación
                       </div>
-                      <pre style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', fontFamily: 'monospace', maxHeight: '140px', overflowY: 'auto' }}>
+                      <pre style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', fontFamily: 'monospace', maxHeight: '120px', overflowY: 'auto' }}>
                         {buildMensajeWhatsApp()}
                       </pre>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        onClick={handleEnviarWhatsApp}
-                        className="btn"
-                        style={{
-                          flex: 1, minWidth: '200px', height: '42px',
-                          background: '#25D366', color: '#000', fontWeight: 800,
-                          borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
-                        }}
-                      >
-                        <span>📲</span> Enviar por WhatsApp
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleEnviarEmail}
-                        className="btn btn-ghost"
-                        style={{
-                          flex: 1, minWidth: '180px', height: '42px',
-                          border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 700,
-                          borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
-                        }}
-                      >
-                        <span>✉️</span> Enviar por Correo
-                      </button>
                     </div>
                   </div>
                 )}
