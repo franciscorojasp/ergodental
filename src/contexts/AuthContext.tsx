@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { type Usuario, loginUser, resetPasswordForEmail, updatePassword } from '../api';
+import { type Usuario, loginUser, resetPasswordForEmail, updatePassword, SUPER_ADMINS } from '../api';
 import { supabase } from '../lib/supabase';
 
 interface AuthCtx {
@@ -47,12 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const SUPER_ADMINS = [
-        'francisco.rojasp@gmail.com', 
-        'blascojennifer47@gmail.com', 
-        'vera.hugo712@gmail.com', 
-        'carlosalejandroverablasco183@gmail.com'
-      ];
+
       const email = session.user.email?.toLowerCase();
       const isSuperAdmin = email && SUPER_ADMINS.includes(email);
 

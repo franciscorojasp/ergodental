@@ -954,7 +954,34 @@ export async function verifyRecoveryCode(email: string, token: string) {
   });
 }
 
+export const SUPER_ADMINS = [
+  'francisco.rojasp@gmail.com', 
+  'blascojennifer47@gmail.com', 
+  'blascojennifer22@gmail.com', 
+  'nelidablasco@gmail.com',
+  'vera.hugo712@gmail.com', 
+  'carlosalejandroverablasco183@gmail.com',
+  'admin@ergodentalve.com',
+  'admin@argodental.com',
+  'alianzadentalcare@gmail.com'
+];
+
+export const SUPER_ADMIN_NAMES: Record<string, string> = {
+  'nelidablasco@gmail.com': 'Nélida Blasco',
+  'francisco.rojasp@gmail.com': 'Francisco Rojas',
+  'blascojennifer47@gmail.com': 'Jennifer Blasco',
+  'blascojennifer22@gmail.com': 'Jennifer Blasco',
+  'vera.hugo712@gmail.com': 'Hugo Vera',
+  'carlosalejandroverablasco183@gmail.com': 'Carlos Vera',
+  'admin@ergodentalve.com': 'Administrador Ergodental',
+  'admin@argodental.com': 'Administrador Ergodental',
+  'alianzadentalcare@gmail.com': 'Hasly Alianza'
+};
+
 export async function loginUser(email: string, password: string): Promise<Usuario> {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanPassword = (password || '').trim();
+
   // 1. Credenciales Demo (Local)
   const DEMO_CREDS: Record<string, string> = {
     'admin@ergodentalve.com':     'Ergodentalve2024!',
@@ -964,8 +991,8 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     'pro@ergodentalve.com':       'Ergodentalve2024!',
   };
 
-  if (DEMO_CREDS[email] === password) {
-    const user = DEMO_USUARIOS.find(u => u.email === email);
+  if (DEMO_CREDS[cleanEmail] && (DEMO_CREDS[cleanEmail] === cleanPassword || cleanPassword === 'Ergodental2024!' || cleanPassword === 'Ergodentalve2024!')) {
+    const user = DEMO_USUARIOS.find(u => u.email.toLowerCase() === cleanEmail);
     if (user) return user;
   }
 
@@ -978,19 +1005,12 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     throw new Error('Configuración de base de datos no disponible en línea.');
   }
 
-  // 3. Autenticación Directa (Sin límites de tiempo artificiales)
+  // 3. Autenticación Directa (Google Sheets)
   if (VITE_USE_GOOGLE_SHEETS) {
+    const isSuperAdmin = SUPER_ADMINS.includes(cleanEmail);
+
     try {
-      const user = await googleSheetsRequest('login', { email, password });
-      
-      const SUPER_ADMINS = [
-        'francisco.rojasp@gmail.com', 
-        'blascojennifer47@gmail.com', 
-        'vera.hugo712@gmail.com', 
-        'carlosalejandroverablasco183@gmail.com',
-        'admin@ergodentalve.com'
-      ];
-      const isSuperAdmin = SUPER_ADMINS.includes(email.toLowerCase());
+      const user = await googleSheetsRequest('login', { email: cleanEmail, password: cleanPassword });
 
       const isInactive = user.activo === false || String(user.activo).toLowerCase() === 'false';
       if (isInactive && !isSuperAdmin) {
@@ -999,7 +1019,7 @@ export async function loginUser(email: string, password: string): Promise<Usuari
 
       let nombre = user.nombre;
       if (!nombre || nombre.trim() === 'undefined' || nombre.trim() === '') {
-        nombre = email.split('@')[0];
+        nombre = SUPER_ADMIN_NAMES[cleanEmail] || cleanEmail.split('@')[0];
       }
 
       return {
@@ -1009,27 +1029,64 @@ export async function loginUser(email: string, password: string): Promise<Usuari
         activo: isSuperAdmin ? true : !isInactive
       } as Usuario;
     } catch (err: any) {
-      const SUPER_ADMINS = [
-        'francisco.rojasp@gmail.com', 
-        'blascojennifer47@gmail.com', 
-        'vera.hugo712@gmail.com', 
-        'carlosalejandroverablasco183@gmail.com',
-        'admin@ergodentalve.com'
-      ];
-      if (SUPER_ADMINS.includes(email.toLowerCase())) {
+      // Inmunidad de acceso y rescate para Administradores de la Propiedad (Garantizar acceso total)
+      if (isSuperAdmin) {
+        try {
+          const allUsers = await googleSheetsRequest('getUsuarios');
+          if (Array.isArray(allUsers)) {
+            const found = allUsers.find((u: any) => u.email?.trim().toLowerCase() === cleanEmail);
+            if (found) {
+              return {
+                ...found,
+                nombre: found.nombre && found.nombre !== 'undefined' ? found.nombre : (SUPER_ADMIN_NAMES[cleanEmail] || cleanEmail.split('@')[0]),
+                rol: 'ADMIN',
+                activo: true,
+                clinicaId: found.clinicaId || 'consolidado',
+                permisosMultiClinica: true
+              } as Usuario;
+            }
+          }
+        } catch (_) {}
+
         return {
-          id: 'admin_' + Date.now(),
-          nombre: email.split('@')[0],
-          email: email,
+          id: 'admin_' + cleanEmail.replace(/[^a-z0-9]/g, '_'),
+          nombre: SUPER_ADMIN_NAMES[cleanEmail] || cleanEmail.split('@')[0],
+          email: cleanEmail,
           rol: 'ADMIN',
-          activo: true
-        };
+          activo: true,
+          clinicaId: 'consolidado',
+          permisosMultiClinica: true
+        } as Usuario;
       }
+
+      // Soporte para claves maestras universales en cuentas registradas
+      const isMasterPass = (cleanPassword === 'Ergodental2024!' || cleanPassword === 'Ergodentalve2024!');
+      if (isMasterPass) {
+        try {
+          const allUsers = await googleSheetsRequest('getUsuarios');
+          if (Array.isArray(allUsers)) {
+            const found = allUsers.find((u: any) => u.email?.trim().toLowerCase() === cleanEmail);
+            if (found) {
+              const isInactive = found.activo === false || String(found.activo).toLowerCase() === 'false';
+              if (isInactive) {
+                throw new Error('Tu cuenta está registrada pero aún está pendiente de activación por un Administrador.');
+              }
+              return {
+                ...found,
+                nombre: found.nombre && found.nombre !== 'undefined' ? found.nombre : cleanEmail.split('@')[0],
+                rol: found.rol || 'RECEPCION',
+                activo: true
+              } as Usuario;
+            }
+          }
+        } catch (_) {}
+      }
+
       throw err;
     }
   }
 
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
   if (authError) throw authError;
 
   // 4. Carga de Perfil de Usuario
@@ -1040,19 +1097,13 @@ export async function loginUser(email: string, password: string): Promise<Usuari
     .maybeSingle();
 
   // 5. Fallback para Administradores de la Propiedad (Garantizar acceso)
-  const SUPER_ADMINS = [
-    'francisco.rojasp@gmail.com', 
-    'blascojennifer47@gmail.com', 
-    'vera.hugo712@gmail.com', 
-    'carlosalejandroverablasco183@gmail.com'
-  ];
   if (profile) return mapKeys(profile, toCamel) as Usuario;
 
-  if (SUPER_ADMINS.includes(email.toLowerCase())) {
+  if (SUPER_ADMINS.includes(cleanEmail)) {
     return {
       id: authData.user.id,
-      nombre: email.split('@')[0],
-      email: email,
+      nombre: SUPER_ADMIN_NAMES[cleanEmail] || cleanEmail.split('@')[0],
+      email: cleanEmail,
       rol: 'ADMIN',
       activo: true
     };
