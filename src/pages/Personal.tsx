@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getPersonal, createPersonal, updatePersonal, deletePersonal, type Personal } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { useResponsive } from '../hooks/useResponsive';
+import Pagination from '../components/Pagination';
 
 const TIPOS: Personal['tipo'][] = ['Odontólogo', 'Enfermera', 'Asistente', 'Administrativo', 'Recepcionista', 'Coordinador'];
 
@@ -26,7 +28,9 @@ export default function Personal() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [isMobile] = useState(window.innerWidth < 768);
+  const { isMobile } = useResponsive();
+  const [pagina, setPagina] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
 
   const initForm: Omit<Personal,'id'> = {
     clinicaId: clinica.id,
@@ -103,6 +107,14 @@ export default function Personal() {
     return matchBusqueda && matchTipo;
   });
 
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, filtroTipo]);
+
+  const totalItems = filtrado.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const personalPaginado = filtrado.slice((pagina - 1) * pageSize, pagina * pageSize);
+
   const detalle = personal.find(p => p.id === detalleId);
 
   return (
@@ -135,7 +147,7 @@ export default function Personal() {
       </div>
 
       <div className="grid-responsive" style={{ gap: '24px', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
-        {filtrado.map((p, i) => (
+        {personalPaginado.map((p, i) => (
           <motion.div
             key={p.id}
             className="stat-card"
@@ -178,6 +190,16 @@ export default function Personal() {
             </div>
           </motion.div>
         ))}
+      </div>
+      <div style={{ marginTop: '16px' }}>
+        <Pagination 
+          currentPage={pagina}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPagina}
+          onPageSizeChange={(size) => { setPageSize(size); setPagina(1); }}
+        />
       </div>
 
       {/* Modal detalle */}

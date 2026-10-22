@@ -11,6 +11,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMoneda } from '../contexts/MonedaContext';
 import RoleGuard from '../components/RoleGuard';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { useResponsive } from '../hooks/useResponsive';
+import Pagination from '../components/Pagination';
 
 const REF_BADGE: Record<TipoReferencia, string> = {
   'Profesional-Especialista': 'badge-doctor',
@@ -68,7 +70,9 @@ export default function Pacientes() {
   const { clinica } = useClinica();
   const [pacientes, setPacientes]     = useState<Paciente[]>([]);
   const [busqueda, setBusqueda]       = useState('');
-  const [isMobile]                    = useState(window.innerWidth < 768);
+  const { isMobile }                  = useResponsive();
+  const [pagina, setPagina]           = useState(1);
+  const [pageSize, setPageSize]       = useState(10);
   const [filtroRef, setFiltroRef]     = useState('Todos');
   const [modal, setModal]             = useState(false);
   const [detalleId, setDetalleId]     = useState<string | null>(null);
@@ -182,6 +186,14 @@ export default function Pacientes() {
     return matchBusq && matchRef;
   });
 
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, filtroRef]);
+
+  const totalItems = filtrado.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const pacientesPaginados = filtrado.slice((pagina - 1) * pageSize, pagina * pageSize);
+
   const detalle = pacientes.find(p => p.id === detalleId);
 
   return (
@@ -229,7 +241,7 @@ export default function Pacientes() {
               </tr>
             </thead>
             <tbody>
-              {filtrado.map((p, i) => {
+              {pacientesPaginados.map((p, i) => {
                 const regla = TABLA_REFERENCIAS.find(r => r.tipo === p.tipoReferencia);
                 return (
                   <motion.tr 
@@ -269,7 +281,7 @@ export default function Pacientes() {
                     </td>
                     <td className="hide-mobile">
                       {regla && (
-                        <div className={`badge ${REF_BADGE[p.tipoReferencia!]}`} style={{ fontWeight: 700, fontSize: '0.72rem' }}>
+                        <div className={`badge ${(p.tipoReferencia && (REF_BADGE as any)[p.tipoReferencia]) || 'badge-muted'}`} style={{ fontWeight: 700, fontSize: '0.72rem' }}>
                           {regla.label}
                         </div>
                       )}
@@ -293,6 +305,14 @@ export default function Pacientes() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={pagina}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPagina}
+          onPageSizeChange={(size) => { setPageSize(size); setPagina(1); }}
+        />
       </motion.div>
 
       {/* Modal detalle */}

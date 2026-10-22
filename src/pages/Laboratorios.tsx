@@ -1,3 +1,4 @@
+import { useResponsive } from '../hooks/useResponsive';
 // src/pages/Laboratorios.tsx
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +16,7 @@ export default function Laboratorios() {
   const [modal, setModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [isMobile] = useState(window.innerWidth < 768);
+  const { isMobile } = useResponsive();
 
   const initForm = {
     clinicaId: clinica.id,

@@ -8,15 +8,24 @@ export default function InstallAppPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [showAdvantages, setShowAdvantages] = useState(false);
 
-  // Helper para detectar si estamos en iOS
+  // Helper para detectar sistemas operativos
   const isIOS = () => {
     if (typeof window === 'undefined') return false;
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   };
 
+  const isHarmony = () => {
+    if (typeof window === 'undefined') return false;
+    return /HuaweiBrowser|HUAWEI|HarmonyOS/i.test(navigator.userAgent);
+  };
+
+  const isDesktop = () => {
+    if (typeof window === 'undefined') return false;
+    return /Windows|Linux|Macintosh/i.test(navigator.userAgent) && !isIOS();
+  };
+
   useEffect(() => {
-    // Solo mostrar las recomendaciones si el usuario ya inició sesión
     if (!user) return;
 
     const checkInstallation = async () => {
@@ -46,7 +55,7 @@ export default function InstallAppPrompt() {
       const handler = (e: any) => {
         e.preventDefault();
         setDeferredPrompt(e);
-        setShowPrompt(true); // Solo mostrar el prompt "Instalar Ahora" si Chrome nos invita activamente a hacerlo
+        setShowPrompt(true);
       };
 
       const installSuccessHandler = () => {
@@ -58,7 +67,6 @@ export default function InstallAppPrompt() {
       window.addEventListener('beforeinstallprompt', handler);
       window.addEventListener('appinstalled', installSuccessHandler);
 
-      // Limpieza
       return () => {
         window.removeEventListener('beforeinstallprompt', handler);
         window.removeEventListener('appinstalled', installSuccessHandler);
@@ -66,11 +74,10 @@ export default function InstallAppPrompt() {
     };
 
     const cleanupPromise = checkInstallation();
-    
     return () => {
       cleanupPromise.then(cleanup => cleanup && cleanup());
     };
-  }, []);
+  }, [user]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -95,7 +102,6 @@ export default function InstallAppPrompt() {
 
   if (!showPrompt && !showAdvantages) return null;
 
-
   return (
     <AnimatePresence>
       {showPrompt && (
@@ -104,25 +110,26 @@ export default function InstallAppPrompt() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           style={{
-            position: 'fixed', bottom: '20px', left: '20px', right: '20px',
+            position: 'fixed', bottom: '80px', left: '16px', right: '16px',
             background: 'var(--bg-modal)', border: '1px solid var(--primary)',
-            borderRadius: '16px', padding: '20px', zIndex: 9999,
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-            display: 'flex', flexDirection: 'column', gap: '15px'
+            borderRadius: '16px', padding: '16px 20px', zIndex: 9999,
+            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+            display: 'flex', flexDirection: 'column', gap: '12px',
+            maxWidth: '460px', margin: '0 auto'
           }}
         >
           <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-            <div style={{ width: '48px', height: '48px', background: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+            <div style={{ width: '44px', height: '44px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
               🦷
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Instala ErgoDentalve</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Accede más rápido y recibe notificaciones en tiempo real.</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>Instalar ErgoDentalVE</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>App rápida y fluida para Android, iOS, Harmony, Windows y Linux.</div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="btn btn-primary" onClick={handleInstall} style={{ flex: 1 }}>Instalar Ahora</button>
-            <button className="btn btn-ghost" onClick={handleDismiss}>Luego</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn btn-primary btn-sm" onClick={handleInstall} style={{ flex: 1, height: '36px' }}>Instalar Ahora</button>
+            <button className="btn btn-ghost btn-sm" onClick={handleDismiss} style={{ height: '36px' }}>Luego</button>
           </div>
         </motion.div>
       )}
@@ -141,40 +148,40 @@ export default function InstallAppPrompt() {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            style={{ maxWidth: '440px' }}
+            style={{ maxWidth: '480px' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="modal-header">
-              <h3>📱 Ventajas de la App</h3>
+              <h3>📱 ErgoDentalVE Multi-Plataforma</h3>
               <button className="btn-close" onClick={handleDismiss}>✕</button>
             </div>
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               {[
-                { icon: '🚀', title: 'Mayor Velocidad', desc: 'La aplicación carga instantáneamente sin esperar al navegador.' },
-                { icon: '🔔', title: 'Recordatorios', desc: 'Recibe alertas de citas y pagos directamente en tu pantalla.' },
-                { icon: '📱', title: 'Acceso Directo', desc: 'Un icono elegante en tu pantalla de inicio como cualquier App nativa.' },
-                { icon: '🌐', title: 'Modo Offline', desc: 'Consulta información básica incluso sin conexión a internet.' }
+                { icon: '🚀', title: 'Máxima Fluidez y Velocidad', desc: 'Funciona como aplicación nativa en Android, iOS, HarmonyOS, Windows y Linux.' },
+                { icon: '📐', title: 'Pantalla Completa Sin Scroll Molesto', desc: 'Diseño ultra-adaptable a cualquier tamaño de pantalla, sin scroll horizontal.' },
+                { icon: '📱', title: 'Acceso Directo al Instante', desc: 'Icono en tu pantalla de inicio o escritorio para iniciar en 1 toque.' },
+                { icon: '🛡️', title: 'Seguridad y Sincronización', desc: 'Datos clínicos y finanzas respaldados en la nube en tiempo real.' }
               ].map(adv => (
-                <div key={adv.title} style={{ display:'flex', gap:'20px', alignItems:'flex-start' }}>
+                <div key={adv.title} style={{ display:'flex', gap:'16px', alignItems:'flex-start' }}>
                   <div style={{ 
-                    width: '48px', height: '48px', borderRadius: '14px', 
+                    width: '42px', height: '42px', borderRadius: '12px', 
                     background: 'var(--primary-dim)', display: 'flex', 
-                    alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem',
+                    alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem',
                     flexShrink: 0
                   }}>
                     {adv.icon}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize:'1rem', marginBottom: '4px' }}>{adv.title}</div>
-                    <div style={{ fontSize:'0.85rem', color:'var(--text-secondary)', lineHeight: 1.5 }}>{adv.desc}</div>
+                    <div style={{ fontWeight: 800, fontSize:'0.92rem', marginBottom: '2px' }}>{adv.title}</div>
+                    <div style={{ fontSize:'0.82rem', color:'var(--text-secondary)', lineHeight: 1.4 }}>{adv.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="modal-footer" style={{ flexDirection: 'column', padding: '24px 32px' }}>
+            <div className="modal-footer" style={{ flexDirection: 'column', padding: '16px 24px' }}>
               {deferredPrompt ? (
                 <div style={{ textAlign: 'center', width: '100%' }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>Tu dispositivo <strong>Android / PC</strong> es compatible con instalación rápida.</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Tu dispositivo es compatible con instalación inmediata en 1 clic.</p>
                   <button 
                     className="btn btn-primary" 
                     onClick={async () => {
@@ -185,25 +192,39 @@ export default function InstallAppPrompt() {
                         setShowAdvantages(false);
                       }
                     }} 
-                    style={{ width:'100%', fontSize: '1.1rem', padding: '14px' }}
+                    style={{ width:'100%', fontSize: '1rem', padding: '12px' }}
                   >
                     🚀 Instalar Ahora
                   </button>
-                  <button className="btn btn-ghost" onClick={handleDismiss} style={{ width:'100%', marginTop:'12px' }}>Cerrar</button>
+                  <button className="btn btn-ghost" onClick={handleDismiss} style={{ width:'100%', marginTop:'8px' }}>Cerrar</button>
                 </div>
               ) : isIOS() ? (
-                <div style={{ padding: '20px', background: 'var(--primary-dim)', borderRadius: '16px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
-                  <div style={{ fontSize: '1.8rem', marginBottom: '12px' }}>🍎</div>
-                  <strong style={{ fontSize: '1rem', display: 'block', marginBottom: '8px' }}>Instalación manual requerida:</strong>
-                  En iPhone/iPad toca el ícono de <strong style={{ color: 'var(--primary)' }}>Compartir</strong> (cuadrado con flecha ↑) y luego <strong style={{ color: 'var(--primary)' }}>"Agregar al inicio"</strong> ➕.
-                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'20px' }}>Entendido</button>
+                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '14px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
+                  <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>🍎 iOS / iPadOS</div>
+                  <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '6px' }}>Instalación en Safari:</strong>
+                  Toca el botón <strong style={{ color: 'var(--primary)' }}>Compartir</strong> (icono de cuadrado con flecha ↑) y selecciona <strong style={{ color: 'var(--primary)' }}>"Agregar a Inicio"</strong> ➕.
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'14px' }}>Entendido</button>
+                </div>
+              ) : isHarmony() ? (
+                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '14px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
+                  <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>🔴 Huawei / HarmonyOS</div>
+                  <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '6px' }}>Instalación en Navegador Huawei / Petal:</strong>
+                  Toca los 4 puntos o menú (⋮) en la esquina inferior y selecciona <strong style={{ color: 'var(--primary)' }}>"Añadir a pantalla de inicio"</strong>.
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'14px' }}>Entendido</button>
+                </div>
+              ) : isDesktop() ? (
+                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '14px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
+                  <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>💻 Windows / Linux / Mac</div>
+                  <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '6px' }}>Instalación de Escritorio:</strong>
+                  Haz clic en el icono de instalación <strong>(🖥️ o ⊕)</strong> en la barra de direcciones de tu navegador (Chrome/Edge/Brave) o en menú ⋮ &gt; <strong style={{ color: 'var(--primary)' }}>"Instalar ErgoDental"</strong>.
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'14px' }}>Entendido</button>
                 </div>
               ) : (
-                <div style={{ padding: '20px', background: 'var(--primary-dim)', borderRadius: '16px', fontSize: '0.9rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
-                  <div style={{ fontSize: '1.8rem', marginBottom: '12px' }}>🤖 💻</div>
-                  <strong style={{ fontSize: '1rem', display: 'block', marginBottom: '8px' }}>Instalación manual requerida:</strong>
-                  Abre el menú de opciones (⋮) y selecciona <strong style={{ color: 'var(--primary)' }}>"Instalar aplicación"</strong> o <strong style={{ color: 'var(--primary)' }}>"Añadir a pantalla principal"</strong>.
-                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'20px' }}>Entendido</button>
+                <div style={{ padding: '16px', background: 'var(--primary-dim)', borderRadius: '14px', fontSize: '0.85rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', border: '1px solid var(--primary-glow)' }}>
+                  <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>🤖 Android</div>
+                  <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '6px' }}>Instalación en Android:</strong>
+                  Abre el menú (⋮) de tu navegador y selecciona <strong style={{ color: 'var(--primary)' }}>"Instalar aplicación"</strong> o <strong style={{ color: 'var(--primary)' }}>"Añadir a pantalla de inicio"</strong>.
+                  <button className="btn btn-primary" onClick={handleDismiss} style={{ width:'100%', marginTop:'14px' }}>Entendido</button>
                 </div>
               )}
             </div>

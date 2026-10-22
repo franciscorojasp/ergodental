@@ -1,3 +1,4 @@
+import { useResponsive } from '../hooks/useResponsive';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useClinica } from '../contexts/ClinicaContext';
@@ -39,7 +40,7 @@ export default function Presupuestos() {
   const [personal, setPersonal] = useState<any[]>([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const [editingPresupuesto, setEditingPresupuesto] = useState<Presupuesto | null>(null);
-  const [isMobile] = useState(window.innerWidth < 768);
+  const { isMobile } = useResponsive();
 
   const [form, setForm] = useState<{
     pacienteId: string;

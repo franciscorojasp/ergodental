@@ -1,3 +1,4 @@
+import { useResponsive } from '../hooks/useResponsive';
 // src/pages/Dashboard.tsx
 import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
@@ -6,6 +7,7 @@ import { useMoneda } from '../contexts/MonedaContext';
 import { getCitas, getPacientes, getPersonal, getPagos, type Cita, type Pago, isDemoSession } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 import { generarReportePDF } from '../utils/reportes';
+import ReportePagosModal from '../components/ReportePagosModal';
 
 type Periodo = 'Hoy' | 'Semanal' | 'Quincenal' | 'Mensual' | 'Trimestral' | 'Semestral' | 'Anual';
 const PERIODOS: Periodo[] = ['Hoy', 'Semanal', 'Quincenal', 'Mensual', 'Trimestral', 'Semestral', 'Anual'];
@@ -17,13 +19,14 @@ export default function Dashboard() {
   const { user }  = useAuth();
   const { fmt }   = useMoneda();
   const { clinica } = useClinica();
-  const isMobile = window.innerWidth <= 768;
+  const { isMobile } = useResponsive();
 
   const [citas,       setCitas]       = useState<Cita[]>([]);
   const [pagos,       setPagos]       = useState<Pago[]>([]);
   const [totalPac,    setTotalPac]    = useState(0);
   const [totalPers,   setTotalPers]   = useState(0);
   const [periodo,     setPeriodo]     = useState<Periodo>('Mensual');
+  const [reportePagosOpen, setReportePagosOpen] = useState(false);
 
   const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
@@ -99,6 +102,9 @@ export default function Dashboard() {
             <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5, fontSize:'0.7rem' }}>▼</div>
           </div>
           
+          <button className="btn btn-ghost btn-sm" onClick={() => setReportePagosOpen(true)} style={{ border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 800 }}>
+            <span>📊 Reporte Gráfico</span>
+          </button>
           <button className="btn btn-primary btn-sm" onClick={generarPDF}>
             <span>📄 Reporte</span>
           </button>
@@ -233,6 +239,10 @@ export default function Dashboard() {
           </div>
         </motion.div>
       </div>
+      <ReportePagosModal 
+        isOpen={reportePagosOpen} 
+        onClose={() => setReportePagosOpen(false)} 
+      />
     </div>
   );
 }

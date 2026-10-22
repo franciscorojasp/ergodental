@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getInventario, createItemInventario, type ItemInventario } from '../api';
 import { useMoneda } from '../contexts/MonedaContext';
 import { useClinica } from '../contexts/ClinicaContext';
+import Pagination from '../components/Pagination';
 
 export default function Inventario() {
   const { clinica } = useClinica();
@@ -10,6 +11,8 @@ export default function Inventario() {
   const [busqueda, setBusqueda] = useState('');
   const [filtroAlerta, setFiltroAlerta] = useState(false);
   const { fmt, moneda } = useMoneda();
+  const [pagina, setPagina] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [modal, setModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -27,6 +30,14 @@ export default function Inventario() {
     const matchAlerta = !filtroAlerta || i.stock <= i.stockMinimo;
     return matchBusqueda && matchAlerta;
   });
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, filtroAlerta]);
+
+  const totalItems = filtrados.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const itemsPaginados = filtrados.slice((pagina - 1) * pageSize, pagina * pageSize);
 
   const bajoStock = items.filter(i => i.stock <= i.stockMinimo).length;
 
@@ -107,7 +118,7 @@ export default function Inventario() {
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((item, i) => {
+              {itemsPaginados.map((item, i) => {
                 const badge = stockBadge(item);
                 return (
                   <motion.tr 
@@ -167,6 +178,14 @@ export default function Inventario() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={pagina}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPagina}
+          onPageSizeChange={(size) => { setPageSize(size); setPagina(1); }}
+        />
       </motion.div>
 
       {/* Modal Nuevo Producto */}

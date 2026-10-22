@@ -1,46 +1,9 @@
 // src/pages/ResetPassword.tsx
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
 
 export default function ResetPassword() {
-  const { updatePassword } = useAuth();
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await updatePassword(password);
-      setSuccess('Contraseña actualizada con éxito. Redirigiendo...');
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 2000);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar la contraseña');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="login-container" style={{
@@ -59,70 +22,63 @@ export default function ResetPassword() {
         transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         style={{ width: '100%', maxWidth: '440px', zIndex: 1 }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
-            width: 100, height: 100, borderRadius: 28, background: 'rgba(255,255,255,0.05)',
+            width: 90, height: 90, borderRadius: 26, background: 'rgba(255,255,255,0.05)',
             backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px', border: '1px solid rgba(255,255,255,0.1)',
+            margin: '0 auto 16px', border: '1px solid rgba(255,255,255,0.1)',
             boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
           }}>
             <img src="/logo.png" alt="Logo" style={{ width: '60%', height: '60%', filter: 'drop-shadow(0 0 10px rgba(52, 144, 220, 0.5))' }} />
           </div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, color: '#fff', letterSpacing: '-1.2px', marginBottom: '4px' }}>NUEVA CONTRASEÑA</h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 500 }}>REESTABLECE TUS CREDENCIALES</p>
+          <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#fff', letterSpacing: '-1.2px', marginBottom: '4px' }}>ACCESO Y CREDENCIALES</h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: 500 }}>GESTIÓN DE CUENTAS CLÍNICAS</p>
         </div>
 
         <div className="glass-card" style={{
           background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)',
-          borderRadius: '32px', padding: '40px', border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '32px', padding: '36px 32px', border: '1px solid rgba(255, 255, 255, 0.08)',
           boxShadow: '0 40px 100px rgba(0,0,0,0.6)'
         }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-            <div className="input-group">
-              <label style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600 }}>NUEVA CONTRASEÑA</label>
-              <input 
-                className="premium-input" 
-                type="password" 
-                placeholder="••••••••" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                required 
-                style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} 
-              />
-            </div>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ fontSize: '2.5rem' }}>🪪</div>
+            <h3 style={{ color: '#fff', margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
+              Restablecimiento Clínico Oficial
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
+              Las contraseñas y accesos son gestionados y auditados de forma directa por la <strong>Administración</strong> a través de <strong>Gestión de Cuentas</strong>, mediante emisión de credenciales seguras y códigos QR personalizados.
+            </p>
 
-            <div className="input-group">
-              <label style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600 }}>CONFIRMAR CONTRASEÑA</label>
-              <input 
-                className="premium-input" 
-                type="password" 
-                placeholder="••••••••" 
-                value={confirmPassword} 
-                onChange={e => setConfirmPassword(e.target.value)} 
-                required 
-                style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 20px', color: '#fff' }} 
-              />
-            </div>
-
-            {error && (
-              <p style={{ color: '#ff4d4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255,77,77,0.1)', padding: '10px', borderRadius: '12px' }}>⚠️ {error}</p>
-            )}
-
-            {success && (
-              <p style={{ color: '#4dff4d', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(77,255,77,0.1)', padding: '10px', borderRadius: '12px' }}>✅ {success}</p>
-            )}
-
-            <button className="premium-btn" type="submit" disabled={loading} style={{ 
-              width: '100%', padding: '16px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', 
-              borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 700 
+            <div style={{
+              padding: '14px',
+              borderRadius: '16px',
+              background: 'rgba(0, 198, 255, 0.08)',
+              border: '1px solid rgba(0, 198, 255, 0.25)',
+              fontSize: '0.82rem',
+              color: '#fff',
+              lineHeight: 1.4,
+              textAlign: 'left'
             }}>
-              {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
-            </button>
-            
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <button type="button" onClick={() => navigate('/login')} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer' }}>Volver al inicio</button>
+              📲 <strong>¿Cómo ingresar al sistema?</strong>
+              <ul style={{ margin: '8px 0 0', paddingLeft: '18px', color: 'rgba(255,255,255,0.8)' }}>
+                <li>Solicita a Administración tu clave temporal o código QR.</li>
+                <li>Escanea tu código QR desde tu teléfono para entrar al instante.</li>
+                <li>O ingresa en la pantalla de inicio con la clave asignada.</li>
+              </ul>
             </div>
-          </form>
+
+            <button 
+              type="button" 
+              className="premium-btn"
+              onClick={() => navigate('/login')}
+              style={{ 
+                width: '100%', padding: '15px', background: 'linear-gradient(135deg, #3490dc 0%, #663399 100%)', 
+                borderRadius: '16px', border: 'none', color: '#fff', fontWeight: 800, fontSize: '0.92rem', marginTop: '4px' 
+              }}
+            >
+              Ir a Iniciar Sesión
+            </button>
+          </div>
         </div>
       </motion.div>
     </div>

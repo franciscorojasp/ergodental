@@ -1,3 +1,4 @@
+import { useResponsive } from '../hooks/useResponsive';
 // src/pages/Finanzas.tsx
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +13,7 @@ import { useMoneda } from '../contexts/MonedaContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinica } from '../contexts/ClinicaContext';
 import { generarReportePDF, fmtUSD, fmtBS } from '../utils/reportes';
+import ReportePagosModal from '../components/ReportePagosModal';
 
 type PeriodoReporte = 'Hoy' | 'Semanal' | 'Quincenal' | 'Mensual' | 'Trimestral' | 'Semestral' | 'Anual';
 type Tab = 'resumen' | 'ingresos' | 'egresos' | 'creditos' | 'doctores' | 'comisiones';
@@ -90,6 +92,7 @@ export default function Finanzas(){
   const [personal,setPersonal]           = useState<Personal[]>([]);
   const [proveedores,setProveedores]     = useState<Proveedor[]>([]);
   const [modalPago,setModalPago]         = useState(false);
+  const [modalReportePagos,setModalReportePagos] = useState(false);
   const [modalEgreso,setModalEgreso]     = useState(false);
   const [expandedPago,setExpandedPago]   = useState<string|null>(null);
   const [saving,setSaving]               = useState(false);
@@ -99,7 +102,7 @@ export default function Finanzas(){
   const { fmt, tasaBCV } = useMoneda();
   const { user }         = useAuth();
   const { clinica, clinicas } = useClinica();
-  const [isMobile]       = useState(window.innerWidth < 768);
+  const { isMobile }       = useResponsive();
 
   const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
@@ -367,6 +370,7 @@ export default function Finanzas(){
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Control de ingresos, honorarios y balance clínico</p>
         </div>
         <div className="action-grid mobile-scroll">
+          <button className="btn btn-ghost btn-sm" onClick={() => setModalReportePagos(true)} style={{ border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 800 }}>📊 Reporte & Gráficos</button>
           <button className="btn btn-ghost btn-sm" onClick={generarPDF}>📄 Exportar PDF</button>
           <button className="btn btn-ghost btn-sm" onClick={openModalEgreso}>+ Crear Egreso</button>
           <button className="btn btn-primary btn-sm" onClick={openModalPago}>+ Nuevo Ingreso</button>
@@ -1032,6 +1036,12 @@ export default function Finanzas(){
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal de Reportes Ejecutivos de Pagos y Pacientes con Gráficos */}
+      <ReportePagosModal 
+        isOpen={modalReportePagos} 
+        onClose={() => setModalReportePagos(false)} 
+      />
     </div>
   );
 }

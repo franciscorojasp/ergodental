@@ -9,6 +9,7 @@ import {
 import RoleGuard from '../components/RoleGuard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import CitaModal from '../components/CitaModal';
+import Pagination from '../components/Pagination';
 
 const ESTADO_CLASE: Record<Cita['estado'], string> = {
   Pendiente:  'badge-warning',
@@ -25,12 +26,22 @@ export default function Citas() {
   const [detalleId, setDetalleId] = useState<string | null>(null);
   const [editingCita, setEditingCita] = useState<Cita | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pagina, setPagina] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     getCitas().then((data: Cita[]) => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
   }, [clinica.id]);
 
   const filtradas = citas.filter(c => filtroEstado === 'Todos' || c.estado === filtroEstado);
+
+  useEffect(() => {
+    setPagina(1);
+  }, [filtroEstado]);
+
+  const totalItems = filtradas.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const citasPaginadas = filtradas.slice((pagina - 1) * pageSize, pagina * pageSize);
   const detalle   = citas.find(c => c.id === detalleId);
 
   const handleCitaSaved = (saved: Cita) => {
@@ -97,7 +108,7 @@ export default function Citas() {
               </tr>
             </thead>
             <tbody>
-              {filtradas.map((c, i) => (
+              {citasPaginadas.map((c, i) => (
                 <motion.tr 
                   key={c.id} 
                   initial={{ opacity:0, x: -10 }} 
@@ -150,6 +161,14 @@ export default function Citas() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={pagina}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPagina}
+          onPageSizeChange={(size) => { setPageSize(size); setPagina(1); }}
+        />
       </motion.div>
 
       {/* Modal Detalle */}

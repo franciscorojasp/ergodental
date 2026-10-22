@@ -1,11 +1,15 @@
 {
-  "name": "ERGODENTALVE 1.0",
-  "short_name": "Ergodentalve",
-  "description": "Sistema de Gestión Dental Premium",
+  "name": "ERGODENTALVE 1.0 – Sistema de Gestión Dental",
+  "short_name": "ErgoDental",
+  "description": "Sistema de Gestión Odontológica Integral de Alta Eficiencia",
   "start_url": "/",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "orientation": "any",
+  "background_color": "#040610",
+  "theme_color": "#040610",
+  "categories": ["medical", "productivity", "business"],
   "icons": [
     {
       "src": "/icon-512.png",
@@ -14,10 +18,30 @@
       "purpose": "any maskable"
     }
   ],
-  "related_applications": [
+  "shortcuts": [
     {
-      "platform": "webapp",
-      "url": "https://ergodentalve.vercel.app/manifest.json"
+      "name": "Agenda y Citas",
+      "short_name": "Agenda",
+      "url": "/#/agenda",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Expedientes Pacientes",
+      "short_name": "Pacientes",
+      "url": "/#/pacientes",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Odontograma Clínico",
+      "short_name": "Odontograma",
+      "url": "/#/odontograma",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Caja y Finanzas",
+      "short_name": "Finanzas",
+      "url": "/#/finanzas",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
     }
   ]
 }

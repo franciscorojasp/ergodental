@@ -1,3 +1,4 @@
+import { useResponsive } from '../hooks/useResponsive';
 // src/pages/Proveedores.tsx
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,7 +23,7 @@ export default function Proveedores() {
   const [modal, setModal] = useState(false);
   const [detalleId, setDetalleId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [isMobile] = useState(window.innerWidth < 768);
+  const { isMobile } = useResponsive();
   const [form, setForm] = useState<Omit<Proveedor,'id'>>({
     clinicaId: clinica.id,
     nombre:'', tipo:'Farmacia', rif:'', telefono:'', email:'', contacto:'', direccion:'', activo:true,

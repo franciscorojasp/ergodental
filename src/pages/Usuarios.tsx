@@ -12,6 +12,8 @@ import {
 } from '../api';
 import { ROL_LABEL } from '../permissions';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
+import CredencialesUsuarioModal from '../components/CredencialesUsuarioModal';
 
 const ROLES: Rol[] = ['ADMIN', 'DOCTOR', 'ASISTENTE', 'RECEPCION'];
 
@@ -39,6 +41,15 @@ export default function Usuarios() {
   
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+
+  // Modal de Credenciales y QR de Acceso
+  const [modalCredencialesOpen, setModalCredencialesOpen] = useState(false);
+  const [usuarioParaCredenciales, setUsuarioParaCredenciales] = useState<Usuario | null>(null);
+  const [passwordParaCredenciales, setPasswordParaCredenciales] = useState('');
+
+  // Paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   
   // Mensajes de feedback
   const [feedback, setFeedback] = useState<{ tipo: 'success' | 'error'; mensaje: string } | null>(null);
@@ -57,6 +68,16 @@ export default function Usuarios() {
   useEffect(() => {
     cargarUsuarios();
   }, []);
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtroRol]);
+
+  const abrirModalCredenciales = (u: Usuario, pwdInicial = '') => {
+    setUsuarioParaCredenciales(u);
+    setPasswordParaCredenciales(pwdInicial);
+    setModalCredencialesOpen(true);
+  };
 
   const notificar = (mensaje: string, tipo: 'success' | 'error' = 'success') => {
     setFeedback({ tipo, mensaje });
@@ -167,6 +188,9 @@ export default function Usuarios() {
         });
         setUsuarios(prev => [nuevo, ...prev]);
         notificar(`Cuenta creada exitosamente para ${nuevo.nombre}.`);
+        setModalUsuarioOpen(false);
+        abrirModalCredenciales(nuevo, formData.password);
+        return;
       }
       setModalUsuarioOpen(false);
     } catch (err: any) {
@@ -194,6 +218,7 @@ export default function Usuarios() {
       await resetUserPassword(usuarioParaPassword.id, nuevaPassword);
       notificar(`Contraseña restablecida con éxito para ${usuarioParaPassword.email}.`);
       setModalPasswordOpen(false);
+      abrirModalCredenciales(usuarioParaPassword, nuevaPassword);
     } catch (err: any) {
       notificar(err.message || 'Error al actualizar contraseña.', 'error');
     } finally {
@@ -252,6 +277,12 @@ export default function Usuarios() {
     if (filtroRol === 'PENDIENTES') return !u.activo;
     return u.rol === filtroRol;
   });
+
+  const totalPaginas = Math.ceil(usuariosFiltrados.length / pageSize) || 1;
+  const usuariosPaginados = usuariosFiltrados.slice(
+    (paginaActual - 1) * pageSize,
+    paginaActual * pageSize
+  );
 
   // Métricas
   const totalCuentas = usuarios.length;
@@ -436,7 +467,7 @@ export default function Usuarios() {
               </thead>
               <tbody>
                 <AnimatePresence mode="popLayout">
-                  {usuariosFiltrados.map((u, i) => {
+                  {usuariosPaginados.map((u, i) => {
                     const clinicaAsignada = CLINICAS.find(c => c.id === u.clinicaId);
                     return (
                       <motion.tr 
@@ -551,6 +582,15 @@ export default function Usuarios() {
                             <button 
                               className="btn btn-ghost btn-sm"
                               style={{ width: 34, height: 34, padding: 0 }}
+                              onClick={() => abrirModalCredenciales(u)}
+                              title="Credenciales Oficiales y Código QR de Acceso"
+                            >
+                              🪪
+                            </button>
+
+                            <button 
+                              className="btn btn-ghost btn-sm"
+                              style={{ width: 34, height: 34, padding: 0 }}
                               onClick={() => abrirModalPassword(u)}
                               title="Cambiar o Resetear Contraseña"
                             >
@@ -594,6 +634,15 @@ export default function Usuarios() {
               </div>
             )}
           </div>
+
+          <Pagination 
+            currentPage={paginaActual}
+            totalPages={totalPaginas}
+            totalItems={usuariosFiltrados.length}
+            pageSize={pageSize}
+            onPageChange={setPaginaActual}
+            onPageSizeChange={setPageSize}
+          />
         </motion.div>
       )}
 
@@ -872,6 +921,17 @@ export default function Usuarios() {
         type="danger"
         onConfirm={handleDelete}
         onCancel={() => setDeletingId(null)}
+      />
+
+      {/* MODAL: CREDENCIALES Y QR DE ACCESO */}
+      <CredencialesUsuarioModal 
+        isOpen={modalCredencialesOpen}
+        onClose={() => setModalCredencialesOpen(false)}
+        usuario={usuarioParaCredenciales}
+        initialPassword={passwordParaCredenciales}
+        onPasswordUpdated={(_id, _nuevaClave) => {
+          notificar('Contraseña de usuario sincronizada en el sistema.');
+        }}
       />
     </div>
   );

@@ -15,72 +15,90 @@ export interface ConfigReporte {
   filas: (string | number)[][]; // datos de la tabla
   totales?: { label: string; valor: string }[];   // pie: subtotales
   notas?: string[];             // notas al pie
+  orientacion?: 'portrait' | 'landscape'; // Automático o manual
+  kpis?: { label: string; valor: string; subtitulo?: string }[];
+  graficoImg?: { dataUrl: string; width: number; height: number };
 }
 
-const BRAND_COLOR: [number, number, number] = [30, 90, 180];   // #1e5ab4
-const ACCENT_COLOR: [number, number, number] = [0, 210, 140];  // #00d28c
+// Paleta Corporativa ErgoDentalVE
+const BRAND_NAVY: [number, number, number] = [8, 14, 34];       // #080e22 Fondo Ejecutivo
+const BRAND_CYAN: [number, number, number] = [0, 212, 255];     // #00d4ff Cian Primario
+const BRAND_DARK: [number, number, number] = [15, 23, 42];      // #0f172a Cabeceras
 
-function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string) {
+function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string): number {
   const W = doc.internal.pageSize.getWidth();
-  // Banda superior
-  doc.setFillColor(...BRAND_COLOR);
+  
+  // Banda superior ejecutiva
+  doc.setFillColor(...BRAND_NAVY);
   doc.rect(0, 0, W, 28, 'F');
 
   // Logo Gráfico
   try {
-    doc.addImage('/logo.png', 'PNG', 12, 5, 20, 20); // x, y, width, height
+    doc.addImage('/logo.png', 'PNG', 12, 4, 20, 20);
   } catch (e) {
-    // Fallback al texto si el logo no carga
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
+    doc.setTextColor(...BRAND_CYAN);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('ERGODENTALVE', 16, 12);
+    doc.text('ERGODENTALVE', 14, 14);
   }
 
+  // Título Institucional y Lema
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Sistema de Gestión Clínica Dental', 36, 14);
-  doc.text('Seguridad · Innovación · Salud', 36, 19);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ERGODENTALVE', 36, 12);
   
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(180, 200, 225);
+  doc.text('Sistema Integral de Gestión Clínica Dental', 36, 17);
+  doc.text('Seguridad · Innovación · Salud Odontológica', 36, 22);
+  
+  // Metadatos a la derecha
   if (correlativo) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`N° ${correlativo}`, W - 14, 15, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_CYAN);
+    doc.text(`DOC N° ${correlativo}`, W - 14, 11, { align: 'right' });
   }
 
-  doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, W - 14, 19, { align: 'right' });
-  if (config.usuario) doc.text(`Usuario: ${config.usuario}`, W - 14, 24, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(200, 215, 235);
+  doc.text(`Emisión: ${new Date().toLocaleString('es-VE')}`, W - 14, 16, { align: 'right' });
+  if (config.usuario) {
+    doc.text(`Operador: ${config.usuario}`, W - 14, 21, { align: 'right' });
+  }
 
-  // Stripe accent
-  doc.setFillColor(...ACCENT_COLOR);
+  // Línea de Acento Cian
+  doc.setFillColor(...BRAND_CYAN);
   doc.rect(0, 28, W, 2, 'F');
 
   // Título del reporte
-  doc.setTextColor(30, 30, 30);
-  doc.setFontSize(15);
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(config.titulo, 14, 42);
+  doc.text(config.titulo.toUpperCase(), 14, 38);
 
-  let startYPos = 50;
+  let startYPos = 44;
 
   if (config.clinica) {
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 90, 180);
-    doc.text(`Ámbito: ${config.clinica}`, 14, startYPos);
-    startYPos += 6;
+    doc.setTextColor(0, 150, 200);
+    doc.text(`Sede / Clínica: ${config.clinica}`, 14, startYPos);
+    startYPos += 5;
   }
 
   if (config.subtitulo) {
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(90, 90, 90);
+    doc.setTextColor(100, 116, 139);
     doc.text(config.subtitulo, 14, startYPos);
-    startYPos += 6;
+    startYPos += 5;
   }
   
-  return startYPos + 4; // Retornamos la posición Y para iniciar la tabla
+  return startYPos + 2;
 }
 
 function addFooter(doc: jsPDF) {
@@ -89,123 +107,194 @@ function addFooter(doc: jsPDF) {
   const totalPages = (doc as jsPDF & { internal: { getNumberOfPages(): number } }).internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setFillColor(245, 247, 250);
-    doc.rect(0, H - 14, W, 14, 'F');
-    doc.setFontSize(7.5);
-    doc.setTextColor(130, 130, 130);
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, H - 12, W, 12, 'F');
+    doc.setDrawColor(226, 232, 240);
+    doc.line(0, H - 12, W, H - 12);
+
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
     doc.setFont('helvetica', 'normal');
-    doc.text('Ergodentalve · Sistema de Gestión Clínica Dental · Documento confidencial', 14, H - 5);
-    doc.text(`Página ${i} de ${totalPages}`, W - 14, H - 5, { align: 'right' });
+    doc.text('Ergodentalve · Sistema de Gestión Odontológica Avanzada · Documento Confidencial', 14, H - 4.5);
+    doc.text(`Página ${i} de ${totalPages}`, W - 14, H - 4.5, { align: 'right' });
   }
 }
 
 export async function generarReportePDF(config: ConfigReporte): Promise<void> {
   try {
-    // 1. Verificación defensiva de la configuración
     if (!config || !config.titulo || !config.columnas) {
       throw new Error('Configuración de reporte incompleto o inválida.');
     }
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+    // Decisión de orientación de página tamaño CARTA:
+    // Si la tabla tiene 6 o más columnas, se orienta automáticamente en HORIZONTAL (landscape)
+    // para evitar apiñamiento y garantizar máxima legibilidad, o se respeta la opción elegida.
+    const orientacion: 'portrait' | 'landscape' = 
+      config.orientacion || (config.columnas.length >= 6 ? 'landscape' : 'portrait');
+
+    const doc = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'letter' });
+    const W = doc.internal.pageSize.getWidth();
     
-    // Fix: Asegurar compatibilidad de autoTable con jsPDF en producción
     const finalAutoTable = autoTable || (doc as any).autoTable;
     if (!finalAutoTable) {
        console.error("Librería jspdf-autotable no se cargó correctamente.");
        throw new Error("Error interno: No se pudo cargar el generador de tablas PDF.");
     }
 
-    // 2. Obtención segura del correlativo
     let correlativo = 'SN-000000';
     try {
       correlativo = await getGlobalCorrelativo();
     } catch (e) {
-      console.warn('Error obteniendo correlativo real, se usará identificador temporal:', e);
       correlativo = `TMP-${Math.floor(Date.now() / 1000)}`;
     }
 
-    const tblStartY = addHeader(doc, config, correlativo);
+    let currentY = addHeader(doc, config, correlativo);
 
-    // 3. Normalización defensiva de datos
+    // ── RENDERIZADO DE KPIs EJECUTIVOS (Si aplica) ─────────────────────
+    if (config.kpis && config.kpis.length > 0) {
+      const kpis = config.kpis;
+      const count = kpis.length;
+      const gap = 3;
+      const availableW = W - 28;
+      const cardW = (availableW - (count - 1) * gap) / count;
+      const cardH = 15;
+
+      kpis.forEach((kpi, idx) => {
+        const x = 14 + idx * (cardW + gap);
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(226, 232, 240);
+        if (typeof (doc as any).roundedRect === 'function') {
+          (doc as any).roundedRect(x, currentY, cardW, cardH, 2, 2, 'FD');
+        } else {
+          doc.rect(x, currentY, cardW, cardH, 'FD');
+        }
+
+        // Título KPI
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text(kpi.label.toUpperCase(), x + 3, currentY + 4.5);
+
+        // Valor KPI
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(8, 14, 34);
+        doc.text(kpi.valor, x + 3, currentY + 10);
+
+        if (kpi.subtitulo) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(6);
+          doc.setTextColor(148, 163, 184);
+          doc.text(kpi.subtitulo, x + 3, currentY + 13.5);
+        }
+      });
+
+      currentY += cardH + 5;
+    }
+
+    // ── RENDERIZADO DE GRÁFICO (Canvas Imagen en PDF si aplica) ────────
+    if (config.graficoImg && config.graficoImg.dataUrl) {
+      const maxImgW = Math.min(180, W - 28);
+      const imgH = (maxImgW * config.graficoImg.height) / config.graficoImg.width;
+      
+      // Si cabe cómodamente en la primera página antes de la tabla:
+      if (currentY + imgH < (orientacion === 'landscape' ? 140 : 180)) {
+        const imgX = (W - maxImgW) / 2;
+        try {
+          doc.addImage(config.graficoImg.dataUrl, 'PNG', imgX, currentY, maxImgW, imgH);
+          currentY += imgH + 5;
+        } catch (e) {
+          console.warn('No se pudo insertar imagen de gráfico en el PDF:', e);
+        }
+      }
+    }
+
+    // ── NORMALIZACIÓN Y CREACIÓN DE TABLA ──────────────────────────────
     const safeRows = (config.filas || []).map(row => 
-      (row || []).map(cell => {
-        if (cell === null || cell === undefined) return '-';
-        return String(cell);
-      })
+      (row || []).map(cell => (cell === null || cell === undefined ? '-' : String(cell)))
     );
 
-    // 4. Generación de tabla
+    const isDense = config.columnas.length >= 7;
+
     finalAutoTable(doc, {
-      startY: tblStartY,
+      startY: currentY,
       head: [config.columnas],
       body: safeRows,
       theme: 'grid',
       headStyles: {
-        fillColor: BRAND_COLOR,
+        fillColor: BRAND_DARK,
         textColor: [255, 255, 255],
-        fontSize: 8.5,
+        fontSize: isDense ? 7.5 : 8.5,
         fontStyle: 'bold',
-        cellPadding: 3,
+        cellPadding: isDense ? 2 : 2.5,
+        halign: 'left',
       },
-      alternateRowStyles: { fillColor: [245, 249, 255] },
-      bodyStyles: { fontSize: 8, cellPadding: 2.5, textColor: [40, 40, 40] },
-      columnStyles: { 0: { fontStyle: 'bold' } },
+      alternateRowStyles: { 
+        fillColor: [248, 250, 252] 
+      },
+      bodyStyles: { 
+        fontSize: isDense ? 7 : 8, 
+        cellPadding: isDense ? 1.8 : 2.2, 
+        textColor: [30, 41, 59] 
+      },
+      columnStyles: { 
+        0: { fontStyle: 'bold' } 
+      },
       margin: { left: 14, right: 14 },
-      tableLineColor: [210, 220, 235],
-      tableLineWidth: 0.2,
-      didDrawPage: () => {
-        // En cada página nueva, el footer se agrega al final
-      }
+      tableLineColor: [226, 232, 240],
+      tableLineWidth: 0.15,
     });
 
-    // 5. Bloque de totales con comprobación de existencia
+    // ── TOTALES Y RESUMEN FINANCIERO AL PIE ────────────────────────────
     if (config.totales && config.totales.length > 0) {
       const lastTable = (doc as any).lastAutoTable;
-      const finalY = (lastTable ? lastTable.finalY : tblStartY + 20) + 6;
-      const W = doc.internal.pageSize.getWidth();
+      const finalY = (lastTable ? lastTable.finalY : currentY + 20) + 4;
+      const boxWidth = orientacion === 'landscape' ? 84 : 76;
+      const boxHeight = config.totales.length * 6 + 6;
 
-      doc.setFillColor(...BRAND_COLOR);
-      
-      const boxWidth = 76;
-      const boxHeight = config.totales.length * 7 + 8;
-      
-      // Comprobación de método roundedRect
-      if (typeof (doc as any).roundedRect === 'function') {
-        (doc as any).roundedRect(W - 90, finalY, boxWidth, boxHeight, 2, 2, 'F');
-      } else {
-        doc.rect(W - 90, finalY, boxWidth, boxHeight, 'F');
+      if (finalY + boxHeight < (orientacion === 'landscape' ? 190 : 255)) {
+        doc.setFillColor(...BRAND_DARK);
+        if (typeof (doc as any).roundedRect === 'function') {
+          (doc as any).roundedRect(W - 14 - boxWidth, finalY, boxWidth, boxHeight, 2, 2, 'F');
+        } else {
+          doc.rect(W - 14 - boxWidth, finalY, boxWidth, boxHeight, 'F');
+        }
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7.5);
+        config.totales.forEach((t, i) => {
+          doc.setFont('helvetica', 'normal');
+          doc.text(t.label || '', W - 14 - boxWidth + 4, finalY + 5.5 + i * 6);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(...BRAND_CYAN);
+          doc.text(String(t.valor || '0.00'), W - 18, finalY + 5.5 + i * 6, { align: 'right' });
+          doc.setTextColor(255, 255, 255);
+        });
       }
-
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8);
-      config.totales.forEach((t, i) => {
-        doc.setFont('helvetica', 'normal');
-        doc.text(t.label || '', W - 87, finalY + 8 + i * 7);
-        doc.setFont('helvetica', 'bold');
-        doc.text(String(t.valor || '0.00'), W - 17, finalY + 8 + i * 7, { align: 'right' });
-      });
     }
 
-    // 6. Notas al pie del contenido
+    // ── NOTAS AL PIE ──────────────────────────────────────────────────
     if (config.notas && config.notas.length > 0) {
       const lastTable = (doc as any).lastAutoTable;
-      const finalY = (lastTable ? lastTable.finalY : tblStartY + 20);
-      const noteY = finalY + (config.totales ? config.totales.length * 7 + 18 : 10);
+      const finalY = (lastTable ? lastTable.finalY : currentY + 20);
+      const noteY = finalY + (config.totales ? config.totales.length * 6 + 12 : 8);
       
-      // No escribir fuera de la página
-      if (noteY < 260) {
-        doc.setFontSize(7.5);
-        doc.setTextColor(120, 120, 120);
+      const maxAvailableY = orientacion === 'landscape' ? 195 : 255;
+      if (noteY < maxAvailableY) {
+        doc.setFontSize(7);
+        doc.setTextColor(148, 163, 184);
         doc.setFont('helvetica', 'italic');
         config.notas.forEach((n, i) => {
-          if (n) doc.text(`* ${n}`, 14, noteY + i * 5);
+          if (n && noteY + i * 4 < maxAvailableY) {
+            doc.text(`* ${n}`, 14, noteY + i * 4);
+          }
         });
       }
     }
 
     addFooter(doc);
 
-    // 7. Guardado y Manejo de Errores de descarga
+    // ── GUARDADO Y DESCARGA ───────────────────────────────────────────
     const filename = `${config.titulo.toLowerCase().replace(/\s+/g, '_')}_${correlativo}_${new Date().toISOString().slice(0,10)}.pdf`;
     
     try {
@@ -220,11 +309,11 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
       link.click();
     }
     
-    // 8. Registro de auditoría (SILENCIOSO - no debe romper la experiencia si falla la red)
+    // Registro de auditoría
     logAuditoria({
       usuario: config.usuario || 'Sistema',
       accion: 'GENERACIÓN DOCUMENTO PDF',
-      detalle: `Documento de tipo: ${config.titulo}`,
+      detalle: `Documento de tipo: ${config.titulo} (${orientacion})`,
       documentoId: correlativo
     }).catch(err => console.debug('Auditoría omitida (posible modo offline):', err));
     
@@ -240,7 +329,6 @@ export async function generarManualPDF(topic: { titulo: string; puntos: string[]
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     const correlativo = await getGlobalCorrelativo();
     
-    // Reutilizamos el header con una config mínima
     addHeader(doc, { 
       titulo: topic.titulo, 
       subtitulo: 'Documentación Oficial ErgoDentalve',
@@ -249,7 +337,7 @@ export async function generarManualPDF(topic: { titulo: string; puntos: string[]
     }, correlativo);
 
     const W = doc.internal.pageSize.getWidth();
-    let currentY = 70; // bajamos un poco por si hay ámbito
+    let currentY = 70;
 
     topic.puntos.forEach(punto => {
       let textToPrint = punto;
@@ -262,7 +350,7 @@ export async function generarManualPDF(topic: { titulo: string; puntos: string[]
         textToPrint = punto.replace('# ', '');
         fontSize = 14;
         fontStyle = 'bold';
-        textColor = [30, 90, 180]; // BRAND_COLOR
+        textColor = [8, 14, 34];
         currentY += 4;
       } else if (punto.startsWith('## ')) {
         textToPrint = punto.replace('## ', '');
@@ -281,13 +369,11 @@ export async function generarManualPDF(topic: { titulo: string; puntos: string[]
 
       const lines = doc.splitTextToSize(textToPrint, W - indent - 14);
       
-      // Verificar si necesitamos nueva página
       if (currentY + (lines.length * (fontSize * 0.4)) > 260) {
         doc.addPage();
         let newTblStartY = addHeader(doc, { titulo: topic.titulo, subtitulo: 'Documentación Oficial ErgoDentalve', columnas:[], filas:[] }, correlativo);
         currentY = newTblStartY;
         
-        // Re-aplicar estilo de fuente
         doc.setFontSize(fontSize);
         doc.setTextColor(...textColor);
         doc.setFont('helvetica', fontStyle);
@@ -318,6 +404,6 @@ export async function generarManualPDF(topic: { titulo: string; puntos: string[]
 }
 
 // ── Helpers de formato rápido para tablas ─────────────────────────────────────
-export const fmtUSD = (n: number) => `$${n.toFixed(2)}`;
-export const fmtBS  = (n: number, tasa: number) => `Bs ${(n * tasa).toLocaleString('es-VE', {maximumFractionDigits: 0})}`;
-export const fmtFecha = () => new Date().toLocaleDateString('es-VE', {day:'2-digit', month:'long', year:'numeric'});
+export const fmtUSD = (n: number) => `$${Number(n || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const fmtBS  = (n: number, tasa: number) => `Bs ${((n || 0) * (tasa || 1)).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const fmtFecha = () => new Date().toLocaleDateString('es-VE', { day:'2-digit', month:'long', year:'numeric' });

@@ -5,6 +5,7 @@ import { MonedaProvider } from './contexts/MonedaContext';
 import { ClinicaProvider } from './contexts/ClinicaContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Sidebar from './components/Sidebar';
+import BottomNav from './components/BottomNav';
 import RoleGuard from './components/RoleGuard';
 import TasaModal from './components/TasaModal';
 import ClinicaModal from './components/ClinicaModal';
@@ -97,7 +98,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
     const touchEnd = e.changedTouches[0].clientX;
     const distance = touchEnd - touchStart;
     
-    // Si desliza hacia la derecha (>50px) y empezó en el primer cuarto de pantalla (<100px)
+    // Si desliza hacia la derecha (>70px) y empezó en el primer cuarto de pantalla (<100px)
     if (distance > 70 && touchStart < 100) setSidebarOpen(true);
     setTouchStart(null);
   };
@@ -116,14 +117,13 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       <HelpCenter />
       <InstallAppPrompt />
 
-
       {/* Mobile Overlay (Backdrop) */}
       <div 
         className={`mobile-overlay ${sidebarOpen ? 'visible' : ''}`} 
         onClick={() => setSidebarOpen(false)}
       />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%', overflowX: 'hidden' }}>
         {/* Header - Siempre visible en móvil, o en desktop si el sidebar está cerrado */}
         <header className="mobile-header">
           <button 
@@ -133,10 +133,11 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
               display:'flex', alignItems:'center', gap:'10px',
               fontSize:'1.3rem', cursor:'pointer', padding:'8px'
             }}
+            aria-label="Menú Principal"
           >
             ☰
           </button>
-          <div style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '1.05rem', fontWeight: 900, letterSpacing: '-0.5px' }}>
             ERGODENTAL<span style={{ color: 'var(--primary)' }}>VE</span>
           </div>
           <div style={{ width: '40px' }} /> {/* Spacer for symmetry */}
@@ -145,11 +146,13 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
         <main className={`page-content ${!sidebarPinned ? 'collapsed' : ''}`}>
           {children}
         </main>
+
+        {/* Barra de Navegación Rápida para dispositivos táctiles/móviles */}
+        <BottomNav onOpenSidebar={() => setSidebarOpen(true)} />
       </div>
     </div>
   );
 }
-
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -170,10 +173,9 @@ export default function App() {
             <ClinicaModal />
             <HashRouter>
               <Routes>
-                {/* ... existing routes ... */}
                 <Route path="/login"          element={<Login />} />
                 <Route path="/unauthorized"   element={<Unauthorized />} />
-                <Route path="/"             element={<HomeRedirect />} />
+                <Route path="/"               element={<HomeRedirect />} />
 
                 <Route path="/dashboard" element={
                   <ProtectedLayout><RoleGuard modulo="dashboard" redirigir><Dashboard /></RoleGuard></ProtectedLayout>
