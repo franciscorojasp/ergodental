@@ -21,10 +21,10 @@ export interface ConfigReporte {
 }
 
 // Paleta Corporativa ErgoDentalVE para Reportes PDF
-const BRAND_CYAN: [number, number, number] = [0, 212, 255];
-const BRAND_DARK: [number, number, number] = [15, 23, 42];
 const TABLE_HEADER_GRAY: [number, number, number] = [108, 117, 125]; // Gris mediano para encabezados de tabla
 const DIVIDER_GRAY: [number, number, number] = [209, 213, 219];      // Gris para franja divisoria fina
+const TOTALS_BG_GRAY: [number, number, number] = [243, 244, 246];     // Gris muy claro para caja de totales
+const TOTALS_BORDER_GRAY: [number, number, number] = [209, 213, 219]; // Borde sutil para caja de totales
 
 function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string): number {
   const W = doc.internal.pageSize.getWidth();
@@ -257,22 +257,23 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
       const boxHeight = config.totales.length * 6 + 6;
 
       if (finalY + boxHeight < (orientacion === 'landscape' ? 190 : 255)) {
-        doc.setFillColor(...BRAND_DARK);
+        doc.setFillColor(...TOTALS_BG_GRAY);
+        doc.setDrawColor(...TOTALS_BORDER_GRAY);
+        doc.setLineWidth(0.2);
         if (typeof (doc as any).roundedRect === 'function') {
-          (doc as any).roundedRect(W - 14 - boxWidth, finalY, boxWidth, boxHeight, 2, 2, 'F');
+          (doc as any).roundedRect(W - 14 - boxWidth, finalY, boxWidth, boxHeight, 2, 2, 'FD');
         } else {
-          doc.rect(W - 14 - boxWidth, finalY, boxWidth, boxHeight, 'F');
+          doc.rect(W - 14 - boxWidth, finalY, boxWidth, boxHeight, 'FD');
         }
 
-        doc.setTextColor(255, 255, 255);
         doc.setFontSize(7.5);
         config.totales.forEach((t, i) => {
           doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
           doc.text(t.label || '', W - 14 - boxWidth + 4, finalY + 5.5 + i * 6);
           doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...BRAND_CYAN);
+          doc.setTextColor(0, 0, 0);
           doc.text(String(t.valor || '0.00'), W - 18, finalY + 5.5 + i * 6, { align: 'right' });
-          doc.setTextColor(255, 255, 255);
         });
       }
     }
