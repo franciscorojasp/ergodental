@@ -10,20 +10,21 @@ export const supabase = VITE_USE_GOOGLE_SHEETS ? {
 
 export const IS_DEMO_EMAILS = ['demo@ergodentalve.com']; // Only use a specific non-production email for demo
 
-// Helper para detectar si estamos en modo Demo (por falta de conexión o por usuario Demo actualmente guardado)
+// Helper para detectar si estamos en modo Demo
+// Si estamos usando Google Sheets (VITE_USE_GOOGLE_SHEETS=true), NUNCA es modo demo
 export const isDemoSession = () => {
+  // Si Google Sheets está activo, siempre usar datos reales
+  if (VITE_USE_GOOGLE_SHEETS) return false;
+
+  // Si Supabase no está conectado Y no hay Google Sheets → modo demo
   if (!IS_SUPABASE_CONNECTED) return true;
+
   const saved = localStorage.getItem('ergo_user');
   if (saved) {
     try {
       const u = JSON.parse(saved);
-      // Francisco y Admins SUPER_ADMINS nunca son demo si hay conexión
-      const SUPER_ADMINS = ['francisco.rojasp@gmail.com', 'blascojennifer47@gmail.com', 'vera.hugo712@gmail.com', 'carlosalejandroverablasco183@gmail.com'];
-      if (SUPER_ADMINS.includes(u.email?.toLowerCase())) return false;
-      
       const DEMO_EMAILS = [
         'demo@ergodentalve.com',
-        'admin@ergodentalve.com',
         'doctor@ergodentalve.com',
         'asistente@ergodentalve.com',
         'recepcion@ergodentalve.com',
