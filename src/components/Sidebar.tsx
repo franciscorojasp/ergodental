@@ -49,8 +49,6 @@ export default function Sidebar({ isOpen, onClose, isPinned, onTogglePinned }: S
 
   return (
     <>
-      <div className={`mobile-overlay ${isOpen ? 'visible' : ''}`} onClick={onClose} />
-
       <aside className={`sidebar ${isOpen ? 'open' : ''} ${isMini ? 'collapsed' : ''}`}>
         {/* HEADER AREA: Compacted Ergonomics */}
         <div className="sidebar-header" style={{ 

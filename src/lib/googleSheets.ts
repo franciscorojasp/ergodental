@@ -206,9 +206,11 @@ export const googleSheetsApi = {
             if (tableName === 'clinicas') actionName = 'getClinica';
 
             let data = await googleSheetsRequest(actionName);
+            if (!Array.isArray(data)) {
+               data = [];
+            }
             // Autoparsear arrays y objetos que vengan como string, y normalizar fechas ISO
-            if (Array.isArray(data)) {
-               data = data.map((row: any) => {
+            data = data.map((row: any) => {
                   for (const k in row) {
                      if (typeof row[k] === 'string') {
                         if (row[k].startsWith('[') || row[k].startsWith('{')) {
@@ -227,7 +229,6 @@ export const googleSheetsApi = {
                   }
                   return row;
                });
-            }
             return { data, error: null };
           } catch (error) {
             return { data: null, error };

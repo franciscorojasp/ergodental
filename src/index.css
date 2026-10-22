@@ -853,20 +853,28 @@ tbody td {
   }
 }
 
+/* Mobile Overlay: ONLY active on mobile drawer mode, NEVER on desktop */
 .mobile-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  display: none !important;
 }
 
-.mobile-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
+@media (max-width: 1024px) {
+  .mobile-overlay {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .mobile-header {
