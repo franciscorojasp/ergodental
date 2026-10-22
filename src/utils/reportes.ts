@@ -20,74 +20,78 @@ export interface ConfigReporte {
   graficoImg?: { dataUrl: string; width: number; height: number };
 }
 
-// Paleta Corporativa ErgoDentalVE
-const BRAND_NAVY: [number, number, number] = [8, 14, 34];       // #080e22 Fondo Ejecutivo
-const BRAND_CYAN: [number, number, number] = [0, 212, 255];     // #00d4ff Cian Primario
-const BRAND_DARK: [number, number, number] = [15, 23, 42];      // #0f172a Cabeceras
+// Paleta Corporativa ErgoDentalVE para Reportes PDF
+const BRAND_CYAN: [number, number, number] = [0, 212, 255];
+const BRAND_DARK: [number, number, number] = [15, 23, 42];
+const TABLE_HEADER_GRAY: [number, number, number] = [108, 117, 125]; // Gris mediano para encabezados de tabla
+const DIVIDER_GRAY: [number, number, number] = [209, 213, 219];      // Gris para franja divisoria fina
 
 function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string): number {
   const W = doc.internal.pageSize.getWidth();
   
-  // Banda superior ejecutiva
-  doc.setFillColor(...BRAND_NAVY);
-  doc.rect(0, 0, W, 28, 'F');
+  // Encabezado con fondo blanco/limpio (sin color azul oscuro)
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, W, 26, 'F');
 
   // Logo Gráfico
   try {
-    doc.addImage('/logo.png', 'PNG', 12, 4, 20, 20);
+    doc.addImage('/logo.png', 'PNG', 12, 3.5, 18, 18);
   } catch (e) {
-    doc.setTextColor(...BRAND_CYAN);
-    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(15);
     doc.setFont('helvetica', 'bold');
-    doc.text('ERGODENTALVE', 14, 14);
+    doc.text('ERGODENTALVE', 14, 13);
   }
 
-  // Título Institucional y Lema
-  doc.setTextColor(255, 255, 255);
+  // Título Institucional y Lema en color negro
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('ERGODENTALVE', 36, 12);
+  doc.text('ERGODENTALVE', 34, 9.5);
   
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(180, 200, 225);
-  doc.text('Sistema Integral de Gestión Clínica Dental', 36, 17);
-  doc.text('Seguridad · Innovación · Salud Odontológica', 36, 22);
+  doc.setTextColor(40, 40, 40);
+  doc.text('Sistema Integral de Gestión Clínica Dental', 34, 14.5);
+  doc.setTextColor(60, 60, 60);
+  doc.text('Seguridad · Innovación · Salud Odontológica', 34, 19);
   
-  // Metadatos a la derecha
+  // Metadatos a la derecha en color negro y formato "DOC - N° 1792682558"
   if (correlativo) {
+    const numDoc = correlativo.replace(/^DOC-?/i, '');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(...BRAND_CYAN);
-    doc.text(`DOC N° ${correlativo}`, W - 14, 11, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+    doc.text(`DOC - N° ${numDoc}`, W - 14, 9.5, { align: 'right' });
   }
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(200, 215, 235);
-  doc.text(`Emisión: ${new Date().toLocaleString('es-VE')}`, W - 14, 16, { align: 'right' });
+  doc.setTextColor(40, 40, 40);
+  doc.text(`Emisión: ${new Date().toLocaleString('es-VE')}`, W - 14, 14.5, { align: 'right' });
   if (config.usuario) {
-    doc.text(`Operador: ${config.usuario}`, W - 14, 21, { align: 'right' });
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Operador: ${config.usuario}`, W - 14, 19, { align: 'right' });
   }
 
-  // Línea de Acento Cian
-  doc.setFillColor(...BRAND_CYAN);
-  doc.rect(0, 28, W, 2, 'F');
+  // Franja divisoria: mucho menos gruesa y de color gris
+  doc.setFillColor(...DIVIDER_GRAY);
+  doc.rect(0, 24, W, 0.6, 'F');
 
   // Título del reporte
   doc.setTextColor(15, 23, 42);
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text(config.titulo.toUpperCase(), 14, 38);
+  doc.text(config.titulo.toUpperCase(), 14, 33);
 
-  let startYPos = 44;
+  let startYPos = 39;
 
   if (config.clinica) {
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 150, 200);
+    doc.setTextColor(71, 85, 105);
     doc.text(`Sede / Clínica: ${config.clinica}`, 14, startYPos);
-    startYPos += 5;
+    startYPos += 4.5;
   }
 
   if (config.subtitulo) {
@@ -95,7 +99,7 @@ function addHeader(doc: jsPDF, config: ConfigReporte, correlativo?: string): num
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
     doc.text(config.subtitulo, 14, startYPos);
-    startYPos += 5;
+    startYPos += 4.5;
   }
   
   return startYPos + 2;
@@ -222,7 +226,7 @@ export async function generarReportePDF(config: ConfigReporte): Promise<void> {
       body: safeRows,
       theme: 'grid',
       headStyles: {
-        fillColor: BRAND_DARK,
+        fillColor: TABLE_HEADER_GRAY, // Gris mediano
         textColor: [255, 255, 255],
         fontSize: isDense ? 7.5 : 8.5,
         fontStyle: 'bold',
