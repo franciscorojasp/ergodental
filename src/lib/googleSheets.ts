@@ -94,7 +94,7 @@ export const googleSheetsApi = {
       const executeTasa = async () => {
         try {
           const res = await googleSheetsRequest('getTasaHoy');
-          return { data: { monto: res?.tasa || 0 }, error: null };
+          return { data: { monto: res?.tasa || 0, montoEuro: res?.tasaEuro || 0 }, error: null };
         } catch (error) { return { data: null, error }; }
       };
       
@@ -105,11 +105,12 @@ export const googleSheetsApi = {
           
           const res = await googleSheetsRequest('getTasaHoy');
           const monto = res?.tasa || 0;
+          const montoEuro = res?.tasaEuro || 0;
           
           if (monto > 0) {
             const hoy = new Date().toLocaleDateString('en-CA');
-            if (localHist.length === 0 || (localHist[0] && localHist[0].fecha !== hoy)) {
-              localHist.unshift({ monto, fecha: hoy, usuario: 'Sistema' });
+            if (localHist.length === 0 || (localHist[0] && localHist[0].monto !== monto)) {
+              localHist.unshift({ monto, montoEuro, fecha: hoy, usuario: 'Sistema' });
               if (localHist.length > 30) localHist = localHist.slice(0, 30);
               localStorage.setItem('ergo_tasa_historial', JSON.stringify(localHist));
             }
@@ -140,7 +141,7 @@ export const googleSheetsApi = {
               try { localHist = JSON.parse(localStorage.getItem('ergo_tasa_historial') || '[]'); } catch(e){}
               
               const hoy = new Date().toLocaleDateString('en-CA');
-              const item = { monto: payload.monto, fecha: hoy, usuario: payload.usuario || 'Sistema' };
+              const item = { monto: payload.monto, montoEuro: payload.montoEuro, fecha: hoy, usuario: payload.usuario || 'Sistema' };
               
               localHist = localHist.filter((h:any) => h.fecha !== hoy);
               localHist.unshift(item);

@@ -1496,10 +1496,10 @@ export async function logAuditoria(log: AuditoriaLog): Promise<void> {
   }
 }
 
-export async function saveTasaHoy(monto: number, usuario?: string): Promise<void> {
+export async function saveTasaHoy(monto: number, usuario?: string, montoEuro?: number, fechaOficial?: string): Promise<void> {
   if (isDemoSession()) return;
   
-  const payload = { monto, usuario };
+  const payload = { monto, montoEuro, fechaOficial, usuario };
   try {
     if (!navigator.onLine) throw new Error('Offline');
     const { error } = await supabase.from('tasa_bcv').insert(payload);
@@ -1513,11 +1513,11 @@ export async function saveTasaHoy(monto: number, usuario?: string): Promise<void
     });
   }
 
-  if (usuario) {
+  if (usuario && usuario !== 'Bot Automático BCV') {
     await logAuditoria({
       usuario,
       accion: 'CAMBIO TASA BCV',
-      detalle: `Tasa actualizada a Bs ${monto}`
+      detalle: `Tasa Dólar: Bs ${monto}${montoEuro ? ` · Tasa Euro: Bs ${montoEuro}` : ''}`
     });
   }
 }

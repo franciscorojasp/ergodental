@@ -253,7 +253,7 @@ function handleAction(action, data) {
         result = getTasaHoy(); 
         break;
       case 'saveTasaHoy': 
-        result = saveTasaHoy(data.monto); 
+        result = saveTasaHoy(data.monto, data.montoEuro, data.fechaOficial); 
         break;
       case 'getClinica': 
         result = getData('Clinicas'); 
@@ -440,21 +440,40 @@ function deleteData(sheetName, id) {
 function getTasaHoy() {
   const config = getData('Configuracion');
   const tasaRow = config.find(c => c.clave === 'tasa_bcv');
-  return { tasa: tasaRow ? parseFloat(tasaRow.valor) : 0 };
+  const tasaEuroRow = config.find(c => c.clave === 'tasa_bcv_euro');
+  const fechaRow = config.find(c => c.clave === 'tasa_bcv_fecha');
+  return { 
+    tasa: tasaRow ? parseFloat(tasaRow.valor) : 0,
+    tasaEuro: tasaEuroRow ? parseFloat(tasaEuroRow.valor) : 0,
+    fecha: fechaRow ? fechaRow.valor : ''
+  };
 }
 
-function saveTasaHoy(monto) {
+function saveTasaHoy(monto, montoEuro, fecha) {
   const ss = getSheet();
   const sheet = ss.getSheetByName('Configuracion');
   if (!sheet) throw new Error('No se encontró la pestaña Configuracion');
   const allData = sheet.getDataRange().getValues();
+  let foundDolar = false;
+  let foundEuro = false;
+  let foundFecha = false;
   for (let i = 1; i < allData.length; i++) {
     if (allData[i][0] === 'tasa_bcv') {
       sheet.getRange(i + 1, 2).setValue(monto);
-      return { success: true };
+      foundDolar = true;
+    }
+    if (allData[i][0] === 'tasa_bcv_euro') {
+      if (montoEuro) sheet.getRange(i + 1, 2).setValue(montoEuro);
+      foundEuro = true;
+    }
+    if (allData[i][0] === 'tasa_bcv_fecha') {
+      if (fecha) sheet.getRange(i + 1, 2).setValue(fecha);
+      foundFecha = true;
     }
   }
-  sheet.appendRow(['tasa_bcv', monto]);
+  if (!foundDolar) sheet.appendRow(['tasa_bcv', monto]);
+  if (!foundEuro && montoEuro) sheet.appendRow(['tasa_bcv_euro', montoEuro]);
+  if (!foundFecha && fecha) sheet.appendRow(['tasa_bcv_fecha', fecha]);
   return { success: true };
 }
 
