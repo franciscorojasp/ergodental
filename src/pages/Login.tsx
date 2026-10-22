@@ -76,13 +76,19 @@ export default function Login() {
         detalle: 'Inicio de sesión exitoso'
       }).catch(err => console.error('Error en log auditoría:', err));
 
-      navigate(ROL_HOME[u.rol] || '/');
+      const destino = ROL_HOME[u.rol] || '/dashboard';
+      if (typeof window !== 'undefined' && window.location.pathname !== '/' && window.location.pathname !== '') {
+        window.location.href = `${window.location.origin}/#${destino}`;
+      } else {
+        navigate(destino);
+      }
     } catch (err: any) {
       if (err.message && err.message.includes('sin perfil')) {
         setError('Tu cuenta está pendiente de aprobación por un administrador.');
       } else {
         setError(err.message || 'Error de conexión o credenciales inválidas');
       }
+    } finally {
       setLoading(false);
     }
   };

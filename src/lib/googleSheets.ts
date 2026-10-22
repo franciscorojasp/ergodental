@@ -1,6 +1,6 @@
 // src/lib/googleSheets.ts
 export const VITE_USE_GOOGLE_SHEETS = import.meta.env.VITE_USE_GOOGLE_SHEETS === 'true';
-export const VITE_GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || '';
+export const VITE_GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMNPqieaiE02GiA0wwQSmWM7D2qA3h1k21BdJCGf78CeTK19G36lWtNz36e_gjqSVX/exec';
 const API_KEY = 'ERGO_SECRET_2024';
 
 export interface GoogleSheetsResponse {
@@ -8,12 +8,13 @@ export interface GoogleSheetsResponse {
   [key: string]: any;
 }
 
-export async function googleSheetsRequest(action: string, data: any = {}): Promise<any> {
-  if (!VITE_GOOGLE_SCRIPT_URL) {
+export async function googleSheetsRequest(action: string, data: any = {}, retries = 2): Promise<any> {
+  const scriptUrl = VITE_GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMNPqieaiE02GiA0wwQSmWM7D2qA3h1k21BdJCGf78CeTK19G36lWtNz36e_gjqSVX/exec';
+  if (!scriptUrl) {
     throw new Error('URL de Google Apps Script no configurada en las variables de entorno.');
   }
 
-  const url = new URL(VITE_GOOGLE_SCRIPT_URL);
+  const url = new URL(scriptUrl);
   url.searchParams.append('action', action);
   url.searchParams.append('key', API_KEY);
 
@@ -27,33 +28,45 @@ export async function googleSheetsRequest(action: string, data: any = {}): Promi
     }
   }
 
-  try {
-    const response = await fetch(url.toString(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8', // Recomendado para evitar problemas CORS preflight con Google Apps Script
-      },
-      body: JSON.stringify(processedData),
-    });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8', // Recomendado para evitar problemas CORS preflight con Google Apps Script
+        },
+        body: JSON.stringify(processedData),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
+      if (!response.ok) {
+        if (attempt < retries && (response.status === 404 || response.status >= 500)) {
+          console.warn(`Reintento ${attempt + 1}/${retries} para ${action} tras HTTP ${response.status}`);
+          await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
 
-    const text = await response.text();
-    if (!text || text.trim() === '') {
-      return { success: true };
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        return { success: true };
+      }
+      
+      const result = JSON.parse(text);
+      if (result && result.error) {
+        throw new Error(result.error);
+      }
+      
+      return result;
+    } catch (error: any) {
+      if (attempt < retries && !error.message?.includes('Credenciales') && !error.message?.includes('pendiente')) {
+        console.warn(`Reintentando ${action} tras error de conexión:`, error.message);
+        await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+        continue;
+      }
+      console.error(`Error en googleSheetsRequest (${action}):`, error);
+      throw error;
     }
-    
-    const result = JSON.parse(text);
-    if (result && result.error) {
-      throw new Error(result.error);
-    }
-    
-    return result;
-  } catch (error) {
-    console.error(`Error en googleSheetsRequest (${action}):`, error);
-    throw error;
   }
 }
 

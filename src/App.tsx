@@ -154,6 +154,15 @@ function HomeRedirect() {
 }
 
 export default function App() {
+  // Normalizar rutas directas en navegadores (ej. /login -> /#/login) para compatibilidad con HashRouter en Vercel
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname !== '/' && !window.location.pathname.includes('.')) {
+      const p = window.location.pathname;
+      const s = window.location.search;
+      window.history.replaceState(null, '', `/#${p}${s}`);
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <ThemeProvider>
