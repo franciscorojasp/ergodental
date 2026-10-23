@@ -1,5 +1,5 @@
 // src/pages/Pacientes.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getPacientes, createPaciente, updatePaciente, deletePaciente, 
@@ -13,6 +13,7 @@ import RoleGuard from '../components/RoleGuard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useResponsive } from '../hooks/useResponsive';
 import Pagination from '../components/Pagination';
+import CumpleanosModal from '../components/CumpleanosModal';
 
 const REF_BADGE: Record<TipoReferencia, string> = {
   'Profesional-Especialista': 'badge-doctor',
@@ -20,6 +21,24 @@ const REF_BADGE: Record<TipoReferencia, string> = {
   'Foraneo-30':               'badge-warning',
   'Foraneo-10':               'badge-asistente',
 };
+
+function esCumpleanosHoy(fecha: string): boolean {
+  if (!fecha) return false;
+  try {
+    const clean = String(fecha).split('T')[0];
+    const parts = clean.split(/[/-]/);
+    const hoy = new Date();
+    if (parts.length === 3) {
+      const dia = parts[0].length === 4 ? parseInt(parts[2], 10) : parseInt(parts[0], 10);
+      const mes = parseInt(parts[1], 10) - 1;
+      return hoy.getDate() === dia && hoy.getMonth() === mes;
+    }
+    const d = new Date(fecha);
+    return !isNaN(d.getTime()) && hoy.getDate() === d.getDate() && hoy.getMonth() === d.getMonth();
+  } catch {
+    return false;
+  }
+}
 
 function calcularEdad(fecha: string): string {
   if (!fecha) return '—';
@@ -81,6 +100,8 @@ export default function Pacientes() {
   const [saving, setSaving]           = useState(false);
   const [confirmandoGuardado, setConfirmandoGuardado] = useState(false);
   const [notificacionExito, setNotificacionExito]     = useState<string | null>(null);
+  const [modalCumpleanosOpen, setModalCumpleanosOpen] = useState(false);
+  const [pacienteParaCumple, setPacienteParaCumple]   = useState<Paciente | null>(null);
 
   useEffect(() => {
     if (notificacionExito) {
@@ -225,6 +246,7 @@ export default function Pacientes() {
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
   const pacientesPaginados = filtrado.slice((pagina - 1) * pageSize, pagina * pageSize);
 
+  const cumpleanerosHoy = useMemo(() => pacientes.filter(p => esCumpleanosHoy(p.fechaNacimiento)), [pacientes]);
   const detalle = pacientes.find(p => p.id === detalleId);
 
   return (
@@ -235,6 +257,25 @@ export default function Pacientes() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Gestión de historial clínico y datos personales</p>
         </div>
         <div className="action-grid">
+          <button 
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ 
+              border: cumpleanerosHoy.length > 0 ? '1px solid #f59e0b' : '1px solid var(--border)',
+              color: cumpleanerosHoy.length > 0 ? '#f59e0b' : 'inherit',
+              display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 
+            }}
+            onClick={() => { setPacienteParaCumple(null); setModalCumpleanosOpen(true); }}
+            title="Felicitaciones de Cumpleaños"
+          >
+            <span>🎂</span>
+            <span>Cumpleaños</span>
+            {cumpleanerosHoy.length > 0 && (
+              <span className="badge" style={{ background: '#f59e0b', color: '#000', fontWeight: 900, padding: '2px 6px', fontSize: '0.68rem' }}>
+                {cumpleanerosHoy.length} hoy
+              </span>
+            )}
+          </button>
           <RoleGuard modulo="pacientes" accion="crear" allowInConsolidado>
             <button className="btn btn-primary btn-sm" onClick={openNew}>+ Nuevo Paciente</button>
           </RoleGuard>
@@ -324,6 +365,7 @@ export default function Pacientes() {
                     </td>
                     <td className="text-right">
                       <div className="action-grid" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: '#f59e0b' }} onClick={() => { setPacienteParaCumple(p); setModalCumpleanosOpen(true); }} title="Felicitar por Cumpleaños">🎂</button>
                         <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => setDetalleId(p.id)} title="Ver Ficha">👁️</button>
                         <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEdit(p)} title="Editar">✏️</button>
                         <button className="btn btn-ghost btn-sm" style={{ width: 32, height: 32, padding: 0, color: 'var(--danger)' }} onClick={() => setDeletingId(p.id)} title="Eliminar">🗑️</button>
@@ -500,9 +542,13 @@ export default function Pacientes() {
                 )}
                 
                 <div style={{ display:'flex', gap:'8px', marginTop:'20px', marginBottom:'12px' }}>
-                  <button type="button" className="btn btn-primary" style={{ flex:1, justifyContent:'center' }}
+                  <button type="button" className="btn btn-primary" style={{ flex:1, minWidth: '120px', justifyContent:'center' }}
                     onClick={() => window.location.hash = `#/odontograma?pacienteId=${detalle.id}`}>
                     🦷 Odontograma
+                  </button>
+                  <button type="button" className="btn btn-ghost" style={{ flex:1, minWidth: '120px', justifyContent:'center', border:'1px solid #f59e0b', color:'#f59e0b' }}
+                    onClick={() => { setPacienteParaCumple(detalle); setModalCumpleanosOpen(true); }}>
+                    🎂 Felicitar
                   </button>
                   {detalle.telefono && (
                     <a className="btn btn-ghost" style={{ flex:1, justifyContent:'center', border:'1px solid #25D366', color:'#25D366' }}
@@ -688,6 +734,12 @@ export default function Pacientes() {
         onCancel={() => setConfirmandoGuardado(false)}
         confirmText={editingId ? "Sí, Actualizar" : "Sí, Confirmar y Registrar"}
         type="info"
+      />
+
+      <CumpleanosModal 
+        isOpen={modalCumpleanosOpen} 
+        onClose={() => setModalCumpleanosOpen(false)} 
+        pacienteInicial={pacienteParaCumple}
       />
 
       <ConfirmDialog 

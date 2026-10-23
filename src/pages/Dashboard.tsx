@@ -8,6 +8,7 @@ import { getCitas, getPacientes, getPersonal, getPagos, type Cita, type Pago, is
 import { useClinica } from '../contexts/ClinicaContext';
 import { generarReportePDF } from '../utils/reportes';
 import ReportePagosModal from '../components/ReportePagosModal';
+import CumpleanosModal from '../components/CumpleanosModal';
 
 type Periodo = 'Hoy' | 'Semanal' | 'Quincenal' | 'Mensual' | 'Trimestral' | 'Semestral' | 'Anual';
 const PERIODOS: Periodo[] = ['Hoy', 'Semanal', 'Quincenal', 'Mensual', 'Trimestral', 'Semestral', 'Anual'];
@@ -27,12 +28,18 @@ export default function Dashboard() {
   const [totalPers,   setTotalPers]   = useState(0);
   const [periodo,     setPeriodo]     = useState<Periodo>('Mensual');
   const [reportePagosOpen, setReportePagosOpen] = useState(false);
+  const [cumpleanosOpen, setCumpleanosOpen] = useState(false);
+  const [listaPacientesDash, setListaPacientesDash] = useState<any[]>([]);
 
   const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
   useEffect(() => {
     getCitas().then(data => setCitas(data.filter(c => clinica.id === 'consolidado' || c.clinicaId === clinica.id)));
-    getPacientes().then(data => setTotalPac(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id).length));
+    getPacientes().then(data => {
+      const filtrados = data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id);
+      setTotalPac(filtrados.length);
+      setListaPacientesDash(filtrados);
+    });
     getPersonal().then(data => setTotalPers(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id).length));
     getPagos().then(data => setPagos(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
   }, [clinica.id]);
@@ -43,6 +50,23 @@ export default function Dashboard() {
     const d = new Date(clean + 'T12:00:00');
     return isNaN(d.getTime()) ? new Date() : d;
   };
+
+    const esCumpleHoy = (fecha: string): boolean => {
+    if (!fecha) return false;
+    try {
+      const clean = String(fecha).split('T')[0];
+      const parts = clean.split(/[/-]/);
+      const h = new Date();
+      if (parts.length === 3) {
+        const dia = parts[0].length === 4 ? parseInt(parts[2], 10) : parseInt(parts[0], 10);
+        const mes = parseInt(parts[1], 10) - 1;
+        return h.getDate() === dia && h.getMonth() === mes;
+      }
+      const d = new Date(fecha);
+      return !isNaN(d.getTime()) && h.getDate() === d.getDate() && h.getMonth() === d.getMonth();
+    } catch { return false; }
+  };
+  const cumpleanerosHoyCount = listaPacientesDash.filter(p => esCumpleHoy(p.fechaNacimiento)).length;
 
   const isInPeriodo = (fecha: string): boolean => {
     if (periodo === 'Hoy') return String(fecha).split('T')[0] === hoy;
@@ -102,6 +126,14 @@ export default function Dashboard() {
             <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5, fontSize:'0.7rem' }}>▼</div>
           </div>
           
+          <button className="btn btn-ghost btn-sm" onClick={() => setCumpleanosOpen(true)} style={{ border: '1px solid #f59e0b', color: '#f59e0b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>🎂 Cumpleaños</span>
+            {cumpleanerosHoyCount > 0 && (
+              <span className="badge" style={{ background: '#f59e0b', color: '#000', padding: '1px 5px', fontSize: '0.65rem', fontWeight: 900 }}>
+                {cumpleanerosHoyCount}
+              </span>
+            )}
+          </button>
           <button className="btn btn-ghost btn-sm" onClick={() => setReportePagosOpen(true)} style={{ border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 800 }}>
             <span>📊 Reporte Gráfico</span>
           </button>
@@ -242,6 +274,10 @@ export default function Dashboard() {
       <ReportePagosModal 
         isOpen={reportePagosOpen} 
         onClose={() => setReportePagosOpen(false)} 
+      />
+      <CumpleanosModal 
+        isOpen={cumpleanosOpen} 
+        onClose={() => setCumpleanosOpen(false)} 
       />
     </div>
   );
