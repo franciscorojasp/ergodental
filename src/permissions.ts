@@ -88,14 +88,14 @@ export const PERMISSIONS: Record<Modulo, PermisoModulo> = {
   },
 
   finanzas: {
-    // Exclusivo ADMIN — principio de segregación de funciones financieras
-    rolesConAcceso: ['ADMIN'],
+    // ADMIN y RECEPCION para registro y control de ingresos/egresos diarios
+    rolesConAcceso: ['ADMIN', 'RECEPCION'],
     acciones: {
-      ver:      ['ADMIN'],
-      crear:    ['ADMIN'],
-      editar:   ['ADMIN'],
-      eliminar: ['ADMIN'],
-      exportar: ['ADMIN'],
+      ver:      ['ADMIN', 'RECEPCION'],
+      crear:    ['ADMIN', 'RECEPCION'],  // Recepción registra ingresos y egresos diarios
+      editar:   ['ADMIN', 'RECEPCION'],
+      eliminar: ['ADMIN'],                // Eliminación exclusiva de administración
+      exportar: ['ADMIN', 'RECEPCION'],
     },
   },
 
@@ -130,10 +130,10 @@ export const PERMISSIONS: Record<Modulo, PermisoModulo> = {
     },
   },
   recibos: {
-    rolesConAcceso: ['ADMIN'],
+    rolesConAcceso: ['ADMIN', 'RECEPCION'],
     acciones: {
-      ver:      ['ADMIN'],
-      crear:    ['ADMIN'],
+      ver:      ['ADMIN', 'RECEPCION'],
+      crear:    ['ADMIN', 'RECEPCION'],  // Recepción emite recibos de pago
       eliminar: ['ADMIN'],
     },
   },

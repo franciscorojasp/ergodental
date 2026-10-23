@@ -115,6 +115,7 @@ export default function Finanzas(){
     tipoReferencia:'' as TipoReferencia|'', referidorNombre:'',
     // Venezuelan fields
     bancoEmisor: '', numeroReferencia: '', telefonoOrigen: '',
+    clinicaId: clinica.id === 'consolidado' ? (clinicas.find(c => c.id !== 'consolidado')?.id || 'la-vina') : clinica.id,
   });
 
   const [formEgreso,setFormEgreso]=useState({
@@ -155,6 +156,7 @@ export default function Finanzas(){
       bancoEmisor: '',
       numeroReferencia: '',
       telefonoOrigen: '',
+      clinicaId: clinica.id === 'consolidado' ? (clinicas.find(c => c.id !== 'consolidado')?.id || 'la-vina') : clinica.id,
     });
     setModalPago(true);
   };
@@ -264,8 +266,16 @@ export default function Finanzas(){
     try{
       const pac=pacientes.find(p=>p.id===formPago.pacienteId);
       const doc=personal.find(p=>p.id===formPago.doctorId);
+      const targetClinicaId = formPago.clinicaId || (clinica.id === 'consolidado' ? (pac?.clinicaId || 'la-vina') : clinica.id);
+      const sedeNombre = clinicas.find(c => c.id === targetClinicaId)?.nombre || clinica.nombre;
+      
+      const confirma = window.confirm(`¿Confirmas registrar el ingreso de ${fmt(formPago.monto)} para el paciente "${pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente'}" en la sede "${sedeNombre}"?`);
+      if (!confirma) {
+        setSaving(false);
+        return;
+      }
+
       const fechaV=formPago.tipoPago==='Crédito'?new Date(Date.now()+formPago.diasCredito*86400000).toISOString().split('T')[0]:undefined;
-      const targetClinicaId = clinica.id === 'consolidado' ? (pac?.clinicaId || 'la-vina') : clinica.id;
       const nuevo=await createPago({
         clinicaId: targetClinicaId,
         pacienteId:formPago.pacienteId,
@@ -289,6 +299,7 @@ export default function Finanzas(){
       });
       setPagos(prev=>[nuevo,...prev]);
       setModalPago(false);
+      alert(`✅ Ingreso registrado exitosamente en la sede "${sedeNombre}".`);
     }finally{setSaving(false);}
   };
 
@@ -303,6 +314,14 @@ export default function Finanzas(){
     try{
       const prov=proveedores.find(p=>p.id===formEgreso.proveedorId);
       const targetClinicaId = clinica.id === 'consolidado' ? (formEgreso.clinicaId || 'la-vina') : clinica.id;
+      const sedeNombre = clinicas.find(c => c.id === targetClinicaId)?.nombre || clinica.nombre;
+
+      const confirma = window.confirm(`¿Confirmas registrar el egreso de ${fmt(formEgreso.monto)} por concepto "${formEgreso.concepto}" en la sede "${sedeNombre}"?`);
+      if (!confirma) {
+        setSaving(false);
+        return;
+      }
+
       const nuevo=await createEgreso({
         clinicaId: targetClinicaId,
         concepto:formEgreso.concepto,categoria:formEgreso.categoria,
@@ -314,6 +333,7 @@ export default function Finanzas(){
       });
       setEgresos(prev=>[nuevo,...prev]);
       setModalEgreso(false);
+      alert(`✅ Egreso registrado exitosamente en la sede "${sedeNombre}".`);
     }finally{setSaving(false);}
   };
 
@@ -838,6 +858,21 @@ export default function Finanzas(){
               </div>
               <form onSubmit={handleSavePago}>
                 <div className="modal-body">
+                  {clinica.id === 'consolidado' && (
+                    <div className="input-group" style={{ marginBottom: '14px' }}>
+                      <label>Sede Clínica de Destino *</label>
+                      <select 
+                        className="input" 
+                        required 
+                        value={formPago.clinicaId} 
+                        onChange={e => setFormPago(f => ({ ...f, clinicaId: e.target.value }))}
+                      >
+                        {clinicas.filter(c => c.id !== 'consolidado').map(c => (
+                          <option key={c.id} value={c.id}>{c.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="grid-2">
                     <div className="input-group">
                       <label>Paciente *</label>
