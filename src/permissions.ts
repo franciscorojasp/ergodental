@@ -49,8 +49,8 @@ export const PERMISSIONS: Record<Modulo, PermisoModulo> = {
     rolesConAcceso: ['ADMIN', 'DOCTOR', 'ASISTENTE', 'RECEPCION'],
     acciones: {
       ver:      ['ADMIN', 'DOCTOR', 'ASISTENTE', 'RECEPCION'],
-      crear:    ['ADMIN', 'DOCTOR', 'RECEPCION'],  // Asistente no crea pacientes
-      editar:   ['ADMIN', 'DOCTOR'],               // Solo médico y admin editan historia
+      crear:    ['ADMIN', 'DOCTOR', 'RECEPCION', 'ASISTENTE'],  // Asistentes y recepción pueden registrar pacientes
+      editar:   ['ADMIN', 'DOCTOR', 'RECEPCION', 'ASISTENTE'],               // Médicos, recepción y admin editan historia/contacto
       eliminar: ['ADMIN'],                          // Solo admin puede eliminar
       exportar: ['ADMIN', 'DOCTOR'],
     },
@@ -60,8 +60,8 @@ export const PERMISSIONS: Record<Modulo, PermisoModulo> = {
     rolesConAcceso: ['ADMIN', 'DOCTOR', 'ASISTENTE', 'RECEPCION'],
     acciones: {
       ver:      ['ADMIN', 'DOCTOR', 'ASISTENTE', 'RECEPCION'],
-      crear:    ['ADMIN', 'DOCTOR', 'RECEPCION'],  // Recepción agenda citas
-      editar:   ['ADMIN', 'DOCTOR', 'RECEPCION'],
+      crear:    ['ADMIN', 'DOCTOR', 'RECEPCION', 'ASISTENTE'],  // Recepción, asistentes y doctores agendan citas
+      editar:   ['ADMIN', 'DOCTOR', 'RECEPCION', 'ASISTENTE'],
       eliminar: ['ADMIN'],
     },
   },

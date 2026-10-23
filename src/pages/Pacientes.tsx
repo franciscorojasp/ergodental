@@ -67,7 +67,9 @@ const formatForDateInput = (val: string) => {
 };
 
 export default function Pacientes() {
-  const { clinica } = useClinica();
+  const { clinica, clinicas } = useClinica();
+  const sedesReales = clinicas.filter(c => c.id !== 'consolidado');
+  const sedePorDefecto = clinica.id === 'consolidado' ? (sedesReales[0]?.id || 'la-vina') : clinica.id;
   const [pacientes, setPacientes]     = useState<Paciente[]>([]);
   const [busqueda, setBusqueda]       = useState('');
   const { isMobile }                  = useResponsive();
@@ -87,7 +89,7 @@ export default function Pacientes() {
   const { fmt } = useMoneda();
 
   const initForm = {
-    clinicaId: clinica.id,
+    clinicaId: sedePorDefecto,
     nombre: '', apellido: '', cedula: '', fechaNacimiento: '', telefono: '',
     email: '', direccion: '',
     tipoReferencia: 'Paciente-Clinica' as TipoReferencia,
@@ -155,10 +157,19 @@ export default function Pacientes() {
     }
   };
 
+  const openNew = () => {
+    setEditingId(null);
+    setForm({
+      ...initForm,
+      clinicaId: clinica.id === 'consolidado' ? (sedesReales[0]?.id || 'la-vina') : clinica.id,
+    });
+    setModal(true);
+  };
+
   const openEdit = (p: Paciente) => {
     setEditingId(p.id);
     setForm({
-      clinicaId: p.clinicaId,
+      clinicaId: p.clinicaId || sedePorDefecto,
       nombre: p.nombre, apellido: p.apellido, cedula: p.cedula,
       fechaNacimiento: formatForDateInput(p.fechaNacimiento),
       telefono: p.telefono || '', email: p.email || '',
@@ -176,7 +187,10 @@ export default function Pacientes() {
   const closeModal = () => {
     setModal(false);
     setEditingId(null);
-    setForm(initForm);
+    setForm({
+      ...initForm,
+      clinicaId: clinica.id === 'consolidado' ? (sedesReales[0]?.id || 'la-vina') : clinica.id,
+    });
   };
 
   const filtros = ['Todos', ...TABLA_REFERENCIAS.map(r => r.label)];
@@ -204,8 +218,8 @@ export default function Pacientes() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '-4px' }}>Gestión de historial clínico y datos personales</p>
         </div>
         <div className="action-grid">
-          <RoleGuard modulo="pacientes" accion="crear">
-            <button className="btn btn-primary btn-sm" onClick={() => { setEditingId(null); setModal(true); }}>+ Nuevo Paciente</button>
+          <RoleGuard modulo="pacientes" accion="crear" allowInConsolidado>
+            <button className="btn btn-primary btn-sm" onClick={openNew}>+ Nuevo Paciente</button>
           </RoleGuard>
         </div>
       </div>
@@ -300,7 +314,27 @@ export default function Pacientes() {
                 );
               })}
               {filtrado.length === 0 && (
-                <tr><td colSpan={6} className="table-empty">Sin pacientes registrados</td></tr>
+                <tr>
+                  <td colSpan={6} className="table-empty" style={{ padding: '36px 16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.2rem', marginBottom: '8px' }}>🦷</div>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      {busqueda ? 'No se encontraron pacientes para esta búsqueda' : 'Sin pacientes registrados'}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                      {busqueda ? 'Intenta con otro término o número de cédula' : 'Comienza registrando un paciente clínico'}
+                    </div>
+                    <RoleGuard modulo="pacientes" accion="crear" allowInConsolidado>
+                      <button 
+                        type="button" 
+                        className="btn btn-primary btn-sm" 
+                        onClick={openNew} 
+                        style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <span>+</span> Registrar Nuevo Paciente
+                      </button>
+                    </RoleGuard>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -385,7 +419,7 @@ export default function Pacientes() {
                         if(!proc) return;
                         const nueva = await createEvolucion({
                           pacienteId: detalle.id,
-                          clinicaId: clinica.id,
+                          clinicaId: detalle.clinicaId || sedePorDefecto,
                           doctorNombre: user?.nombre || 'Doctor',
                           fecha: new Date().toISOString(),
                           procedimiento: proc,
@@ -485,6 +519,23 @@ export default function Pacientes() {
               </div>
               <form onSubmit={handleSave}>
                 <div className="modal-body">
+                  {sedesReales.length > 0 && (
+                    <div className="input-group" style={{ marginBottom: '14px' }}>
+                      <label>Sede Clínica Asignada *</label>
+                      <select 
+                        id="paciente-clinica"
+                        name="clinicaId" 
+                        className="input" 
+                        value={form.clinicaId} 
+                        onChange={e => setForm(f => ({ ...f, clinicaId: e.target.value }))}
+                        required
+                      >
+                        {sedesReales.map(c => (
+                          <option key={c.id} value={c.id}>{c.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="grid-2">
                     <div className="input-group"><label>Nombre *</label><input id="paciente-nombre" name="nombre" className="input" required value={form.nombre} onChange={e=>setForm(f=>({...f,nombre:e.target.value}))} /></div>
                     <div className="input-group"><label>Apellido *</label><input id="paciente-apellido" name="apellido" className="input" required value={form.apellido} onChange={e=>setForm(f=>({...f,apellido:e.target.value}))} /></div>

@@ -76,7 +76,7 @@ export default function Citas() {
       <div className="page-header condensed">
         <h1 className="is-mobile-inline">Citas</h1>
         <div className="action-grid">
-          <RoleGuard modulo="citas" accion="crear">
+          <RoleGuard modulo="citas" accion="crear" allowInConsolidado>
             <button className="btn btn-primary btn-sm" onClick={() => { setEditingCita(null); setModal(true); }}>+ Nueva</button>
           </RoleGuard>
         </div>

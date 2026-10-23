@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  getPacientes, getPersonal, createCita, updateCita,
+  getPacientes, getPersonal, createCita, updateCita, createPaciente,
   type Cita, type Paciente, type Personal,
   type TipoAtencion, type CondicionPaciente, type EstadoFinanciero
 } from '../api';
@@ -73,12 +73,60 @@ const cleanWhatsAppPhone = (phone: any): string => {
 };
 
 export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Props) {
-  const { clinica } = useClinica();
+  const { clinica, clinicas } = useClinica();
   const { isMobile } = useResponsive();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [personal, setPersonal] = useState<Personal[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modalNuevoPaciente, setModalNuevoPaciente] = useState(false);
+  const [savingPaciente, setSavingPaciente] = useState(false);
+  const [nuevoPacienteForm, setNuevoPacienteForm] = useState({
+    nombre: '',
+    apellido: '',
+    cedula: '',
+    fechaNacimiento: '1995-01-01',
+    telefono: '',
+    tipoReferencia: 'Paciente-Clinica' as const,
+  });
+
+  const handleGuardarNuevoPaciente = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevoPacienteForm.nombre || !nuevoPacienteForm.apellido || !nuevoPacienteForm.cedula) {
+      alert('Nombre, apellido y cédula son obligatorios');
+      return;
+    }
+    setSavingPaciente(true);
+    try {
+      const sedesReales = clinicas.filter(c => c.id !== 'consolidado');
+      const targetClinicaId = clinica.id === 'consolidado' ? (sedesReales[0]?.id || 'la-vina') : clinica.id;
+      const created = await createPaciente({
+        ...nuevoPacienteForm,
+        clinicaId: targetClinicaId,
+        email: '',
+        direccion: '',
+        referidorNombre: '',
+        referidorContacto: '',
+        alergias: false,
+        alergiasDetalle: '',
+      });
+      setPacientes(prev => [created, ...prev]);
+      setForm(f => ({ ...f, pacienteId: created.id }));
+      setModalNuevoPaciente(false);
+      setNuevoPacienteForm({
+        nombre: '',
+        apellido: '',
+        cedula: '',
+        fechaNacimiento: '1995-01-01',
+        telefono: '',
+        tipoReferencia: 'Paciente-Clinica',
+      });
+    } catch (err: any) {
+      alert(`Error al registrar paciente: ${err.message || 'Error desconocido'}`);
+    } finally {
+      setSavingPaciente(false);
+    }
+  };
 
   // Estado para gestión fluida de la segunda notificación (Doctor) sin bloqueos de navegador
   const [pendingDoctorAlert, setPendingDoctorAlert] = useState<{
@@ -360,7 +408,17 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
                   <div className="grid-2">
                     <div className="input-group">
-                      <label>Paciente *</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ margin: 0 }}>Paciente *</label>
+                        <button
+                          type="button"
+                          onClick={() => setModalNuevoPaciente(true)}
+                          className="btn btn-ghost btn-sm"
+                          style={{ fontSize: '0.72rem', padding: '2px 8px', color: 'var(--primary)', height: 'auto', minHeight: 'auto', border: '1px solid var(--border-light)' }}
+                        >
+                          + Nuevo Paciente
+                        </button>
+                      </div>
                       <select id="cita-paciente" name="pacienteId" className="input" required value={form.pacienteId} onChange={e => setForm(f => ({ ...f, pacienteId: e.target.value }))}>
                         <option value="">Seleccione Paciente...</option>
                         {editingCita && !pacientes.find(p => p.id === editingCita.pacienteId) && (
@@ -514,6 +572,85 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
           </motion.div>
         </motion.div>
       )}
+      {/* Modal Rápido de Nuevo Paciente desde Cita */}
+      <AnimatePresence>
+        {modalNuevoPaciente && (
+          <motion.div 
+            className="modal-overlay" 
+            style={{ zIndex: 3000 }}
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            onClick={e => e.target === e.currentTarget && setModalNuevoPaciente(false)}
+          >
+            <motion.div 
+              className="modal" 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 20 }} 
+              style={{ maxWidth: 480 }}
+            >
+              <div className="modal-header">
+                <h3>🦷 Registro Rápido de Paciente</h3>
+                <button type="button" className="btn-close" onClick={() => setModalNuevoPaciente(false)}>✕</button>
+              </div>
+              <form onSubmit={handleGuardarNuevoPaciente}>
+                <div className="modal-body">
+                  <div className="grid-2">
+                    <div className="input-group">
+                      <label>Nombre *</label>
+                      <input 
+                        className="input" 
+                        required 
+                        value={nuevoPacienteForm.nombre} 
+                        onChange={e => setNuevoPacienteForm(f => ({ ...f, nombre: e.target.value }))} 
+                        placeholder="Ej. María"
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Apellido *</label>
+                      <input 
+                        className="input" 
+                        required 
+                        value={nuevoPacienteForm.apellido} 
+                        onChange={e => setNuevoPacienteForm(f => ({ ...f, apellido: e.target.value }))} 
+                        placeholder="Ej. González"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid-2">
+                    <div className="input-group">
+                      <label>Cédula *</label>
+                      <input 
+                        className="input" 
+                        required 
+                        value={nuevoPacienteForm.cedula} 
+                        onChange={e => setNuevoPacienteForm(f => ({ ...f, cedula: e.target.value }))} 
+                        placeholder="Ej. 12345678"
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Teléfono</label>
+                      <input 
+                        className="input" 
+                        value={nuevoPacienteForm.telefono} 
+                        onChange={e => setNuevoPacienteForm(f => ({ ...f, telefono: e.target.value }))} 
+                        placeholder="Ej. 04121234567"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setModalNuevoPaciente(false)}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary" disabled={savingPaciente}>
+                    {savingPaciente ? 'Guardando...' : 'Crear y Seleccionar'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatePresence>
   );
 }
