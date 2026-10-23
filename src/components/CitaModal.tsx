@@ -8,6 +8,7 @@ import {
 } from '../api';
 import { useClinica } from '../contexts/ClinicaContext';
 import { useResponsive } from '../hooks/useResponsive';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Props {
   isOpen: boolean;
@@ -80,11 +81,14 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalNuevoPaciente, setModalNuevoPaciente] = useState(false);
+  const [confirmandoCita, setConfirmandoCita] = useState(false);
+  const [notificacionExitoCita, setNotificacionExitoCita] = useState<string | null>(null);
   const [savingPaciente, setSavingPaciente] = useState(false);
   const [nuevoPacienteForm, setNuevoPacienteForm] = useState({
     nombre: '',
     apellido: '',
     cedula: '',
+    clinicaId: clinica.id === 'consolidado' ? 'la-vina' : clinica.id,
     fechaNacimiento: '1995-01-01',
     telefono: '',
     tipoReferencia: 'Paciente-Clinica' as const,
@@ -96,13 +100,16 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
       alert('Nombre, apellido y cédula son obligatorios');
       return;
     }
+
+    const sedeTarget = clinicas.find(c => c.id === nuevoPacienteForm.clinicaId)?.nombre || clinica.nombre;
+    const confirma = window.confirm(`¿Confirmas registrar al paciente "${nuevoPacienteForm.nombre} ${nuevoPacienteForm.apellido}" en la sede "${sedeTarget}"?`);
+    if (!confirma) return;
+
     setSavingPaciente(true);
     try {
-      const sedesReales = clinicas.filter(c => c.id !== 'consolidado');
-      const targetClinicaId = clinica.id === 'consolidado' ? (sedesReales[0]?.id || 'la-vina') : clinica.id;
       const created = await createPaciente({
         ...nuevoPacienteForm,
-        clinicaId: targetClinicaId,
+        clinicaId: nuevoPacienteForm.clinicaId || (clinica.id === 'consolidado' ? 'la-vina' : clinica.id),
         email: '',
         direccion: '',
         referidorNombre: '',
@@ -113,10 +120,12 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
       setPacientes(prev => [created, ...prev]);
       setForm(f => ({ ...f, pacienteId: created.id }));
       setModalNuevoPaciente(false);
+      alert(`✅ Paciente ${created.nombre} ${created.apellido} registrado exitosamente en la sede "${sedeTarget}".`);
       setNuevoPacienteForm({
         nombre: '',
         apellido: '',
         cedula: '',
+        clinicaId: clinica.id === 'consolidado' ? 'la-vina' : clinica.id,
         fechaNacimiento: '1995-01-01',
         telefono: '',
         tipoReferencia: 'Paciente-Clinica',
@@ -136,6 +145,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
   const hoy = new Date().toLocaleDateString('en-CA');
   const initForm = {
+    clinicaId: clinica.id === 'consolidado' ? 'la-vina' : clinica.id,
     pacienteId: '', 
     doctorId: '', 
     fecha: hoy, 
@@ -171,6 +181,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
 
       if (editingCita) {
         setForm({
+          clinicaId: editingCita.clinicaId || (clinica.id === 'consolidado' ? 'la-vina' : clinica.id),
           pacienteId: editingCita.pacienteId || '',
           doctorId: editingCita.doctorId || '',
           fecha: formatForDateInput(editingCita.fecha),
@@ -232,18 +243,26 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
       `_Notificación automática generada por ErgoDentalVE._`;
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
       alert("⚠️ Error: Faltan datos obligatorios para la cita.\nPor favor seleccione Paciente, Doctor, Fecha y Hora.");
       return;
     }
+    setConfirmandoCita(true);
+  };
+
+  const ejecutarGuardadoCita = async () => {
+    setConfirmandoCita(false);
     setSaving(true);
     setError(null);
 
     try {
+      const targetClinicaId = form.clinicaId || (clinica.id === 'consolidado' ? 'la-vina' : clinica.id);
+      const targetClinicaNombre = clinicas.find(c => c.id === targetClinicaId)?.nombre || clinica.nombre;
+      
       const payload = {
-        clinicaId: clinica.id,
+        clinicaId: targetClinicaId,
         pacienteId: form.pacienteId,
         pacienteNombre: pacSeleccionado ? `${pacSeleccionado.nombre} ${pacSeleccionado.apellido}` : '',
         doctorId: form.doctorId,
@@ -266,6 +285,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
       }
 
       onSaved(result);
+      setNotificacionExitoCita(`✅ Cita agendada exitosamente en la sede: "${targetClinicaNombre}".`);
 
       // PROCESAMIENTO AUTOMÁTICO DE WHATSAPP
       if (form.enviarNotificacionesWhatsApp) {
@@ -400,6 +420,51 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
             ) : (
               <form onSubmit={handleSave}>
                 <div className="modal-body">
+                  {/* Banner de Sede para la Cita */}
+                  <div style={{
+                    background: 'rgba(0, 198, 255, 0.08)',
+                    border: '1px solid rgba(0, 198, 255, 0.35)',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '1.4rem' }}>🏥</span>
+                      <div>
+                        <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.8px' }}>
+                          Sede Asignada para la Cita
+                        </div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {clinicas.find(c => c.id === form.clinicaId)?.nombre || clinica.nombre}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {form.clinicaId === 'consolidado' ? 'Atención asignada a Sede Global' : `Ubicación: ${clinicas.find(c => c.id === form.clinicaId)?.direccion || 'Sede clínica'}`}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Sede Cita:</span>
+                      <select 
+                        id="cita-clinica"
+                        name="clinicaId" 
+                        className="input" 
+                        style={{ padding: '6px 12px', fontSize: '0.82rem', width: 'auto', minWidth: '170px', height: 'auto', borderRadius: '8px' }}
+                        value={form.clinicaId} 
+                        onChange={e => setForm(f => ({ ...f, clinicaId: e.target.value }))}
+                        required
+                      >
+                        {clinicas.map(c => (
+                          <option key={c.id} value={c.id}>{c.nombreCorto} ({c.nombre})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
                   {error && (
                     <div style={{ background: 'var(--danger-dim)', color: 'var(--danger)', padding: '14px 16px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.85rem', border: '1px solid var(--danger)', fontWeight: 600 }}>
                       ⚠️ {error}
@@ -596,6 +661,37 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
               </div>
               <form onSubmit={handleGuardarNuevoPaciente}>
                 <div className="modal-body">
+                  <div style={{
+                    background: 'rgba(0, 198, 255, 0.08)',
+                    border: '1px solid rgba(0, 198, 255, 0.3)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    marginBottom: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '8px'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--primary)' }}>
+                        Sede de Registro del Paciente
+                      </div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 800 }}>
+                        {clinicas.find(c => c.id === nuevoPacienteForm.clinicaId)?.nombre || clinica.nombre}
+                      </div>
+                    </div>
+                    <select 
+                      className="input"
+                      style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto', minWidth: '150px', height: 'auto' }}
+                      value={nuevoPacienteForm.clinicaId}
+                      onChange={e => setNuevoPacienteForm(f => ({ ...f, clinicaId: e.target.value }))}
+                    >
+                      {clinicas.map(c => (
+                        <option key={c.id} value={c.id}>{c.nombreCorto} ({c.nombre})</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="grid-2">
                     <div className="input-group">
                       <label>Nombre *</label>
@@ -648,6 +744,52 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                 </div>
               </form>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+          {/* Diálogo de Confirmación de Sede para Agendar Cita */}
+      <ConfirmDialog 
+        isOpen={confirmandoCita} 
+        title="🏥 Confirmar Sede de la Cita" 
+        message={`¿Confirmas que deseas agendar la cita para el paciente "${pacSeleccionado ? `${pacSeleccionado.nombre} ${pacSeleccionado.apellido}` : 'Paciente'}" con el doctor "${docSeleccionado ? `${docSeleccionado.nombre} ${docSeleccionado.apellido}` : 'Especialista'}" en la sede: "${clinicas.find(c => c.id === form.clinicaId)?.nombre || clinica.nombre}" el día ${formatFechaLegible(form.fecha)} a las ${formatHora12(form.hora)}?`}
+        onConfirm={ejecutarGuardadoCita}
+        onCancel={() => setConfirmandoCita(false)}
+        confirmText="Sí, Confirmar y Agendar"
+        type="info"
+      />
+
+      {/* Notificación de Éxito de Cita */}
+      <AnimatePresence>
+        {notificacionExitoCita && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              zIndex: 12000,
+              background: 'linear-gradient(135deg, #059669, #10b981)',
+              color: '#ffffff',
+              padding: '14px 20px',
+              borderRadius: '12px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}
+          >
+            <span>{notificacionExitoCita}</span>
+            <button 
+              type="button" 
+              onClick={() => setNotificacionExitoCita(null)} 
+              style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1rem', marginLeft: '8px' }}
+            >
+              ✕
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

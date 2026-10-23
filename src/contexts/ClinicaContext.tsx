@@ -35,7 +35,7 @@ export function ClinicaProvider({ children }: { children: React.ReactNode }) {
   // Lógica de permisos y auto-selección
   useEffect(() => {
     if (!user) return;
-    const esAutorizado = user.rol === 'ADMIN' || user.rol === 'DOCTOR' || user.permisosMultiClinica === true;
+    const esAutorizado = user.rol === 'ADMIN' || user.rol === 'DOCTOR' || user.rol === 'RECEPCION' || user.permisosMultiClinica === true;
     
     // Si NO es autorizado y tiene una clínica asignada, forzar esa clínica
     if (!esAutorizado && user.clinicaId) {

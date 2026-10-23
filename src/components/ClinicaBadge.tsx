@@ -9,7 +9,7 @@ export default function ClinicaBadge({ variant = 'default' }: { variant?: 'defau
   const { clinica, clinicas, cambiarClinica } = useClinica();
   const [open, setOpen] = useState(false);
 
-  const esAutorizado = user?.rol === 'ADMIN' || user?.rol === 'DOCTOR' || user?.permisosMultiClinica === true;
+  const esAutorizado = user?.rol === 'ADMIN' || user?.rol === 'DOCTOR' || user?.rol === 'RECEPCION' || user?.permisosMultiClinica === true;
   const isCompact = variant === 'compact';
 
   return (

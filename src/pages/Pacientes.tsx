@@ -79,6 +79,15 @@ export default function Pacientes() {
   const [modal, setModal]             = useState(false);
   const [detalleId, setDetalleId]     = useState<string | null>(null);
   const [saving, setSaving]           = useState(false);
+  const [confirmandoGuardado, setConfirmandoGuardado] = useState(false);
+  const [notificacionExito, setNotificacionExito]     = useState<string | null>(null);
+
+  useEffect(() => {
+    if (notificacionExito) {
+      const timer = setTimeout(() => setNotificacionExito(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notificacionExito]);
   const [editingId, setEditingId]     = useState<string | null>(null);
   const [deletingId, setDeletingId]   = useState<string | null>(null);
   const [tab, setTab]                 = useState<'datos'|'evolucion'|'galeria'|'cuentas'>('datos');
@@ -110,30 +119,38 @@ export default function Pacientes() {
 
   const isFormValid = !!(form.nombre && form.apellido && form.cedula && form.fechaNacimiento && (!form.alergias || form.alergiasDetalle));
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
       alert("⚠️ Error: Faltan campos obligatorios.\nPor favor complete: Nombre, Apellido, Cédula y Fecha de Nacimiento.");
       return;
     }
     
-    try {
-      if (!editingId) {
-        const cedulaBuscada = String(form.cedula || '').trim().toLowerCase();
-        const existe = pacientes.find(p => String(p?.cedula || '').trim().toLowerCase() === cedulaBuscada);
-        if (existe) {
-          alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}.`);
-          return;
-        }
+    if (!editingId) {
+      const cedulaBuscada = String(form.cedula || '').trim().toLowerCase();
+      const existe = pacientes.find(p => String(p?.cedula || '').trim().toLowerCase() === cedulaBuscada);
+      if (existe) {
+        alert(`⚠️ Ya existe un paciente con la cédula ${form.cedula}.`);
+        return;
       }
+    }
 
-      setSaving(true);
+    setConfirmandoGuardado(true);
+  };
+
+  const ejecutarGuardado = async () => {
+    setConfirmandoGuardado(false);
+    setSaving(true);
+    try {
+      const sedeNombre = clinicas.find(c => c.id === form.clinicaId)?.nombre || clinica.nombre;
       if (editingId) {
         const actualizado = await updatePaciente({ ...form, id: editingId });
         setPacientes(prev => prev.map(p => p.id === editingId ? actualizado : p));
+        setNotificacionExito(`✅ Paciente ${actualizado.nombre} ${actualizado.apellido} actualizado en sede: "${sedeNombre}".`);
       } else {
         const nuevo = await createPaciente(form);
         setPacientes(prev => [nuevo, ...prev]);
+        setNotificacionExito(`✅ Paciente ${nuevo.nombre} ${nuevo.apellido} registrado exitosamente en sede: "${sedeNombre}".`);
       }
       closeModal();
     } catch (err: any) {
@@ -519,23 +536,50 @@ export default function Pacientes() {
               </div>
               <form onSubmit={handleSave}>
                 <div className="modal-body">
-                  {sedesReales.length > 0 && (
-                    <div className="input-group" style={{ marginBottom: '14px' }}>
-                      <label>Sede Clínica Asignada *</label>
+                  {/* Banner de Sede con Selector para Recepción / Doctores */}
+                  <div style={{
+                    background: 'rgba(0, 198, 255, 0.08)',
+                    border: '1px solid rgba(0, 198, 255, 0.35)',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '1.4rem' }}>📍</span>
+                      <div>
+                        <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.8px' }}>
+                          Sede de Registro del Paciente
+                        </div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {clinicas.find(c => c.id === form.clinicaId)?.nombre || clinica.nombre}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {form.clinicaId === 'consolidado' ? 'Visible en todas las sedes (Global)' : 'Asignado específicamente a esta clínica'}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Sede:</span>
                       <select 
                         id="paciente-clinica"
                         name="clinicaId" 
                         className="input" 
+                        style={{ padding: '6px 12px', fontSize: '0.82rem', width: 'auto', minWidth: '170px', height: 'auto', borderRadius: '8px' }}
                         value={form.clinicaId} 
                         onChange={e => setForm(f => ({ ...f, clinicaId: e.target.value }))}
                         required
                       >
-                        {sedesReales.map(c => (
-                          <option key={c.id} value={c.id}>{c.nombre}</option>
+                        {clinicas.map(c => (
+                          <option key={c.id} value={c.id}>{c.nombreCorto} ({c.nombre})</option>
                         ))}
                       </select>
                     </div>
-                  )}
+                  </div>
                   <div className="grid-2">
                     <div className="input-group"><label>Nombre *</label><input id="paciente-nombre" name="nombre" className="input" required value={form.nombre} onChange={e=>setForm(f=>({...f,nombre:e.target.value}))} /></div>
                     <div className="input-group"><label>Apellido *</label><input id="paciente-apellido" name="apellido" className="input" required value={form.apellido} onChange={e=>setForm(f=>({...f,apellido:e.target.value}))} /></div>
@@ -584,6 +628,52 @@ export default function Pacientes() {
           </motion.div>
         )}
       </AnimatePresence>
+
+            {/* Notificación Flotante de Confirmación de Sede */}
+      <AnimatePresence>
+        {notificacionExito && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              zIndex: 12000,
+              background: 'linear-gradient(135deg, #059669, #10b981)',
+              color: '#ffffff',
+              padding: '14px 20px',
+              borderRadius: '12px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}
+          >
+            <span>{notificacionExito}</span>
+            <button 
+              type="button" 
+              onClick={() => setNotificacionExito(null)} 
+              style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1rem', marginLeft: '8px' }}
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ConfirmDialog 
+        isOpen={confirmandoGuardado} 
+        title="📍 Confirmar Sede de Registro de Paciente" 
+        message={`¿Confirmas que deseas ${editingId ? 'actualizar' : 'registrar'} al paciente "${form.nombre} ${form.apellido}" (Cédula: ${form.cedula}) en la sede: "${clinicas.find(c => c.id === form.clinicaId)?.nombre || clinica.nombre}"?`}
+        onConfirm={ejecutarGuardado}
+        onCancel={() => setConfirmandoGuardado(false)}
+        confirmText={editingId ? "Sí, Actualizar" : "Sí, Confirmar y Registrar"}
+        type="info"
+      />
 
       <ConfirmDialog 
         isOpen={!!deletingId} 
