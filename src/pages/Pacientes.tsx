@@ -117,12 +117,12 @@ export default function Pacientes() {
     getPresupuestos().then(setPresupuestos);
   }, [clinica.id]);
 
-  const isFormValid = !!(form.nombre && form.apellido && form.cedula && form.fechaNacimiento && (!form.alergias || form.alergiasDetalle));
+  const isFormValid = !!(form.nombre && form.apellido && form.cedula && (!form.alergias || form.alergiasDetalle));
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
-      alert("⚠️ Error: Faltan campos obligatorios.\nPor favor complete: Nombre, Apellido, Cédula y Fecha de Nacimiento.");
+      alert("⚠️ Error: Faltan campos obligatorios.\nPor favor complete los datos básicos obligatorios: Nombre, Apellido y Cédula.");
       return;
     }
     
@@ -304,7 +304,9 @@ export default function Pacientes() {
                         <span style={{ opacity: 0.4 }}>🆔</span>
                         <span>V-{p.cedula}</span>
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{calcularEdad(p.fechaNacimiento)} Años</div>
+                      <div style={{ fontSize: '0.72rem', color: p.fechaNacimiento ? 'var(--text-muted)' : 'var(--warning)', fontWeight: p.fechaNacimiento ? 400 : 600 }}>
+                        {p.fechaNacimiento ? `${calcularEdad(p.fechaNacimiento)}` : '⚠️ Fecha nac. por completar'}
+                      </div>
                     </td>
                     <td className="hide-mobile">
                       <div style={{ fontSize: '0.88rem', fontWeight: 500 }}>{p.telefono || '—'}</div>
@@ -412,7 +414,7 @@ export default function Pacientes() {
                     <div className="grid-2" style={{ gap:'12px' }}>
                        {[
                         ['🪪 Cédula', detalle.cedula],
-                        ['🎂 Edad', calcularEdad(detalle.fechaNacimiento)],
+                        ['🎂 Fecha Nac. / Edad', detalle.fechaNacimiento ? `${detalle.fechaNacimiento} (${calcularEdad(detalle.fechaNacimiento)})` : '⚠️ Pendiente por completar'],
                         ['📞 Teléfono', detalle.telefono],
                         ['✉️ Email', detalle.email],
                         ['📍 Dirección', detalle.direccion],
@@ -586,7 +588,20 @@ export default function Pacientes() {
                   </div>
                   <div className="grid-2">
                     <div className="input-group"><label>Cédula *</label><input id="paciente-cedula" name="cedula" className="input" required placeholder="V-12345678" value={form.cedula} onChange={e=>setForm(f=>({...f,cedula:e.target.value}))} /></div>
-                    <div className="input-group"><label>Fecha de nacimiento *</label><input id="paciente-fecha-nacimiento" name="fechaNacimiento" className="input" type="date" value={form.fechaNacimiento} onChange={e=>setForm(f=>({...f,fechaNacimiento:e.target.value}))} /></div>
+                    <div className="input-group">
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Fecha de nacimiento</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>(Completar luego si no se tiene a mano)</span>
+                      </label>
+                      <input 
+                        id="paciente-fecha-nacimiento" 
+                        name="fechaNacimiento" 
+                        className="input" 
+                        type="date" 
+                        value={form.fechaNacimiento} 
+                        onChange={e => setForm(f => ({ ...f, fechaNacimiento: e.target.value }))} 
+                      />
+                    </div>
                   </div>
                   <div className="grid-2">
                     <div className="input-group"><label>Teléfono</label><input id="paciente-telefono" name="telefono" className="input" placeholder="0412-1234567" value={form.telefono} onChange={e=>setForm(f=>({...f,telefono:e.target.value}))} /></div>

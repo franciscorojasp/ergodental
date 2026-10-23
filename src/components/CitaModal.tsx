@@ -89,7 +89,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
     apellido: '',
     cedula: '',
     clinicaId: clinica.id === 'consolidado' ? 'la-vina' : clinica.id,
-    fechaNacimiento: '1995-01-01',
+    fechaNacimiento: '',
     telefono: '',
     tipoReferencia: 'Paciente-Clinica' as const,
   });
@@ -126,7 +126,7 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
         apellido: '',
         cedula: '',
         clinicaId: clinica.id === 'consolidado' ? 'la-vina' : clinica.id,
-        fechaNacimiento: '1995-01-01',
+        fechaNacimiento: '',
         telefono: '',
         tipoReferencia: 'Paciente-Clinica',
       });
@@ -732,6 +732,20 @@ export default function CitaModal({ isOpen, onClose, onSaved, editingCita }: Pro
                         value={nuevoPacienteForm.telefono} 
                         onChange={e => setNuevoPacienteForm(f => ({ ...f, telefono: e.target.value }))} 
                         placeholder="Ej. 04121234567"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid-1" style={{ marginTop: '10px' }}>
+                    <div className="input-group">
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Fecha de Nacimiento</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>(Opcional / Por completar)</span>
+                      </label>
+                      <input 
+                        type="date"
+                        className="input" 
+                        value={nuevoPacienteForm.fechaNacimiento} 
+                        onChange={e => setNuevoPacienteForm(f => ({ ...f, fechaNacimiento: e.target.value }))} 
                       />
                     </div>
                   </div>
