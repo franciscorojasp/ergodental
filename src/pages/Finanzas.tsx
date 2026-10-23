@@ -4,9 +4,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   getPagos, getEgresos, createPago, createEgreso,
-  getPacientes, getProveedores, getPersonal,
+  getPacientes, getProveedores, getPersonal, getCitas,
   calcularComision, TABLA_REFERENCIAS, BANCOS_VE,
-  type Pago, type Egreso, type Paciente, type Proveedor, type Personal,
+  type Pago, type Egreso, type Paciente, type Proveedor, type Personal, type Cita,
   type MetodoPago, type TipoReferencia,
 } from '../api';
 import { useMoneda } from '../contexts/MonedaContext';
@@ -90,12 +90,14 @@ export default function Finanzas(){
   const [egresos,setEgresos]             = useState<Egreso[]>([]);
   const [pacientes,setPacientes]         = useState<Paciente[]>([]);
   const [personal,setPersonal]           = useState<Personal[]>([]);
+  const [citas,setCitas]                 = useState<Cita[]>([]);
   const [proveedores,setProveedores]     = useState<Proveedor[]>([]);
   const [modalPago,setModalPago]         = useState(false);
   const [modalReportePagos,setModalReportePagos] = useState(false);
   const [modalEgreso,setModalEgreso]     = useState(false);
   const [expandedPago,setExpandedPago]   = useState<string|null>(null);
   const [saving,setSaving]               = useState(false);
+  const [citaDetectada,setCitaDetectada] = useState<Cita|null>(null);
   // Doctor detail expand in doctores tab
   const [doctorExpanded,setDoctorExpanded] = useState<string|null>(null);
 
@@ -107,7 +109,7 @@ export default function Finanzas(){
   const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
   const [formPago,setFormPago]=useState({
-    pacienteId:'', doctorId:'', concepto:'', monto:0, tasaCambio:tasaBCV,
+    pacienteId:'', doctorId:'', doctorNombreManual:'', citaId:'', concepto:'', monto:0, tasaCambio:tasaBCV,
     metodoPago:'Pago Móvil' as MetodoPago,
     tipoPago:'Contado' as Pago['tipoPago'],
     diasCredito:15 as typeof DIAS_CREDITO[number],
@@ -129,20 +131,99 @@ export default function Finanzas(){
     getPagos().then(data => setPagos(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
     getEgresos().then(data => setEgresos(data.filter(e => clinica.id === 'consolidado' || e.clinicaId === clinica.id)));
     getPacientes().then(data => setPacientes(data.filter(p => clinica.id === 'consolidado' || p.clinicaId === clinica.id)));
-    getPersonal().then(data => setPersonal(data.filter(p => (clinica.id === 'consolidado' || p.clinicaId === clinica.id) && p.tipo==='Odontólogo'&& p.activo)));
+    getCitas().then(data => setCitas(data));
+    getPersonal().then(data => {
+      const doctores = data.filter(p => {
+        const tipo = String(p.tipo || '').toLowerCase();
+        const esp = String(p.especialidad || '').toLowerCase();
+        const esMed = tipo.includes('odont') || tipo.includes('doc') || tipo.includes('médic') || tipo.includes('ciruj') || tipo.includes('especial') || esp.length > 0;
+        const activo = p.activo !== false;
+        return esMed && activo;
+      });
+      setPersonal(doctores);
+    });
     getProveedores().then(data => setProveedores(data.filter(x => (clinica.id === 'consolidado' || x.clinicaId === clinica.id) && x.activo)));
   },[clinica.id]);
+
+  // Lista unificada de médicos disponibles cruzando personal, citas y sedes
+  const doctoresDisponibles = useMemo(() => {
+    const map = new Map<string, { id: string; nombre: string; especialidad?: string; sede?: string }>();
+    
+    // 1. Médicos registrados en personal
+    personal.forEach(p => {
+      const sede = clinicas.find(c => c.id === p.clinicaId)?.nombreCorto || '';
+      map.set(p.id, {
+        id: p.id,
+        nombre: `${p.nombre} ${p.apellido}`.trim(),
+        especialidad: p.especialidad || '',
+        sede
+      });
+    });
+
+    // 2. Médicos registrados en citas
+    citas.forEach(c => {
+      if (c.doctorId && c.doctorNombre && !map.has(c.doctorId)) {
+        const sede = clinicas.find(cl => cl.id === c.clinicaId)?.nombreCorto || '';
+        map.set(c.doctorId, {
+          id: c.doctorId,
+          nombre: c.doctorNombre.trim(),
+          especialidad: '',
+          sede
+        });
+      }
+    });
+
+    // 3. Médicos registrados en pagos históricos
+    pagos.forEach(p => {
+      if (p.doctorId && p.doctorNombre && !map.has(p.doctorId)) {
+        const sede = clinicas.find(cl => cl.id === p.clinicaId)?.nombreCorto || '';
+        map.set(p.doctorId, {
+          id: p.doctorId,
+          nombre: p.doctorNombre.trim(),
+          especialidad: '',
+          sede
+        });
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [personal, citas, pagos, clinicas]);
 
   // Auto-fill referral + doctor from patient + appointment
   const onPacienteChange=(id:string)=>{
     const pac=pacientes.find(p=>p.id===id);
-    setFormPago(f=>({...f,pacienteId:id,tipoReferencia:pac?.tipoReferencia||'',referidorNombre:pac?.referidorNombre||''}));
+    // Buscar citas del paciente ordenadas por fecha más reciente
+    const citasPaciente = citas
+      .filter(c => c.pacienteId === id)
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+    const citaReciente = citasPaciente.find(c => {
+      const f = String(c.fecha || '').split('T')[0];
+      return f === hoy;
+    }) || citasPaciente[0];
+
+    setCitaDetectada(citaReciente || null);
+
+    setFormPago(f=>({
+      ...f,
+      pacienteId: id,
+      citaId: citaReciente?.id || '',
+      doctorId: citaReciente?.doctorId || f.doctorId,
+      doctorNombreManual: '',
+      concepto: f.concepto ? f.concepto : (citaReciente?.motivo || ''),
+      tipoReferencia: pac?.tipoReferencia || citaReciente?.tipoReferencia || f.tipoReferencia,
+      referidorNombre: pac?.referidorNombre || citaReciente?.referidorNombre || f.referidorNombre,
+      clinicaId: clinica.id === 'consolidado' ? (citaReciente?.clinicaId || pac?.clinicaId || f.clinicaId) : f.clinicaId
+    }));
   };
 
   const openModalPago = () => {
+    setCitaDetectada(null);
     setFormPago({
       pacienteId: '',
       doctorId: '',
+      doctorNombreManual: '',
+      citaId: '',
       concepto: '',
       monto: 0,
       tasaCambio: tasaBCV,
@@ -252,24 +333,48 @@ export default function Finanzas(){
 
   const totalHonorarios=doctoresData.reduce((s,d)=>s+d.honorarios,0);
 
-  const isFormPagoValid = !!(formPago.pacienteId && formPago.doctorId && formPago.concepto && formPago.monto > 0 && formPago.fecha);
+  const isDoctorSelected = formPago.doctorId === 'otro' 
+    ? !!formPago.doctorNombreManual?.trim() 
+    : !!formPago.doctorId;
+
+  const isFormPagoValid = !!(
+    formPago.pacienteId && 
+    isDoctorSelected && 
+    formPago.concepto && 
+    formPago.monto > 0 && 
+    formPago.fecha
+  );
   const isFormEgresoValid = !!(formEgreso.concepto && formEgreso.monto > 0 && formEgreso.categoria && formEgreso.fecha && formEgreso.clinicaId);
 
   // Guardar ingreso
   const handleSavePago=async(e:React.FormEvent)=>{
     e.preventDefault();
     if (!isFormPagoValid) {
-      alert("⚠️ Error: Faltan datos obligatorios para el ingreso.\nPor favor complete: Paciente, Doctor, Concepto, Monto y Fecha.");
+      alert("⚠️ Error: Faltan datos obligatorios para el ingreso.\nPor favor complete: Paciente, Doctor tratante, Concepto, Monto y Fecha.");
       return;
     }
     setSaving(true);
     try{
       const pac=pacientes.find(p=>p.id===formPago.pacienteId);
-      const doc=personal.find(p=>p.id===formPago.doctorId);
+      const docEncontrado = doctoresDisponibles.find(d => d.id === formPago.doctorId);
+
+      let finalDoctorId: string | undefined = undefined;
+      let finalDoctorNombre: string | undefined = undefined;
+
+      if (formPago.doctorId === 'otro') {
+        finalDoctorNombre = formPago.doctorNombreManual?.trim();
+      } else if (docEncontrado) {
+        finalDoctorId = docEncontrado.id;
+        finalDoctorNombre = docEncontrado.nombre;
+      } else if (citaDetectada?.doctorId === formPago.doctorId) {
+        finalDoctorId = citaDetectada.doctorId;
+        finalDoctorNombre = citaDetectada.doctorNombre;
+      }
+
       const targetClinicaId = formPago.clinicaId || (clinica.id === 'consolidado' ? (pac?.clinicaId || 'la-vina') : clinica.id);
       const sedeNombre = clinicas.find(c => c.id === targetClinicaId)?.nombre || clinica.nombre;
       
-      const confirma = window.confirm(`¿Confirmas registrar el ingreso de ${fmt(formPago.monto)} para el paciente "${pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente'}" en la sede "${sedeNombre}"?`);
+      const confirma = window.confirm(`¿Confirmas registrar el ingreso de ${fmt(formPago.monto)} para el paciente "${pac ? `${pac.nombre} ${pac.apellido}` : 'Paciente'}" en la sede "${sedeNombre}" con el médico "${finalDoctorNombre || 'Doctor Asignado'}"?`);
       if (!confirma) {
         setSaving(false);
         return;
@@ -280,6 +385,7 @@ export default function Finanzas(){
         clinicaId: targetClinicaId,
         pacienteId:formPago.pacienteId,
         pacienteNombre:pac?`${pac.nombre} ${pac.apellido}`:'',
+        citaId: formPago.citaId || undefined,
         concepto:formPago.concepto,monto:formPago.monto,
         montoBs:METODO_GROUP[formPago.metodoPago]==='Bolívares'?formPago.monto*formPago.tasaCambio:0,
         tasaCambio:formPago.tasaCambio,metodoPago:formPago.metodoPago,
@@ -290,8 +396,8 @@ export default function Finanzas(){
         notas:formPago.notas,
         tipoReferencia:(formPago.tipoReferencia||undefined) as TipoReferencia|undefined,
         referidorNombre:formPago.referidorNombre||undefined,
-        doctorId:formPago.doctorId||undefined,
-        doctorNombre:doc?`${doc.nombre} ${doc.apellido}`:undefined,
+        doctorId:finalDoctorId,
+        doctorNombre:finalDoctorNombre,
         // Detailed fields
         bancoEmisor: formPago.bancoEmisor || undefined,
         numeroReferencia: formPago.numeroReferencia || undefined,
@@ -877,18 +983,53 @@ export default function Finanzas(){
                     <div className="input-group">
                       <label>Paciente *</label>
                       <select className="input" required value={formPago.pacienteId} onChange={e=>onPacienteChange(e.target.value)}>
-                        <option value="">Seleccionar...</option>
+                        <option value="">Seleccionar paciente...</option>
                         {pacientes.map(p=><option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
                       </select>
                     </div>
                     <div className="input-group">
-                      <label>Doctor *</label>
-                      <select className="input" required value={formPago.doctorId} onChange={e=>setFormPago(f=>({...f,doctorId:e.target.value}))}>
-                        <option value="">Seleccionar...</option>
-                        {personal.map(p=><option key={p.id} value={p.id}>{p.nombre} {p.apellido}{p.especialidad?` — ${p.especialidad}`:''}</option>)}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label style={{ margin: 0 }}>Doctor Tratante *</label>
+                        {citaDetectada && (
+                          <span style={{ fontSize: '0.68rem', color: 'var(--success)', fontWeight: 700 }}>
+                            ✓ Cita detectada
+                          </span>
+                        )}
+                      </div>
+                      <select 
+                        className="input" 
+                        required 
+                        value={formPago.doctorId} 
+                        onChange={e=>setFormPago(f=>({...f,doctorId:e.target.value}))}
+                      >
+                        <option value="">Seleccionar médico...</option>
+                        {doctoresDisponibles.map(p=>(
+                          <option key={p.id} value={p.id}>
+                            {p.nombre}{p.especialidad ? ` — ${p.especialidad}` : ''}{p.sede ? ` (${p.sede})` : ''}
+                          </option>
+                        ))}
+                        <option value="otro">➕ Otro médico / Especialista externo...</option>
                       </select>
                     </div>
                   </div>
+                  {formPago.doctorId === 'otro' && (
+                    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="input-group" style={{ marginBottom: '14px' }}>
+                      <label>Nombre del Médico o Especialista Externo *</label>
+                      <input 
+                        className="input" 
+                        required 
+                        placeholder="Ej: Dr. Alejandro Morales (Cirujano)" 
+                        value={formPago.doctorNombreManual} 
+                        onChange={e => setFormPago(f => ({ ...f, doctorNombreManual: e.target.value }))}
+                      />
+                    </motion.div>
+                  )}
+                  {citaDetectada && (
+                    <div style={{ margin: '-4px 0 12px 0', padding: '6px 12px', background: 'rgba(0, 212, 255, 0.08)', borderRadius: '8px', border: '1px solid rgba(0, 212, 255, 0.2)', fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>💡 <strong>Cita asociada:</strong> {citaDetectada.motivo || 'Consulta'} con {citaDetectada.doctorNombre || 'Doctor'}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{String(citaDetectada.fecha).split('T')[0]}</span>
+                    </div>
+                  )}
                   <div className="input-group">
                     <label>Concepto *</label>
                     <input id="pago-concepto" name="concepto" className="input" required value={formPago.concepto} onChange={e=>setFormPago(f=>({...f,concepto:e.target.value}))} placeholder="Ej: Limpieza dental, Ortodoncia mensualidad..."/>
@@ -972,7 +1113,7 @@ export default function Finanzas(){
                         <DesgloseBar monto={formPago.monto} tipoReferencia={formPago.tipoReferencia as TipoReferencia} fmt={fmt}/>
                         {formPago.doctorId&&(
                           <div style={{marginTop:'8px',padding:'8px',background:'rgba(0,255,100,0.06)',borderRadius:'6px',fontSize:'0.82rem'}}>
-                            <span style={{color:'var(--text-muted)'}}>👨‍⚕️ Honorario doctor ({personal.find(p=>p.id===formPago.doctorId)?.nombre}): </span>
+                            <span style={{color:'var(--text-muted)'}}>👨‍⚕️ Honorario doctor ({doctoresDisponibles.find(p=>p.id===formPago.doctorId)?.nombre || formPago.doctorNombreManual || 'Doctor'}): </span>
                             <strong style={{color:'var(--success)',fontSize:'1rem'}}>{fmt(desglosePreview.profesional)}</strong>
                             <span style={{color:'var(--text-muted)'}}> ({desglosePreview.pctProfesionalEfectivo}% del total)</span>
                           </div>
