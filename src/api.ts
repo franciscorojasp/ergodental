@@ -231,8 +231,12 @@ export function saveToSyncQueue(action: Omit<SyncAction, 'id' | 'timestamp'>) {
 
 let isSyncing = false;
 
+export const isDbConnected = () => {
+  return VITE_USE_GOOGLE_SHEETS || IS_SUPABASE_CONNECTED;
+};
+
 export async function processSyncQueue() {
-  if (isSyncing || !IS_SUPABASE_CONNECTED || typeof window === 'undefined' || !navigator.onLine) return;
+  if (isSyncing || !isDbConnected() || typeof window === 'undefined' || !navigator.onLine) return;
   
   const queue: SyncAction[] = JSON.parse(localStorage.getItem('ergo_sync_queue') || '[]');
   if (queue.length === 0) return;
@@ -349,7 +353,7 @@ export async function withOfflineSync<T>(
 ): Promise<T> {
   const isTargetOffline = typeof window === 'undefined' || !navigator.onLine;
   
-  if (isTargetOffline || !IS_SUPABASE_CONNECTED) {
+  if (isTargetOffline || !isDbConnected()) {
     if (typeof window !== 'undefined') saveToSyncQueue({ table, action, payload });
     return optimisticData;
   }
