@@ -1,5 +1,5 @@
 // src/lib/googleSheets.ts
-export const VITE_USE_GOOGLE_SHEETS = import.meta.env.VITE_USE_GOOGLE_SHEETS === 'true';
+export const VITE_USE_GOOGLE_SHEETS = import.meta.env.VITE_USE_GOOGLE_SHEETS !== 'false';
 export const VITE_GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMNPqieaiE02GiA0wwQSmWM7D2qA3h1k21BdJCGf78CeTK19G36lWtNz36e_gjqSVX/exec';
 const API_KEY = 'ERGO_SECRET_2024';
 
