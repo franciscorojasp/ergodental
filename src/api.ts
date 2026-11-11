@@ -78,8 +78,12 @@ export function sanitizeData(payload: any): any {
   return payload;
 }
 
-// Mantenemos la constante para compatibilidad, pero ahora es dinámica
-export const IS_DEMO_MODE = !IS_SUPABASE_CONNECTED;
+export const isDbConnected = () => {
+  return VITE_USE_GOOGLE_SHEETS || IS_SUPABASE_CONNECTED;
+};
+
+// Mantenemos la constante para compatibilidad con la UI de estado
+export const IS_DEMO_MODE = !isDbConnected();
 
 export function getSyncQueueCount(): number {
   if (typeof window === 'undefined') return 0;
@@ -230,10 +234,6 @@ export function saveToSyncQueue(action: Omit<SyncAction, 'id' | 'timestamp'>) {
 }
 
 let isSyncing = false;
-
-export const isDbConnected = () => {
-  return VITE_USE_GOOGLE_SHEETS || IS_SUPABASE_CONNECTED;
-};
 
 export async function processSyncQueue() {
   if (isSyncing || !isDbConnected() || typeof window === 'undefined' || !navigator.onLine) return;
